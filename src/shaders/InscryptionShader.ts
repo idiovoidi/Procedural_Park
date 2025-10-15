@@ -83,38 +83,37 @@ vec3 chromaticAberration(sampler2D tex, vec2 uv) {
     return vec3(r, g, b);
 }
 
-// Bayer matrix dithering for pixel art effect
+// Simplified Bayer matrix dithering for better compatibility
 float bayerDither(vec2 uv) {
-    // 4x4 Bayer matrix
-    mat4 bayerMatrix = mat4(
-        0.0/16.0,  8.0/16.0,  2.0/16.0, 10.0/16.0,
-        12.0/16.0, 4.0/16.0, 14.0/16.0,  6.0/16.0,
-        3.0/16.0, 11.0/16.0,  1.0/16.0,  9.0/16.0,
-        15.0/16.0, 7.0/16.0, 13.0/16.0,  5.0/16.0
-    );
+    // Use a simpler approach that's more compatible across GLSL versions
+    vec2 pos = floor(mod(uv * resolution, 4.0));
     
-    vec2 pos = floor(uv * resolution / 4.0);
-    int x = int(mod(pos.x, 4.0));
-    int y = int(mod(pos.y, 4.0));
-    
-    // Manual matrix lookup (GLSL doesn't support dynamic indexing easily)
+    // 4x4 Bayer matrix values as individual comparisons
     float threshold = 0.0;
-    if (x == 0 && y == 0) threshold = bayerMatrix[0][0];
-    else if (x == 1 && y == 0) threshold = bayerMatrix[0][1];
-    else if (x == 2 && y == 0) threshold = bayerMatrix[0][2];
-    else if (x == 3 && y == 0) threshold = bayerMatrix[0][3];
-    else if (x == 0 && y == 1) threshold = bayerMatrix[1][0];
-    else if (x == 1 && y == 1) threshold = bayerMatrix[1][1];
-    else if (x == 2 && y == 1) threshold = bayerMatrix[1][2];
-    else if (x == 3 && y == 1) threshold = bayerMatrix[1][3];
-    else if (x == 0 && y == 2) threshold = bayerMatrix[2][0];
-    else if (x == 1 && y == 2) threshold = bayerMatrix[2][1];
-    else if (x == 2 && y == 2) threshold = bayerMatrix[2][2];
-    else if (x == 3 && y == 2) threshold = bayerMatrix[2][3];
-    else if (x == 0 && y == 3) threshold = bayerMatrix[3][0];
-    else if (x == 1 && y == 3) threshold = bayerMatrix[3][1];
-    else if (x == 2 && y == 3) threshold = bayerMatrix[3][2];
-    else if (x == 3 && y == 3) threshold = bayerMatrix[3][3];
+    
+    // Row 0
+    if (pos.x < 1.0 && pos.y < 1.0) threshold = 0.0/16.0;
+    else if (pos.x < 2.0 && pos.y < 1.0) threshold = 8.0/16.0;
+    else if (pos.x < 3.0 && pos.y < 1.0) threshold = 2.0/16.0;
+    else if (pos.x < 4.0 && pos.y < 1.0) threshold = 10.0/16.0;
+    
+    // Row 1
+    else if (pos.x < 1.0 && pos.y < 2.0) threshold = 12.0/16.0;
+    else if (pos.x < 2.0 && pos.y < 2.0) threshold = 4.0/16.0;
+    else if (pos.x < 3.0 && pos.y < 2.0) threshold = 14.0/16.0;
+    else if (pos.x < 4.0 && pos.y < 2.0) threshold = 6.0/16.0;
+    
+    // Row 2
+    else if (pos.x < 1.0 && pos.y < 3.0) threshold = 3.0/16.0;
+    else if (pos.x < 2.0 && pos.y < 3.0) threshold = 11.0/16.0;
+    else if (pos.x < 3.0 && pos.y < 3.0) threshold = 1.0/16.0;
+    else if (pos.x < 4.0 && pos.y < 3.0) threshold = 9.0/16.0;
+    
+    // Row 3
+    else if (pos.x < 1.0 && pos.y < 4.0) threshold = 15.0/16.0;
+    else if (pos.x < 2.0 && pos.y < 4.0) threshold = 7.0/16.0;
+    else if (pos.x < 3.0 && pos.y < 4.0) threshold = 13.0/16.0;
+    else threshold = 5.0/16.0;
     
     return threshold;
 }
@@ -123,28 +122,20 @@ float bayerDither(vec2 uv) {
 vec2 pixelate(vec2 uv, float pixelSize) {
     if (pixelSize <= 1.0) return uv;
     
+    // More aggressive pixelation for visibility
     vec2 pixelatedUV = floor(uv * resolution / pixelSize) * pixelSize / resolution;
     return pixelatedUV;
 }
 
-// CRT screen curvature distortion
-vec2 crtDistortion(vec2 uv, float curvature) {
-    if (curvature <= 0.0) return uv;
-    
-    vec2 center = uv - 0.5;
-    float dist = length(center);
-    
-    // Apply barrel distortion
-    vec2 distorted = center * (1.0 + curvature * dist * dist);
-    return distorted + 0.5;
-}
+
 
 // CRT scanlines effect
 float scanlines(vec2 uv, float intensity) {
     if (intensity <= 0.0) return 1.0;
     
-    float scanline = sin(uv.y * resolution.y * 2.0) * 0.5 + 0.5;
-    return mix(1.0, scanline, intensity * 0.3);
+    // Make scanlines more visible
+    float scanline = sin(uv.y * resolution.y * 1.5) * 0.5 + 0.5;
+    return mix(1.0, scanline * 0.7 + 0.3, intensity);
 }
 
 // CRT phosphor glow effect
@@ -177,19 +168,10 @@ vec3 phosphorGlow(vec3 color, vec2 uv, float intensity) {
 }
 
 void main() {
-    // === CRT EFFECTS ===
+    // === PIXEL ART EFFECTS ===
     
-    // Apply CRT screen curvature distortion
-    vec2 distortedUV = crtDistortion(vUv, crtCurvature);
-    
-    // Check if we're outside the screen bounds after distortion
-    if (distortedUV.x < 0.0 || distortedUV.x > 1.0 || distortedUV.y < 0.0 || distortedUV.y > 1.0) {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        return;
-    }
-    
-    // Apply pixelation effect
-    vec2 pixelatedUV = pixelate(distortedUV, pixelSize);
+    // Apply pixelation effect (no CRT curvature)
+    vec2 pixelatedUV = pixelate(vUv, pixelSize);
     
     // Sample with subtle chromatic aberration for gritty lens effect
     vec3 color = chromaticAberration(tDiffuse, pixelatedUV);
@@ -200,13 +182,14 @@ void main() {
     if (ditheringIntensity > 0.0) {
         float ditherThreshold = bayerDither(vUv);
         
-        // Apply dithering to each color channel
+        // Apply dithering more aggressively for visibility
         vec3 ditheredColor = color;
-        float ditherStrength = ditheringIntensity * 0.1;
         
-        ditheredColor.r = step(ditherThreshold * ditherStrength, fract(color.r * colorSteps)) / colorSteps;
-        ditheredColor.g = step(ditherThreshold * ditherStrength, fract(color.g * colorSteps)) / colorSteps;
-        ditheredColor.b = step(ditherThreshold * ditherStrength, fract(color.b * colorSteps)) / colorSteps;
+        // Quantize colors with dithering
+        float steps = colorSteps;
+        ditheredColor.r = floor(color.r * steps + ditherThreshold * ditheringIntensity) / steps;
+        ditheredColor.g = floor(color.g * steps + ditherThreshold * ditheringIntensity) / steps;
+        ditheredColor.b = floor(color.b * steps + ditherThreshold * ditheringIntensity) / steps;
         
         color = mix(color, ditheredColor, ditheringIntensity);
     }
@@ -252,15 +235,15 @@ void main() {
     
     // === CRT DISPLAY EFFECTS ===
     
-    // Apply CRT scanlines
-    float scanlineEffect = scanlines(distortedUV, crtScanlines);
+    // Apply CRT scanlines (using original UV coordinates)
+    float scanlineEffect = scanlines(vUv, crtScanlines);
     baseColor *= scanlineEffect;
     
-    // Apply CRT phosphor glow
-    baseColor = phosphorGlow(baseColor, distortedUV, crtPhosphor);
+    // Apply CRT phosphor glow (using original UV coordinates)
+    baseColor = phosphorGlow(baseColor, vUv, crtPhosphor);
     
     // Apply vignette for that old camera/monitor aesthetic
-    float vignetteEffect = vignette(distortedUV);
+    float vignetteEffect = vignette(vUv);
     baseColor *= mix(1.0, vignetteEffect, vignetteStrength);
     
     // Subtle color desaturation for aged look
@@ -278,6 +261,14 @@ void main() {
     
     // Final contrast boost for that harsh Inscryption look
     baseColor = pow(baseColor, vec3(1.0 + grittiness * 0.2));
+    
+    // Debug: Add subtle color tints to verify uniforms are working
+    if (ditheringIntensity > 0.1) {
+        baseColor.r += 0.05; // Slight red tint when dithering is active
+    }
+    if (pixelSize > 1.5) {
+        baseColor.b += 0.05; // Slight blue tint when pixelation is active
+    }
     
     gl_FragColor = vec4(baseColor, 1.0);
 }

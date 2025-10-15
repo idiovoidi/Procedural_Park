@@ -48,8 +48,8 @@ export const INSCRYPTION_SHADER_DEFAULTS: ShaderConfig = {
   // Pixel size of 1.0 maintains original resolution (increase for more pixelated look)
   pixelSize: 1.0,
 
-  // CRT curvature of 0.2 adds subtle screen curve for retro monitor feel
-  crtCurvature: 0.2,
+  // CRT curvature disabled (set to 0.0)
+  crtCurvature: 0.0,
 
   // CRT scanlines of 0.3 creates subtle horizontal lines like old monitors
   crtScanlines: 0.3,
@@ -71,7 +71,7 @@ export const SHADER_QUALITY_PRESETS = {
     filmGrainIntensity: 1.0,
     vignetteStrength: 0.5,
     ditheringIntensity: 0.4,
-    crtCurvature: 0.3,
+    crtCurvature: 0.0,
     crtScanlines: 0.4,
     crtPhosphor: 0.5,
   },
@@ -85,7 +85,7 @@ export const SHADER_QUALITY_PRESETS = {
     filmGrainIntensity: 0.8,
     vignetteStrength: 0.4,
     ditheringIntensity: 0.3,
-    crtCurvature: 0.2,
+    crtCurvature: 0.0,
     crtScanlines: 0.3,
     crtPhosphor: 0.4,
   },
@@ -100,7 +100,7 @@ export const SHADER_QUALITY_PRESETS = {
     filmGrainIntensity: 0.5,
     vignetteStrength: 0.3,
     ditheringIntensity: 0.2,
-    crtCurvature: 0.1,
+    crtCurvature: 0.0,
     crtScanlines: 0.2,
     crtPhosphor: 0.2,
   },
@@ -138,7 +138,7 @@ export const DEVELOPMENT_PRESETS = {
     filmGrainIntensity: 1.2,
     vignetteStrength: 0.6,
     ditheringIntensity: 0.5,
-    crtCurvature: 0.4,
+    crtCurvature: 0.0,
     crtScanlines: 0.5,
     crtPhosphor: 0.6,
   },
@@ -158,14 +158,14 @@ export const DEVELOPMENT_PRESETS = {
     crtPhosphor: 0.0,
   },
 
-  // Retro CRT monitor style
+  // Retro CRT monitor style (no curvature)
   retroCRT: {
     ...INSCRYPTION_SHADER_DEFAULTS,
     colorSteps: 6,
     intensity: 0.9,
     ditheringIntensity: 0.2,
     pixelSize: 1.5,
-    crtCurvature: 0.6,
+    crtCurvature: 0.0,
     crtScanlines: 0.7,
     crtPhosphor: 0.8,
     grittiness: 0.4,
@@ -184,7 +184,7 @@ export const DEVELOPMENT_PRESETS = {
     filmGrainIntensity: 0.4,
     vignetteStrength: 0.2,
     ditheringIntensity: 0.1,
-    crtCurvature: 0.1,
+    crtCurvature: 0.0,
     crtScanlines: 0.1,
     crtPhosphor: 0.2,
   },
@@ -200,7 +200,7 @@ export const DEVELOPMENT_PRESETS = {
     filmGrainIntensity: 0.9,
     vignetteStrength: 0.5,
     ditheringIntensity: 0.6,
-    crtCurvature: 0.3,
+    crtCurvature: 0.0,
     crtScanlines: 0.4,
     crtPhosphor: 0.5,
   },

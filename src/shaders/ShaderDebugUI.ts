@@ -39,8 +39,7 @@ export class ShaderDebugUI {
   private ditheringInput!: HTMLInputElement
   private pixelSizeSlider!: HTMLInputElement
   private pixelSizeInput!: HTMLInputElement
-  private crtCurvatureSlider!: HTMLInputElement
-  private crtCurvatureInput!: HTMLInputElement
+
   private crtScanlinesSlider!: HTMLInputElement
   private crtScanlinesInput!: HTMLInputElement
   private crtPhosphorSlider!: HTMLInputElement
@@ -204,14 +203,7 @@ export class ShaderDebugUI {
           <h4>📺 CRT Monitor Effects</h4>
         </div>
 
-        <div class="setting-group">
-          <label for="crt-curvature">Screen Curvature:</label>
-          <div class="slider-input-group">
-            <input type="range" id="crt-curvature" min="0" max="1" step="0.01" value="0.2" />
-            <input type="number" id="crt-curvature-input" min="0" max="1" step="0.01" value="0.2" class="number-input" />
-          </div>
-          <small>Curved screen distortion like old CRT monitors</small>
-        </div>
+
 
         <div class="setting-group">
           <label for="crt-scanlines">Scanlines:</label>
@@ -483,8 +475,7 @@ export class ShaderDebugUI {
     this.ditheringInput = panel.querySelector('#dithering-input') as HTMLInputElement
     this.pixelSizeSlider = panel.querySelector('#pixel-size') as HTMLInputElement
     this.pixelSizeInput = panel.querySelector('#pixel-size-input') as HTMLInputElement
-    this.crtCurvatureSlider = panel.querySelector('#crt-curvature') as HTMLInputElement
-    this.crtCurvatureInput = panel.querySelector('#crt-curvature-input') as HTMLInputElement
+
     this.crtScanlinesSlider = panel.querySelector('#crt-scanlines') as HTMLInputElement
     this.crtScanlinesInput = panel.querySelector('#crt-scanlines-input') as HTMLInputElement
     this.crtPhosphorSlider = panel.querySelector('#crt-phosphor') as HTMLInputElement
@@ -570,22 +561,23 @@ export class ShaderDebugUI {
       this.ditheringSlider, 
       this.ditheringInput, 
       'ditheringIntensity',
-      (value) => this.callbacks.onConfigChange({ ditheringIntensity: value })
+      (value) => {
+        console.log('Dithering slider changed to:', value)
+        this.callbacks.onConfigChange({ ditheringIntensity: value })
+      }
     )
 
     this.setupSliderInputPair(
       this.pixelSizeSlider, 
       this.pixelSizeInput, 
       'pixelSize',
-      (value) => this.callbacks.onConfigChange({ pixelSize: value })
+      (value) => {
+        console.log('Pixel Size slider changed to:', value)
+        this.callbacks.onConfigChange({ pixelSize: value })
+      }
     )
 
-    this.setupSliderInputPair(
-      this.crtCurvatureSlider, 
-      this.crtCurvatureInput, 
-      'crtCurvature',
-      (value) => this.callbacks.onConfigChange({ crtCurvature: value })
-    )
+
 
     this.setupSliderInputPair(
       this.crtScanlinesSlider, 
@@ -801,7 +793,7 @@ export class ShaderDebugUI {
     this.updateSliderInputPair(this.vignetteSlider, this.vignetteInput, this.currentConfig.vignetteStrength)
     this.updateSliderInputPair(this.ditheringSlider, this.ditheringInput, this.currentConfig.ditheringIntensity)
     this.updateSliderInputPair(this.pixelSizeSlider, this.pixelSizeInput, this.currentConfig.pixelSize)
-    this.updateSliderInputPair(this.crtCurvatureSlider, this.crtCurvatureInput, this.currentConfig.crtCurvature)
+
     this.updateSliderInputPair(this.crtScanlinesSlider, this.crtScanlinesInput, this.currentConfig.crtScanlines)
     this.updateSliderInputPair(this.crtPhosphorSlider, this.crtPhosphorInput, this.currentConfig.crtPhosphor)
   }

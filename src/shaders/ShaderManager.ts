@@ -81,6 +81,10 @@ export class ShaderManager {
       this.initializePostProcessing()
       this.setupWebGLContextHandlers()
       this.performanceMonitor.startMonitoring()
+      
+      // Force update all uniforms to ensure they're properly initialized
+      console.log('Initializing shader uniforms with config:', this.config)
+      this.updateUniforms(this.config)
     } catch (error) {
       console.error('Failed to initialize shader system:', error)
       this.hasShaderError = true
@@ -146,6 +150,17 @@ export class ShaderManager {
   // Update shader uniforms
   private updateUniforms(config: Partial<ShaderConfig>): void {
     const uniforms = this.inscryptionPass.uniforms as InscryptionShaderUniforms
+    
+    // Debug logging for new uniforms
+    if (config.ditheringIntensity !== undefined || config.crtScanlines !== undefined || 
+        config.crtPhosphor !== undefined || config.pixelSize !== undefined) {
+      console.log('Updating CRT/Pixel uniforms:', {
+        ditheringIntensity: config.ditheringIntensity,
+        pixelSize: config.pixelSize,
+        crtScanlines: config.crtScanlines,
+        crtPhosphor: config.crtPhosphor
+      })
+    }
 
     if (config.luminanceThreshold !== undefined) {
       uniforms.luminanceThreshold.value = config.luminanceThreshold
@@ -174,9 +189,7 @@ export class ShaderManager {
     if (config.pixelSize !== undefined) {
       uniforms.pixelSize.value = config.pixelSize
     }
-    if (config.crtCurvature !== undefined) {
-      uniforms.crtCurvature.value = config.crtCurvature
-    }
+
     if (config.crtScanlines !== undefined) {
       uniforms.crtScanlines.value = config.crtScanlines
     }
