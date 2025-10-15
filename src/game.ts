@@ -12,6 +12,8 @@ import {
   type CreatureInstance,
 } from './creatures'
 import { GAME_CONFIG } from './constants'
+import { type ShaderConfig } from './shaders/ShaderManager'
+
 
 export class Game {
   private sceneManager: SceneManager
@@ -26,11 +28,24 @@ export class Game {
   private isRunning = false
   private lastTime = 0
   private recordingIndicator: HTMLElement | null = null
+  private shaderConfig: ShaderConfig
 
   constructor(container: HTMLElement) {
     // Show loading screen
     const loadingEl = document.getElementById('loading')
     loadingEl?.classList.remove('hidden')
+
+    // Preload shader resources for better performance
+    this.preloadShaderResources()
+
+    // Initialize shader configuration with Inscryption-style defaults
+    this.shaderConfig = {
+      enabled: true,
+      luminanceThreshold: 0.3,
+      colorSteps: 8,
+      intensity: 1.0,
+      darknessBias: 0.4,
+    }
 
     // Initialize all systems
     this.sceneManager = new SceneManager(container)
@@ -39,11 +54,23 @@ export class Game {
     this.photoSystem = new PhotoSystem()
     this.audioManager = new AudioManager(this.cameraController.camera)
 
+    // Apply initial shader configuration with callbacks
+    this.setupShaderCallbacks()
+    this.sceneManager.updateShaderConfig(this.shaderConfig)
+
     // Setup UI callbacks
     this.uiManager.onRideSpeedChange = (speed) => this.setRideSpeed(speed)
     this.uiManager.onClearGallery = () => this.clearGallery()
     this.uiManager.onRestartRide = () => this.restartRide()
     this.uiManager.onDayNightToggle = (mode) => this.sceneManager.setDayNightMode(mode)
+    
+    // Setup shader debug UI callbacks
+    this.uiManager.onShaderConfigChange = (config) => this.updateShaderConfig(config)
+    this.uiManager.onShaderToggle = (enabled) => this.setShaderEnabled(enabled)
+    this.uiManager.onShaderPresetLoad = (preset) => this.updateShaderConfig(preset)
+    
+    // Initialize shader debug UI
+    this.uiManager.initializeShaderDebugUI(this.shaderConfig)
 
     // Setup photo system callbacks
     this.photoSystem.setCallbacks({
@@ -169,6 +196,30 @@ export class Game {
       if (e.key.toLowerCase() === 'x') {
         e.preventDefault()
         this.randomizeExperimentCreature()
+      }
+
+      // Toggle shader on/off
+      if (e.key.toLowerCase() === 's') {
+        e.preventDefault()
+        this.toggleShader()
+      }
+
+      // Shader parameter adjustments (development controls)
+      if (e.key === '[') {
+        e.preventDefault()
+        this.adjustShaderParameter('luminanceThreshold', -0.05)
+      }
+      if (e.key === ']') {
+        e.preventDefault()
+        this.adjustShaderParameter('luminanceThreshold', 0.05)
+      }
+      if (e.key === '{') {
+        e.preventDefault()
+        this.adjustShaderParameter('intensity', -0.1)
+      }
+      if (e.key === '}') {
+        e.preventDefault()
+        this.adjustShaderParameter('intensity', 0.1)
       }
     })
   }
@@ -495,8 +546,10 @@ export class Game {
       rideProgress: this.cameraController.getRideProgress(),
     })
 
-    // Render
-    this.sceneManager.render(this.cameraController.camera)
+    // Shader status updates removed for simplicity
+
+    // Render with deltaTime for shader animations
+    this.sceneManager.render(this.cameraController.camera, dt)
 
     requestAnimationFrame(this.gameLoop)
   }
@@ -547,5 +600,83 @@ export class Game {
   public clearGallery() {
     this.uiManager.clearGallery()
     this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
+  }
+
+  // Setup shader system callbacks
+  private setupShaderCallbacks(): void {
+    // Note: Shader callbacks are now handled internally by ShaderManager
+    // UI notifications can be added through other means if needed
+  }
+
+  // Shader control methods
+  private toggleShader() {
+    this.shaderConfig.enabled = !this.shaderConfig.enabled
+    this.sceneManager.setShaderEnabled(this.shaderConfig.enabled)
+    
+    const statusText = this.shaderConfig.enabled ? '🎨 Inscryption Shader ON' : '🎨 Inscryption Shader OFF'
+    this.uiManager.showToast(statusText)
+    this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
+  }
+
+  private adjustShaderParameter(parameter: keyof ShaderConfig, delta: number) {
+    if (parameter === 'enabled') return
+
+    const currentValue = this.shaderConfig[parameter] as number
+    let newValue = currentValue + delta
+
+    // Clamp values to valid ranges
+    switch (parameter) {
+      case 'luminanceThreshold':
+        newValue = Math.max(0.0, Math.min(1.0, newValue))
+        break
+      case 'colorSteps':
+        newValue = Math.max(2, Math.min(16, Math.floor(newValue)))
+        break
+      case 'intensity':
+        newValue = Math.max(0.0, Math.min(2.0, newValue))
+        break
+      case 'darknessBias':
+        newValue = Math.max(0.0, Math.min(1.0, newValue))
+        break
+    }
+
+    this.shaderConfig[parameter] = newValue
+    this.sceneManager.updateShaderConfig({ [parameter]: newValue })
+    this.uiManager.updateShaderDebugUI(this.shaderConfig)
+    
+    this.uiManager.showToast(`${parameter}: ${newValue.toFixed(2)}`)
+    this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
+  }
+
+  public updateShaderConfig(config: Partial<ShaderConfig>): void {
+    this.shaderConfig = { ...this.shaderConfig, ...config }
+    this.sceneManager.updateShaderConfig(config)
+    this.uiManager.updateShaderDebugUI(this.shaderConfig)
+  }
+
+  public getShaderConfig(): ShaderConfig {
+    return { ...this.shaderConfig }
+  }
+
+  public setShaderEnabled(enabled: boolean): void {
+    this.shaderConfig.enabled = enabled
+    this.sceneManager.setShaderEnabled(enabled)
+    this.uiManager.updateShaderDebugUI(this.shaderConfig)
+  }
+
+  // Preload shader resources for better performance
+  private preloadShaderResources(): void {
+    // Shader resource preloading removed for compatibility
+  }
+
+  // Get production optimization status
+  public getShaderOptimizationStatus(): {
+    isOptimized: boolean
+    compatibility: any
+  } {
+    return {
+      isOptimized: false, // Simplified for now
+      compatibility: null // Simplified for now
+    }
   }
 }

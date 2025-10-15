@@ -16,6 +16,7 @@ export class SceneManager {
   public sky: THREE.Mesh | null = null
   private shaderManager: ShaderManager
 
+
   constructor(container: HTMLElement) {
     // Scene setup
     this.scene = new THREE.Scene()
@@ -68,12 +69,11 @@ export class SceneManager {
     this.parkStructures.buildAll()
 
     // Initialize shader manager for post-processing (camera will be set on first render)
-    this.shaderManager = new ShaderManager(this.renderer, this.scene, new THREE.PerspectiveCamera())
+    this.shaderManager = new ShaderManager(this.renderer, this.scene, new THREE.PerspectiveCamera(), this.createShaderCallbacks())
 
     // Handle window resize
     window.addEventListener('resize', () => {
-      this.renderer.setSize(window.innerWidth, window.innerHeight)
-      this.shaderManager.setSize(window.innerWidth, window.innerHeight)
+      this.handleResize()
     })
   }
 
@@ -213,12 +213,78 @@ export class SceneManager {
     return this.shaderManager.hasErrors()
   }
 
+  // Performance monitoring methods
+  public getShaderPerformanceMetrics() {
+    return this.shaderManager.getPerformanceMetrics()
+  }
+
+  public getShaderPerformanceReport(): string {
+    return this.shaderManager.getPerformanceReport()
+  }
+
+  public setShaderAutoPerformanceAdjustment(enabled: boolean): void {
+    this.shaderManager.setAutoPerformanceAdjustment(enabled)
+  }
+
+  public isShaderAutoPerformanceAdjustmentEnabled(): boolean {
+    return this.shaderManager.isAutoPerformanceAdjustmentEnabled()
+  }
+
+  public getShaderQualityLevel(): string {
+    return this.shaderManager.getCurrentQualityLevel()
+  }
+
   private updateShaderCamera(camera: THREE.Camera): void {
     // Recreate shader manager with new camera
     const currentConfig = this.shaderManager.getConfig()
+    const autoPerformanceEnabled = this.shaderManager.isAutoPerformanceAdjustmentEnabled()
     this.shaderManager.dispose()
-    this.shaderManager = new ShaderManager(this.renderer, this.scene, camera)
+    
+    this.shaderManager = new ShaderManager(this.renderer, this.scene, camera, this.createShaderCallbacks())
     this.shaderManager.updateConfig(currentConfig)
+    this.shaderManager.setAutoPerformanceAdjustment(autoPerformanceEnabled)
+  }
+
+  // Handle window resize with proper aspect ratio and pixel density management
+  private handleResize(): void {
+    const width = window.innerWidth
+    const height = window.innerHeight
+    const pixelRatio = Math.min(window.devicePixelRatio, 2)
+
+    // Update renderer size and pixel ratio
+    this.renderer.setPixelRatio(pixelRatio)
+    this.renderer.setSize(width, height)
+
+    // Update post-processing pipeline
+    this.shaderManager.setSize(width, height)
+
+    // Note: Camera aspect ratio is handled by CameraController
+  }
+
+  // Public method to trigger resize (useful for programmatic resizing)
+  public resize(width?: number, height?: number): void {
+    if (width && height) {
+      // Custom size
+      const pixelRatio = Math.min(window.devicePixelRatio, 2)
+      this.renderer.setPixelRatio(pixelRatio)
+      this.renderer.setSize(width, height)
+      this.shaderManager.setSize(width, height)
+    } else {
+      // Use current window size
+      this.handleResize()
+    }
+  }
+
+  // Create shader callbacks for UI integration
+  private createShaderCallbacks() {
+    return {
+      onPerformanceAdjustment: (_config: ShaderConfig, reason: string) => {
+        console.log(`Shader quality auto-adjusted: ${reason}`)
+      },
+      onPerformanceWarning: (message: string) => {
+        console.warn(`Shader performance: ${message}`)
+      }
+    }
   }
 
   // Cleanup method for proper resource disposal

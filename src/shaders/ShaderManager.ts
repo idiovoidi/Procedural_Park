@@ -3,6 +3,8 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { InscryptionShader, type InscryptionShaderUniforms } from './InscryptionShader'
+import { INSCRYPTION_SHADER_DEFAULTS, validateShaderConfig } from './InscryptionShaderConfig'
+import { ShaderPerformanceMonitor, type PerformanceCallbacks, type PerformanceMetrics } from './ShaderPerformanceMonitor'
 
 // Configuration interface for shader parameters
 export interface ShaderConfig {
@@ -11,6 +13,12 @@ export interface ShaderConfig {
   colorSteps: number // 2 - 16
   intensity: number // 0.0 - 2.0
   darknessBias: number // 0.0 - 1.0
+}
+
+// Extended callbacks for performance monitoring
+export interface ShaderManagerCallbacks {
+  onPerformanceAdjustment?: (config: ShaderConfig, reason: string) => void
+  onPerformanceWarning?: (message: string, metrics: PerformanceMetrics) => void
 }
 
 // Main shader manager class
@@ -25,30 +33,53 @@ export class ShaderManager {
   private hasShaderError: boolean = false
   private contextLostHandler?: (event: Event) => void
   private contextRestoredHandler?: (event: Event) => void
+  private performanceMonitor: ShaderPerformanceMonitor
+  private callbacks: ShaderManagerCallbacks
+  private autoPerformanceAdjustment: boolean = true
 
-  constructor(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) {
+  constructor(
+    renderer: THREE.WebGLRenderer, 
+    scene: THREE.Scene, 
+    camera: THREE.Camera,
+    callbacks: ShaderManagerCallbacks = {}
+  ) {
     this.renderer = renderer
     this.scene = scene
     this.camera = camera
+    this.callbacks = callbacks
 
-    // Initialize default configuration
-    this.config = {
-      enabled: true,
-      luminanceThreshold: 0.3,
-      colorSteps: 8,
-      intensity: 1.0,
-      darknessBias: 0.4,
+    // Initialize default configuration using Inscryption-tuned defaults
+    this.config = { ...INSCRYPTION_SHADER_DEFAULTS }
+
+    // Initialize performance monitor
+    const performanceCallbacks: PerformanceCallbacks = {
+      onQualityAdjustment: (newConfig, reason) => {
+        if (this.autoPerformanceAdjustment) {
+          console.log(`Auto-adjusting shader quality: ${reason}`)
+          this.updateConfig(newConfig)
+          this.callbacks.onPerformanceAdjustment?.(newConfig, reason)
+        }
+      },
+      onPerformanceWarning: (message, metrics) => {
+        console.warn(`Shader performance warning: ${message}`)
+        this.callbacks.onPerformanceWarning?.(message, metrics)
+      }
     }
+    
+    this.performanceMonitor = new ShaderPerformanceMonitor(performanceCallbacks)
 
     try {
       this.initializePostProcessing()
       this.setupWebGLContextHandlers()
+      this.performanceMonitor.startMonitoring()
     } catch (error) {
       console.error('Failed to initialize shader system:', error)
       this.hasShaderError = true
       this.config.enabled = false
     }
   }
+
+
 
   // Initialize post-processing pipeline with error handling
   private initializePostProcessing(): void {
@@ -121,43 +152,106 @@ export class ShaderManager {
     }
   }
 
-  // Validate configuration parameters
+  // Validate configuration parameters using centralized validation
   private validateConfig(config: Partial<ShaderConfig>): Partial<ShaderConfig> {
+    const fullConfig = validateShaderConfig({ ...this.config, ...config })
+    
+    // Return only the changed properties
     const validated: Partial<ShaderConfig> = {}
-
+    
     if (config.enabled !== undefined) {
-      validated.enabled = Boolean(config.enabled)
+      validated.enabled = fullConfig.enabled
     }
-
     if (config.luminanceThreshold !== undefined) {
-      validated.luminanceThreshold = Math.max(0.0, Math.min(1.0, config.luminanceThreshold))
+      validated.luminanceThreshold = fullConfig.luminanceThreshold
     }
-
     if (config.colorSteps !== undefined) {
-      validated.colorSteps = Math.max(2, Math.min(16, Math.floor(config.colorSteps)))
+      validated.colorSteps = fullConfig.colorSteps
     }
-
     if (config.intensity !== undefined) {
-      validated.intensity = Math.max(0.0, Math.min(2.0, config.intensity))
+      validated.intensity = fullConfig.intensity
     }
-
     if (config.darknessBias !== undefined) {
-      validated.darknessBias = Math.max(0.0, Math.min(1.0, config.darknessBias))
+      validated.darknessBias = fullConfig.darknessBias
     }
 
     return validated
   }
 
-  // Update shader configuration with validation
+  // Update shader configuration with validation and error handling
   updateConfig(newConfig: Partial<ShaderConfig>): void {
-    const validatedConfig = this.validateConfig(newConfig)
-    this.config = { ...this.config, ...validatedConfig }
-    this.updateUniforms(validatedConfig)
+    try {
+      const validatedConfig = this.validateConfig(newConfig)
+      this.config = { ...this.config, ...validatedConfig }
+      
+      // Update uniforms with error handling
+      this.updateUniformsSafely(validatedConfig)
 
-    // Enable/disable shader pass
-    if (validatedConfig.enabled !== undefined) {
-      this.inscryptionPass.enabled = validatedConfig.enabled
+      // Enable/disable shader pass
+      if (validatedConfig.enabled !== undefined) {
+        this.setEnabledSafely(validatedConfig.enabled)
+      }
+      
+    } catch (error) {
+      console.error('Failed to update shader configuration:', error)
+      
+      // Revert to last known good configuration
+      try {
+        this.updateUniformsSafely(this.config)
+        console.log('Reverted to previous shader configuration')
+      } catch (revertError) {
+        console.error('Failed to revert shader configuration:', revertError)
+        this.handleConfigurationError(error as Error)
+      }
     }
+  }
+
+  // Safely update uniforms with error handling
+  private updateUniformsSafely(config: Partial<ShaderConfig>): void {
+    try {
+      if (!this.inscryptionPass || !this.inscryptionPass.uniforms) {
+        throw new Error('Shader pass or uniforms not initialized')
+      }
+      
+      this.updateUniforms(config)
+    } catch (error) {
+      console.error('Failed to update shader uniforms:', error)
+      throw error
+    }
+  }
+
+  // Safely enable/disable shader with error handling
+  private setEnabledSafely(enabled: boolean): void {
+    try {
+      if (!this.inscryptionPass) {
+        throw new Error('Shader pass not initialized')
+      }
+      
+      this.inscryptionPass.enabled = enabled
+    } catch (error) {
+      console.error('Failed to set shader enabled state:', error)
+      this.hasShaderError = true
+      this.config.enabled = false
+    }
+  }
+
+  // Handle configuration errors
+  private handleConfigurationError(error: Error): void {
+    console.error('Configuration error, disabling shader:', error.message)
+    this.hasShaderError = true
+    this.config.enabled = false
+    
+    // Notify callbacks about configuration failure
+    const fallbackMetrics: PerformanceMetrics = {
+      averageFPS: 0,
+      frameTime: 0,
+      memoryUsage: 0,
+      lastUpdateTime: performance.now()
+    }
+    this.callbacks.onPerformanceWarning?.(
+      `Shader configuration failed: ${error.message}`,
+      this.performanceMonitor.getCurrentMetrics() || fallbackMetrics
+    )
   }
 
   // Enable or disable the shader effect
@@ -166,39 +260,73 @@ export class ShaderManager {
     this.inscryptionPass.enabled = enabled
   }
 
-  // Handle window resize
+  // Handle window resize with error handling
   setSize(width: number, height: number): void {
-    this.composer.setSize(width, height)
-    const uniforms = this.inscryptionPass.uniforms as InscryptionShaderUniforms
-    uniforms.resolution.value.set(width, height)
+    try {
+      if (!this.composer) {
+        console.warn('Cannot resize: composer not initialized')
+        return
+      }
+      
+      // Validate dimensions
+      if (width <= 0 || height <= 0 || !isFinite(width) || !isFinite(height)) {
+        throw new Error(`Invalid dimensions: ${width}x${height}`)
+      }
+      
+      this.composer.setSize(width, height)
+      
+      // Update resolution uniform safely
+      if (this.inscryptionPass && this.inscryptionPass.uniforms) {
+        const uniforms = this.inscryptionPass.uniforms as InscryptionShaderUniforms
+        if (uniforms.resolution && uniforms.resolution.value) {
+          uniforms.resolution.value.set(width, height)
+        }
+      }
+      
+    } catch (error) {
+      console.error('Failed to resize shader system:', error)
+      
+      // Don't disable shader for resize errors, just log the issue
+      console.warn('Shader resize failed, continuing with previous size')
+    }
   }
 
-  // Render the scene with post-processing and error handling
+  // Render the scene with post-processing and comprehensive error handling
   render(deltaTime: number = 0): void {
     try {
       if (this.config.enabled && !this.hasShaderError && this.composer) {
+
+        
         // Update time uniform for potential animated effects
         const uniforms = this.inscryptionPass.uniforms as InscryptionShaderUniforms
         uniforms.time.value += deltaTime
 
         this.composer.render()
+        
+        // Record frame for performance monitoring
+        this.performanceMonitor.recordFrame()
       } else {
         // Fallback to standard rendering if disabled or error occurred
-        this.renderer.render(this.scene, this.camera)
+        this.renderFallback()
       }
     } catch (error) {
       console.error('Shader rendering error, falling back to standard rendering:', error)
       this.hasShaderError = true
       this.config.enabled = false
-      
-      // Fallback to standard rendering
-      try {
-        this.renderer.render(this.scene, this.camera)
-      } catch (fallbackError) {
-        console.error('Critical rendering error:', fallbackError)
-      }
+      this.renderFallback()
     }
   }
+
+  // Safe fallback rendering
+  private renderFallback(): void {
+    try {
+      this.renderer.render(this.scene, this.camera)
+    } catch (fallbackError) {
+      console.error('Critical rendering error:', fallbackError)
+    }
+  }
+
+
 
   // Get current configuration
   getConfig(): ShaderConfig {
@@ -224,22 +352,93 @@ export class ShaderManager {
     }
   }
 
-  // Dispose of resources with error handling
-  dispose(): void {
-    try {
-      // Remove WebGL context event listeners
-      if (this.contextLostHandler && this.contextRestoredHandler) {
-        const canvas = this.renderer.domElement
-        canvas.removeEventListener('webglcontextlost', this.contextLostHandler as EventListener)
-        canvas.removeEventListener('webglcontextrestored', this.contextRestoredHandler as EventListener)
-      }
+  // Performance monitoring methods
+  public getPerformanceMetrics(): PerformanceMetrics | null {
+    return this.performanceMonitor.getCurrentMetrics()
+  }
 
-      // Dispose of composer resources
-      if (this.composer) {
-        this.composer.dispose()
+  public getPerformanceReport(): string {
+    return this.performanceMonitor.getPerformanceReport()
+  }
+
+  public setAutoPerformanceAdjustment(enabled: boolean): void {
+    this.autoPerformanceAdjustment = enabled
+    if (enabled) {
+      this.performanceMonitor.startMonitoring()
+    } else {
+      this.performanceMonitor.stopMonitoring()
+    }
+  }
+
+  public isAutoPerformanceAdjustmentEnabled(): boolean {
+    return this.autoPerformanceAdjustment
+  }
+
+  public getCurrentQualityLevel(): string {
+    return this.performanceMonitor.getCurrentQualityLevel()
+  }
+
+
+
+  // Dispose of resources with comprehensive error handling
+  dispose(): void {
+    console.log('Disposing shader manager resources...')
+    
+    // Track disposal errors but continue cleanup
+    const errors: Error[] = []
+    
+    // Dispose performance monitor
+    try {
+      if (this.performanceMonitor) {
+        this.performanceMonitor.dispose()
       }
     } catch (error) {
-      console.error('Error during shader disposal:', error)
+      errors.push(new Error(`Performance monitor disposal failed: ${error}`))
+    }
+
+    // Remove WebGL context event listeners
+    try {
+      if (this.contextLostHandler && this.contextRestoredHandler) {
+        const canvas = this.renderer?.domElement
+        if (canvas) {
+          canvas.removeEventListener('webglcontextlost', this.contextLostHandler as EventListener)
+          canvas.removeEventListener('webglcontextrestored', this.contextRestoredHandler as EventListener)
+        }
+        this.contextLostHandler = undefined
+        this.contextRestoredHandler = undefined
+      }
+    } catch (error) {
+      errors.push(new Error(`Event listener removal failed: ${error}`))
+    }
+
+    // Dispose of composer resources
+    try {
+      if (this.composer) {
+        this.composer.dispose()
+        this.composer = undefined as any
+      }
+    } catch (error) {
+      errors.push(new Error(`Composer disposal failed: ${error}`))
+    }
+
+    // Clear references
+    try {
+      this.renderPass = undefined as any
+      this.inscryptionPass = undefined as any
+      this.hasShaderError = true
+      this.config.enabled = false
+    } catch (error) {
+      errors.push(new Error(`Reference cleanup failed: ${error}`))
+    }
+
+    // Report any errors that occurred during disposal
+    if (errors.length > 0) {
+      console.error('Errors occurred during shader disposal:')
+      errors.forEach((error, index) => {
+        console.error(`  ${index + 1}. ${error.message}`)
+      })
+    } else {
+      console.log('Shader manager disposed successfully')
     }
   }
 }
