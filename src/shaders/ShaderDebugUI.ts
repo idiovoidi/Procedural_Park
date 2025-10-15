@@ -9,6 +9,7 @@ export interface ShaderDebugCallbacks {
   onConfigChange: (config: Partial<ShaderConfig>) => void
   onToggleShader: (enabled: boolean) => void
   onPresetLoad: (preset: ShaderConfig) => void
+  onAutoPerformanceToggle?: (enabled: boolean) => void
 }
 
 export class ShaderDebugUI {
@@ -19,6 +20,7 @@ export class ShaderDebugUI {
 
   // Control elements
   private enabledCheckbox!: HTMLInputElement
+  private autoPerformanceCheckbox!: HTMLInputElement
   private luminanceSlider!: HTMLInputElement
   private luminanceInput!: HTMLInputElement
   private colorStepsSlider!: HTMLInputElement
@@ -33,6 +35,16 @@ export class ShaderDebugUI {
   private filmGrainInput!: HTMLInputElement
   private vignetteSlider!: HTMLInputElement
   private vignetteInput!: HTMLInputElement
+  private ditheringSlider!: HTMLInputElement
+  private ditheringInput!: HTMLInputElement
+  private pixelSizeSlider!: HTMLInputElement
+  private pixelSizeInput!: HTMLInputElement
+  private crtCurvatureSlider!: HTMLInputElement
+  private crtCurvatureInput!: HTMLInputElement
+  private crtScanlinesSlider!: HTMLInputElement
+  private crtScanlinesInput!: HTMLInputElement
+  private crtPhosphorSlider!: HTMLInputElement
+  private crtPhosphorInput!: HTMLInputElement
   private presetSelect!: HTMLSelectElement
   private resetButton!: HTMLButtonElement
   private exportButton!: HTMLButtonElement
@@ -41,7 +53,11 @@ export class ShaderDebugUI {
 
   constructor(callbacks: ShaderDebugCallbacks, initialConfig: ShaderConfig) {
     this.callbacks = callbacks
-    this.currentConfig = { ...initialConfig }
+    // Ensure all properties are defined by merging with defaults
+    this.currentConfig = {
+      ...INSCRYPTION_SHADER_DEFAULTS,
+      ...initialConfig
+    }
     this.panel = this.createPanel()
     this.setupEventListeners()
     this.setupKeyboardShortcuts()
@@ -66,14 +82,25 @@ export class ShaderDebugUI {
           </label>
           <small>Toggle shader on/off for comparison</small>
         </div>
+
+        <div class="setting-group">
+          <label>
+            <input type="checkbox" id="auto-performance" checked />
+            Auto Performance Adjustment
+          </label>
+          <small>Automatically adjust quality based on FPS (disable for testing)</small>
+        </div>
         
         <div class="setting-group">
           <label for="shader-preset">Preset:</label>
           <select id="shader-preset">
             <option value="inscryption">Inscryption (Default)</option>
             <option value="dramatic">Dramatic</option>
+            <option value="pixelArt">Pixel Art Style</option>
+            <option value="retroCRT">Retro CRT Monitor</option>
             <option value="subtle">Subtle</option>
             <option value="highContrast">High Contrast</option>
+            <option value="clean">Clean (No Effects)</option>
             <optgroup label="Quality Presets">
               <option value="high">High Quality</option>
               <option value="medium">Medium Quality</option>
@@ -152,6 +179,59 @@ export class ShaderDebugUI {
         </div>
 
         <div class="setting-group">
+          <h4>🎮 Pixel Art Effects</h4>
+        </div>
+
+        <div class="setting-group">
+          <label for="dithering-intensity">Dithering:</label>
+          <div class="slider-input-group">
+            <input type="range" id="dithering-intensity" min="0" max="1" step="0.01" value="0.3" />
+            <input type="number" id="dithering-input" min="0" max="1" step="0.01" value="0.3" class="number-input" />
+          </div>
+          <small>Bayer matrix dithering for pixel art style</small>
+        </div>
+
+        <div class="setting-group">
+          <label for="pixel-size">Pixel Size:</label>
+          <div class="slider-input-group">
+            <input type="range" id="pixel-size" min="1" max="8" step="0.1" value="1.0" />
+            <input type="number" id="pixel-size-input" min="1" max="8" step="0.1" value="1.0" class="number-input" />
+          </div>
+          <small>Pixelation effect (1.0 = no pixelation)</small>
+        </div>
+
+        <div class="setting-group">
+          <h4>📺 CRT Monitor Effects</h4>
+        </div>
+
+        <div class="setting-group">
+          <label for="crt-curvature">Screen Curvature:</label>
+          <div class="slider-input-group">
+            <input type="range" id="crt-curvature" min="0" max="1" step="0.01" value="0.2" />
+            <input type="number" id="crt-curvature-input" min="0" max="1" step="0.01" value="0.2" class="number-input" />
+          </div>
+          <small>Curved screen distortion like old CRT monitors</small>
+        </div>
+
+        <div class="setting-group">
+          <label for="crt-scanlines">Scanlines:</label>
+          <div class="slider-input-group">
+            <input type="range" id="crt-scanlines" min="0" max="1" step="0.01" value="0.3" />
+            <input type="number" id="crt-scanlines-input" min="0" max="1" step="0.01" value="0.3" class="number-input" />
+          </div>
+          <small>Horizontal scanlines like old monitors</small>
+        </div>
+
+        <div class="setting-group">
+          <label for="crt-phosphor">Phosphor Glow:</label>
+          <div class="slider-input-group">
+            <input type="range" id="crt-phosphor" min="0" max="1" step="0.01" value="0.4" />
+            <input type="number" id="crt-phosphor-input" min="0" max="1" step="0.01" value="0.4" class="number-input" />
+          </div>
+          <small>RGB phosphor glow and color bleeding</small>
+        </div>
+
+        <div class="setting-group">
           <div class="button-row">
             <button id="reset-shader">Reset to Defaults</button>
             <button id="export-settings">Export Settings</button>
@@ -169,6 +249,7 @@ export class ShaderDebugUI {
             <div class="shortcut-list">
               <div><kbd>F4</kbd> Toggle Debug Panel</div>
               <div><kbd>F5</kbd> Toggle Shader On/Off</div>
+              <div><kbd>F6</kbd> Toggle Auto Performance</div>
               <div><kbd>1-4</kbd> Load Development Presets</div>
               <div><kbd>Shift + 1-4</kbd> Load Quality Presets</div>
             </div>
@@ -383,6 +464,7 @@ export class ShaderDebugUI {
 
   private cacheElements(panel: HTMLDivElement): void {
     this.enabledCheckbox = panel.querySelector('#shader-enabled') as HTMLInputElement
+    this.autoPerformanceCheckbox = panel.querySelector('#auto-performance') as HTMLInputElement
     this.luminanceSlider = panel.querySelector('#luminance-threshold') as HTMLInputElement
     this.luminanceInput = panel.querySelector('#luminance-input') as HTMLInputElement
     this.colorStepsSlider = panel.querySelector('#color-steps') as HTMLInputElement
@@ -397,6 +479,16 @@ export class ShaderDebugUI {
     this.filmGrainInput = panel.querySelector('#film-grain-input') as HTMLInputElement
     this.vignetteSlider = panel.querySelector('#vignette-strength') as HTMLInputElement
     this.vignetteInput = panel.querySelector('#vignette-input') as HTMLInputElement
+    this.ditheringSlider = panel.querySelector('#dithering-intensity') as HTMLInputElement
+    this.ditheringInput = panel.querySelector('#dithering-input') as HTMLInputElement
+    this.pixelSizeSlider = panel.querySelector('#pixel-size') as HTMLInputElement
+    this.pixelSizeInput = panel.querySelector('#pixel-size-input') as HTMLInputElement
+    this.crtCurvatureSlider = panel.querySelector('#crt-curvature') as HTMLInputElement
+    this.crtCurvatureInput = panel.querySelector('#crt-curvature-input') as HTMLInputElement
+    this.crtScanlinesSlider = panel.querySelector('#crt-scanlines') as HTMLInputElement
+    this.crtScanlinesInput = panel.querySelector('#crt-scanlines-input') as HTMLInputElement
+    this.crtPhosphorSlider = panel.querySelector('#crt-phosphor') as HTMLInputElement
+    this.crtPhosphorInput = panel.querySelector('#crt-phosphor-input') as HTMLInputElement
     this.presetSelect = panel.querySelector('#shader-preset') as HTMLSelectElement
     this.resetButton = panel.querySelector('#reset-shader') as HTMLButtonElement
     this.exportButton = panel.querySelector('#export-settings') as HTMLButtonElement
@@ -415,6 +507,12 @@ export class ShaderDebugUI {
       const enabled = (e.target as HTMLInputElement).checked
       this.currentConfig.enabled = enabled
       this.callbacks.onToggleShader(enabled)
+    })
+
+    // Auto performance adjustment checkbox
+    this.autoPerformanceCheckbox.addEventListener('change', (e) => {
+      const enabled = (e.target as HTMLInputElement).checked
+      this.callbacks.onAutoPerformanceToggle?.(enabled)
     })
 
     // Setup slider-input pairs with proper synchronization
@@ -466,6 +564,41 @@ export class ShaderDebugUI {
       this.vignetteInput, 
       'vignetteStrength',
       (value) => this.callbacks.onConfigChange({ vignetteStrength: value })
+    )
+
+    this.setupSliderInputPair(
+      this.ditheringSlider, 
+      this.ditheringInput, 
+      'ditheringIntensity',
+      (value) => this.callbacks.onConfigChange({ ditheringIntensity: value })
+    )
+
+    this.setupSliderInputPair(
+      this.pixelSizeSlider, 
+      this.pixelSizeInput, 
+      'pixelSize',
+      (value) => this.callbacks.onConfigChange({ pixelSize: value })
+    )
+
+    this.setupSliderInputPair(
+      this.crtCurvatureSlider, 
+      this.crtCurvatureInput, 
+      'crtCurvature',
+      (value) => this.callbacks.onConfigChange({ crtCurvature: value })
+    )
+
+    this.setupSliderInputPair(
+      this.crtScanlinesSlider, 
+      this.crtScanlinesInput, 
+      'crtScanlines',
+      (value) => this.callbacks.onConfigChange({ crtScanlines: value })
+    )
+
+    this.setupSliderInputPair(
+      this.crtPhosphorSlider, 
+      this.crtPhosphorInput, 
+      'crtPhosphor',
+      (value) => this.callbacks.onConfigChange({ crtPhosphor: value })
     )
 
     // Preset selection
@@ -563,6 +696,14 @@ export class ShaderDebugUI {
         this.callbacks.onToggleShader(newEnabled)
       }
 
+      // F6 - Toggle auto performance adjustment
+      if (e.key === 'F6') {
+        e.preventDefault()
+        const newEnabled = !this.autoPerformanceCheckbox.checked
+        this.autoPerformanceCheckbox.checked = newEnabled
+        this.callbacks.onAutoPerformanceToggle?.(newEnabled)
+      }
+
       // Number keys for presets
       if (e.key >= '1' && e.key <= '4') {
         e.preventDefault()
@@ -648,6 +789,7 @@ export class ShaderDebugUI {
 
   private updateUI(): void {
     this.enabledCheckbox.checked = this.currentConfig.enabled
+    // Note: Auto-performance state is managed separately from shader config
 
     // Update slider-input pairs
     this.updateSliderInputPair(this.luminanceSlider, this.luminanceInput, this.currentConfig.luminanceThreshold)
@@ -657,10 +799,17 @@ export class ShaderDebugUI {
     this.updateSliderInputPair(this.grittinessSlider, this.grittinessInput, this.currentConfig.grittiness)
     this.updateSliderInputPair(this.filmGrainSlider, this.filmGrainInput, this.currentConfig.filmGrainIntensity)
     this.updateSliderInputPair(this.vignetteSlider, this.vignetteInput, this.currentConfig.vignetteStrength)
+    this.updateSliderInputPair(this.ditheringSlider, this.ditheringInput, this.currentConfig.ditheringIntensity)
+    this.updateSliderInputPair(this.pixelSizeSlider, this.pixelSizeInput, this.currentConfig.pixelSize)
+    this.updateSliderInputPair(this.crtCurvatureSlider, this.crtCurvatureInput, this.currentConfig.crtCurvature)
+    this.updateSliderInputPair(this.crtScanlinesSlider, this.crtScanlinesInput, this.currentConfig.crtScanlines)
+    this.updateSliderInputPair(this.crtPhosphorSlider, this.crtPhosphorInput, this.currentConfig.crtPhosphor)
   }
 
-  private updateSliderInputPair(slider: HTMLInputElement, input: HTMLInputElement, value: number, isInteger: boolean = false): void {
-    const stringValue = isInteger ? value.toString() : value.toFixed(2)
+  private updateSliderInputPair(slider: HTMLInputElement, input: HTMLInputElement, value: number | undefined, isInteger: boolean = false): void {
+    // Handle undefined values by using default values
+    const safeValue = value ?? 0
+    const stringValue = isInteger ? safeValue.toString() : safeValue.toFixed(2)
     slider.value = stringValue
     input.value = stringValue
   }
@@ -703,7 +852,8 @@ export class ShaderDebugUI {
       // Validate required properties
       const requiredProps: (keyof ShaderConfig)[] = [
         'enabled', 'luminanceThreshold', 'colorSteps', 'intensity', 
-        'darknessBias', 'grittiness', 'filmGrainIntensity', 'vignetteStrength'
+        'darknessBias', 'grittiness', 'filmGrainIntensity', 'vignetteStrength',
+        'ditheringIntensity', 'pixelSize', 'crtCurvature', 'crtScanlines', 'crtPhosphor'
       ]
 
       for (const prop of requiredProps) {
@@ -805,6 +955,10 @@ export class ShaderDebugUI {
   public updateConfig(config: ShaderConfig): void {
     this.currentConfig = { ...config }
     this.updateUI()
+  }
+
+  public setAutoPerformanceEnabled(enabled: boolean): void {
+    this.autoPerformanceCheckbox.checked = enabled
   }
 
   public dispose(): void {

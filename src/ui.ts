@@ -149,6 +149,7 @@ export class UIManager {
   public onShaderConfigChange?: (config: Partial<ShaderConfig>) => void
   public onShaderToggle?: (enabled: boolean) => void
   public onShaderPresetLoad?: (preset: ShaderConfig) => void
+  public onAutoPerformanceToggle?: (enabled: boolean) => void
 
   public toggleGallery() {
     this.galleryEl.classList.toggle('hidden')
@@ -463,6 +464,9 @@ export class UIManager {
       },
       onPresetLoad: (preset) => {
         this.onShaderPresetLoad?.(preset)
+      },
+      onAutoPerformanceToggle: (enabled) => {
+        this.onAutoPerformanceToggle?.(enabled)
       }
     }
 
@@ -471,6 +475,10 @@ export class UIManager {
 
   public updateShaderDebugUI(config: ShaderConfig): void {
     this.shaderDebugUI?.updateConfig(config)
+  }
+
+  public setShaderAutoPerformanceEnabled(enabled: boolean): void {
+    this.shaderDebugUI?.setAutoPerformanceEnabled(enabled)
   }
 
   public showShaderDebugUI(): void {

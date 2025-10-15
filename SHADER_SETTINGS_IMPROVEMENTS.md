@@ -1,4 +1,16 @@
-# Shader Settings Improvements
+# Shader Settings with Pixel Art & CRT Effects
+
+## New Visual Effects Added
+
+### 1. Pixel Art Style Effects
+- **Dithering**: Bayer matrix dithering for authentic pixel art texture
+- **Pixelation**: Adjustable pixel size for retro game aesthetics
+- **Color Reduction**: Works with existing posterization for limited color palettes
+
+### 2. CRT Monitor Effects
+- **Screen Curvature**: Barrel distortion to simulate curved CRT screens
+- **Scanlines**: Horizontal lines like old monitors and TVs
+- **Phosphor Glow**: RGB phosphor simulation with color bleeding effects
 
 ## Fixed Issues
 
@@ -33,6 +45,16 @@
 - **Value Validation**: All inputs are validated and clamped to acceptable ranges
 - **Better Responsiveness**: Multiple event handlers ensure smooth interaction
 
+### New Effect Categories
+- **🎮 Pixel Art Effects**: Dithering and pixelation controls
+- **📺 CRT Monitor Effects**: Screen curvature, scanlines, and phosphor glow
+- **🎬 Grit Effects**: Enhanced film grain, dirt, and vintage camera effects
+
+### New Presets
+- **Pixel Art Style**: Heavy dithering with large pixels for retro game look
+- **Retro CRT Monitor**: Authentic old monitor simulation with all CRT effects
+- **Clean**: No effects for comparison and performance testing
+
 ### Settings Management
 - **Export**: Save your current shader settings to a JSON file
 - **Import**: Load previously saved settings from a JSON file
@@ -51,6 +73,24 @@
 2. **Number Inputs**: Type exact values for precise control
 3. **Presets**: Use dropdown to quickly apply predefined configurations
 
+### New Effect Controls
+
+#### Pixel Art Effects
+- **Dithering (0.0-1.0)**: Controls Bayer matrix dithering intensity
+- **Pixel Size (1.0-8.0)**: Adjusts pixelation level (1.0 = no pixelation)
+
+#### CRT Monitor Effects
+- **Screen Curvature (0.0-1.0)**: Barrel distortion like old CRT monitors
+- **Scanlines (0.0-1.0)**: Horizontal line intensity
+- **Phosphor Glow (0.0-1.0)**: RGB phosphor simulation with color bleeding
+
+### Preset Styles
+- **Inscryption**: Original balanced style
+- **Pixel Art Style**: Heavy dithering + large pixels for retro games
+- **Retro CRT Monitor**: Full CRT simulation with curvature and scanlines
+- **Dramatic**: High contrast with intense effects
+- **Subtle**: Minimal effects for clean look
+
 ### Saving Your Settings
 1. Adjust shader parameters to your liking
 2. Click "Export Settings" button
@@ -64,8 +104,9 @@
 ### Quick Access
 - Press **F4** to toggle the shader debug panel
 - Press **F5** to quickly toggle shader on/off
-- Use **1-4** keys for development presets
+- Use **1-4** keys for development presets (including new Pixel Art and CRT styles)
 - Use **Shift + 1-4** for quality presets
+- Click **🎨 Shader Settings** in main settings panel
 
 ## Technical Improvements
 
@@ -114,5 +155,42 @@ private async importSettings(file: File): Promise<void> {
 3. **Settings Persistence**: Save and share your favorite configurations
 4. **Robust Error Handling**: Graceful handling of edge cases and invalid inputs
 5. **Professional UI**: Clean, intuitive interface with proper feedback
+6. **Authentic Retro Effects**: True-to-life pixel art and CRT monitor simulation
+7. **Performance Optimized**: Efficient shader code with quality presets for different hardware
 
-The shader debug UI is now much more professional and user-friendly, allowing for precise control and easy management of shader settings.
+## Example Configurations
+
+### Pixel Art Style
+```json
+{
+  "ditheringIntensity": 0.9,
+  "pixelSize": 4.0,
+  "colorSteps": 4,
+  "crtCurvature": 0.0,
+  "crtScanlines": 0.0
+}
+```
+
+### Retro CRT Monitor
+```json
+{
+  "crtCurvature": 0.8,
+  "crtScanlines": 0.8,
+  "crtPhosphor": 0.9,
+  "ditheringIntensity": 0.2,
+  "pixelSize": 1.2
+}
+```
+
+### Inscryption Style (Enhanced)
+```json
+{
+  "luminanceThreshold": 0.3,
+  "colorSteps": 8,
+  "grittiness": 0.6,
+  "ditheringIntensity": 0.3,
+  "crtCurvature": 0.2
+}
+```
+
+The shader system now provides authentic retro visual effects with professional-grade controls, allowing you to create anything from clean pixel art to gritty CRT monitor aesthetics.

@@ -11,7 +11,7 @@ void main() {
 }
 `
 
-// Fragment shader source - optimized for performance with grit effects
+// Fragment shader source - optimized for performance with grit, pixel art, and CRT effects
 const fragmentShader = `
 uniform sampler2D tDiffuse;
 uniform float luminanceThreshold;
@@ -23,6 +23,11 @@ uniform float time;
 uniform float grittiness;
 uniform float filmGrainIntensity;
 uniform float vignetteStrength;
+uniform float ditheringIntensity;
+uniform float pixelSize;
+uniform float crtCurvature;
+uniform float crtScanlines;
+uniform float crtPhosphor;
 
 varying vec2 vUv;
 
@@ -78,9 +83,135 @@ vec3 chromaticAberration(sampler2D tex, vec2 uv) {
     return vec3(r, g, b);
 }
 
+// Bayer matrix dithering for pixel art effect
+float bayerDither(vec2 uv) {
+    // 4x4 Bayer matrix
+    mat4 bayerMatrix = mat4(
+        0.0/16.0,  8.0/16.0,  2.0/16.0, 10.0/16.0,
+        12.0/16.0, 4.0/16.0, 14.0/16.0,  6.0/16.0,
+        3.0/16.0, 11.0/16.0,  1.0/16.0,  9.0/16.0,
+        15.0/16.0, 7.0/16.0, 13.0/16.0,  5.0/16.0
+    );
+    
+    vec2 pos = floor(uv * resolution / 4.0);
+    int x = int(mod(pos.x, 4.0));
+    int y = int(mod(pos.y, 4.0));
+    
+    // Manual matrix lookup (GLSL doesn't support dynamic indexing easily)
+    float threshold = 0.0;
+    if (x == 0 && y == 0) threshold = bayerMatrix[0][0];
+    else if (x == 1 && y == 0) threshold = bayerMatrix[0][1];
+    else if (x == 2 && y == 0) threshold = bayerMatrix[0][2];
+    else if (x == 3 && y == 0) threshold = bayerMatrix[0][3];
+    else if (x == 0 && y == 1) threshold = bayerMatrix[1][0];
+    else if (x == 1 && y == 1) threshold = bayerMatrix[1][1];
+    else if (x == 2 && y == 1) threshold = bayerMatrix[1][2];
+    else if (x == 3 && y == 1) threshold = bayerMatrix[1][3];
+    else if (x == 0 && y == 2) threshold = bayerMatrix[2][0];
+    else if (x == 1 && y == 2) threshold = bayerMatrix[2][1];
+    else if (x == 2 && y == 2) threshold = bayerMatrix[2][2];
+    else if (x == 3 && y == 2) threshold = bayerMatrix[2][3];
+    else if (x == 0 && y == 3) threshold = bayerMatrix[3][0];
+    else if (x == 1 && y == 3) threshold = bayerMatrix[3][1];
+    else if (x == 2 && y == 3) threshold = bayerMatrix[3][2];
+    else if (x == 3 && y == 3) threshold = bayerMatrix[3][3];
+    
+    return threshold;
+}
+
+// Pixelation effect
+vec2 pixelate(vec2 uv, float pixelSize) {
+    if (pixelSize <= 1.0) return uv;
+    
+    vec2 pixelatedUV = floor(uv * resolution / pixelSize) * pixelSize / resolution;
+    return pixelatedUV;
+}
+
+// CRT screen curvature distortion
+vec2 crtDistortion(vec2 uv, float curvature) {
+    if (curvature <= 0.0) return uv;
+    
+    vec2 center = uv - 0.5;
+    float dist = length(center);
+    
+    // Apply barrel distortion
+    vec2 distorted = center * (1.0 + curvature * dist * dist);
+    return distorted + 0.5;
+}
+
+// CRT scanlines effect
+float scanlines(vec2 uv, float intensity) {
+    if (intensity <= 0.0) return 1.0;
+    
+    float scanline = sin(uv.y * resolution.y * 2.0) * 0.5 + 0.5;
+    return mix(1.0, scanline, intensity * 0.3);
+}
+
+// CRT phosphor glow effect
+vec3 phosphorGlow(vec3 color, vec2 uv, float intensity) {
+    if (intensity <= 0.0) return color;
+    
+    // Simulate RGB phosphor arrangement
+    vec2 phosphorUV = uv * resolution;
+    
+    // Red phosphor
+    float redMask = sin(phosphorUV.x * 3.14159 * 3.0) * 0.5 + 0.5;
+    // Green phosphor (offset)
+    float greenMask = sin((phosphorUV.x + 1.0) * 3.14159 * 3.0) * 0.5 + 0.5;
+    // Blue phosphor (offset)
+    float blueMask = sin((phosphorUV.x + 2.0) * 3.14159 * 3.0) * 0.5 + 0.5;
+    
+    vec3 phosphorMask = vec3(redMask, greenMask, blueMask);
+    
+    // Apply phosphor effect with glow
+    vec3 glowColor = color * (1.0 + phosphorMask * intensity * 0.3);
+    
+    // Add subtle color bleeding
+    vec3 bleed = vec3(
+        color.r * 1.1,
+        color.g * 1.05,
+        color.b * 1.1
+    );
+    
+    return mix(color, mix(glowColor, bleed, 0.3), intensity);
+}
+
 void main() {
+    // === CRT EFFECTS ===
+    
+    // Apply CRT screen curvature distortion
+    vec2 distortedUV = crtDistortion(vUv, crtCurvature);
+    
+    // Check if we're outside the screen bounds after distortion
+    if (distortedUV.x < 0.0 || distortedUV.x > 1.0 || distortedUV.y < 0.0 || distortedUV.y > 1.0) {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+    
+    // Apply pixelation effect
+    vec2 pixelatedUV = pixelate(distortedUV, pixelSize);
+    
     // Sample with subtle chromatic aberration for gritty lens effect
-    vec3 color = chromaticAberration(tDiffuse, vUv);
+    vec3 color = chromaticAberration(tDiffuse, pixelatedUV);
+    
+    // === DITHERING ===
+    
+    // Apply Bayer dithering for pixel art effect
+    if (ditheringIntensity > 0.0) {
+        float ditherThreshold = bayerDither(vUv);
+        
+        // Apply dithering to each color channel
+        vec3 ditheredColor = color;
+        float ditherStrength = ditheringIntensity * 0.1;
+        
+        ditheredColor.r = step(ditherThreshold * ditherStrength, fract(color.r * colorSteps)) / colorSteps;
+        ditheredColor.g = step(ditherThreshold * ditherStrength, fract(color.g * colorSteps)) / colorSteps;
+        ditheredColor.b = step(ditherThreshold * ditherStrength, fract(color.b * colorSteps)) / colorSteps;
+        
+        color = mix(color, ditheredColor, ditheringIntensity);
+    }
+    
+    // === POSTERIZATION ===
     
     // Calculate luminance using dot product
     float luminance = dot(color, LUMINANCE_WEIGHTS);
@@ -119,8 +250,17 @@ void main() {
     float scratch = smoothstep(0.995, 1.0, scratchNoise) * grittiness;
     baseColor = mix(baseColor, vec3(0.8), scratch * 0.1);
     
-    // Apply vignette for that old camera aesthetic
-    float vignetteEffect = vignette(vUv);
+    // === CRT DISPLAY EFFECTS ===
+    
+    // Apply CRT scanlines
+    float scanlineEffect = scanlines(distortedUV, crtScanlines);
+    baseColor *= scanlineEffect;
+    
+    // Apply CRT phosphor glow
+    baseColor = phosphorGlow(baseColor, distortedUV, crtPhosphor);
+    
+    // Apply vignette for that old camera/monitor aesthetic
+    float vignetteEffect = vignette(distortedUV);
     baseColor *= mix(1.0, vignetteEffect, vignetteStrength);
     
     // Subtle color desaturation for aged look
@@ -156,6 +296,11 @@ export interface InscryptionShaderUniforms {
   grittiness: { value: number }
   filmGrainIntensity: { value: number }
   vignetteStrength: { value: number }
+  ditheringIntensity: { value: number }
+  pixelSize: { value: number }
+  crtCurvature: { value: number }
+  crtScanlines: { value: number }
+  crtPhosphor: { value: number }
 }
 
 // InscryptionShader class following Three.js shader pattern
@@ -168,9 +313,14 @@ export class InscryptionShader {
     darknessBias: { value: INSCRYPTION_SHADER_DEFAULTS.darknessBias },
     resolution: { value: new THREE.Vector2(1024, 1024) },
     time: { value: 0.0 },
-    grittiness: { value: 0.6 }, // Default grit level for Inscryption aesthetic
-    filmGrainIntensity: { value: 0.8 }, // Moderate film grain
-    vignetteStrength: { value: 0.4 }, // Subtle vignette
+    grittiness: { value: INSCRYPTION_SHADER_DEFAULTS.grittiness },
+    filmGrainIntensity: { value: INSCRYPTION_SHADER_DEFAULTS.filmGrainIntensity },
+    vignetteStrength: { value: INSCRYPTION_SHADER_DEFAULTS.vignetteStrength },
+    ditheringIntensity: { value: INSCRYPTION_SHADER_DEFAULTS.ditheringIntensity },
+    pixelSize: { value: INSCRYPTION_SHADER_DEFAULTS.pixelSize },
+    crtCurvature: { value: INSCRYPTION_SHADER_DEFAULTS.crtCurvature },
+    crtScanlines: { value: INSCRYPTION_SHADER_DEFAULTS.crtScanlines },
+    crtPhosphor: { value: INSCRYPTION_SHADER_DEFAULTS.crtPhosphor },
   }
 
   static vertexShader = vertexShader

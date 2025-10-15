@@ -13,6 +13,7 @@ import {
 } from './creatures'
 import { GAME_CONFIG } from './constants'
 import { type ShaderConfig } from './shaders/ShaderManager'
+import { INSCRYPTION_SHADER_DEFAULTS } from './shaders/InscryptionShaderConfig'
 
 
 export class Game {
@@ -39,16 +40,7 @@ export class Game {
     this.preloadShaderResources()
 
     // Initialize shader configuration with Inscryption-style defaults
-    this.shaderConfig = {
-      enabled: true,
-      luminanceThreshold: 0.3,
-      colorSteps: 8,
-      intensity: 1.0,
-      darknessBias: 0.4,
-      grittiness: 0.6,
-      filmGrainIntensity: 0.8,
-      vignetteStrength: 0.5,
-    }
+    this.shaderConfig = { ...INSCRYPTION_SHADER_DEFAULTS }
 
     // Initialize all systems
     this.sceneManager = new SceneManager(container)
@@ -71,9 +63,14 @@ export class Game {
     this.uiManager.onShaderConfigChange = (config) => this.updateShaderConfig(config)
     this.uiManager.onShaderToggle = (enabled) => this.setShaderEnabled(enabled)
     this.uiManager.onShaderPresetLoad = (preset) => this.updateShaderConfig(preset)
+    this.uiManager.onAutoPerformanceToggle = (enabled) => this.setShaderAutoPerformanceAdjustment(enabled)
     
     // Initialize shader debug UI
     this.uiManager.initializeShaderDebugUI(this.shaderConfig)
+    
+    // Disable auto-performance adjustment for testing
+    this.setShaderAutoPerformanceAdjustment(false)
+    this.uiManager.setShaderAutoPerformanceEnabled(false)
 
     // Setup photo system callbacks
     this.photoSystem.setCallbacks({
@@ -665,6 +662,15 @@ export class Game {
     this.shaderConfig.enabled = enabled
     this.sceneManager.setShaderEnabled(enabled)
     this.uiManager.updateShaderDebugUI(this.shaderConfig)
+  }
+
+  public setShaderAutoPerformanceAdjustment(enabled: boolean): void {
+    this.sceneManager.setShaderAutoPerformanceAdjustment(enabled)
+    console.log(`Shader auto-performance adjustment ${enabled ? 'enabled' : 'disabled'}`)
+  }
+
+  public isShaderAutoPerformanceAdjustmentEnabled(): boolean {
+    return this.sceneManager.isShaderAutoPerformanceAdjustmentEnabled()
   }
 
   // Preload shader resources for better performance

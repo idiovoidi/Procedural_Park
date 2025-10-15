@@ -16,6 +16,12 @@ export interface ShaderConfig {
   grittiness: number // 0.0 - 1.0
   filmGrainIntensity: number // 0.0 - 2.0
   vignetteStrength: number // 0.0 - 1.0
+  // New pixel art and CRT effects
+  ditheringIntensity: number // 0.0 - 1.0
+  pixelSize: number // 1.0 - 8.0
+  crtCurvature: number // 0.0 - 1.0
+  crtScanlines: number // 0.0 - 1.0
+  crtPhosphor: number // 0.0 - 1.0
 }
 
 // Extended callbacks for performance monitoring
@@ -161,6 +167,21 @@ export class ShaderManager {
     }
     if (config.vignetteStrength !== undefined) {
       uniforms.vignetteStrength.value = config.vignetteStrength
+    }
+    if (config.ditheringIntensity !== undefined) {
+      uniforms.ditheringIntensity.value = config.ditheringIntensity
+    }
+    if (config.pixelSize !== undefined) {
+      uniforms.pixelSize.value = config.pixelSize
+    }
+    if (config.crtCurvature !== undefined) {
+      uniforms.crtCurvature.value = config.crtCurvature
+    }
+    if (config.crtScanlines !== undefined) {
+      uniforms.crtScanlines.value = config.crtScanlines
+    }
+    if (config.crtPhosphor !== undefined) {
+      uniforms.crtPhosphor.value = config.crtPhosphor
     }
   }
 

@@ -1,0 +1,19 @@
+{
+  "name": "Authentic CRT Monitor",
+  "timestamp": "2024-10-16T12:00:00.000Z",
+  "config": {
+    "enabled": true,
+    "luminanceThreshold": 0.35,
+    "colorSteps": 8,
+    "intensity": 0.9,
+    "darknessBias": 0.4,
+    "grittiness": 0.6,
+    "filmGrainIntensity": 0.4,
+    "vignetteStrength": 0.6,
+    "ditheringIntensity": 0.2,
+    "pixelSize": 1.2,
+    "crtCurvature": 0.8,
+    "crtScanlines": 0.8,
+    "crtPhosphor": 0.9
+  }
+}
