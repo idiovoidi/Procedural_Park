@@ -20,21 +20,24 @@ export class ShaderDebugUI {
   // Control elements
   private enabledCheckbox!: HTMLInputElement
   private luminanceSlider!: HTMLInputElement
-  private luminanceValue!: HTMLSpanElement
+  private luminanceInput!: HTMLInputElement
   private colorStepsSlider!: HTMLInputElement
-  private colorStepsValue!: HTMLSpanElement
+  private colorStepsInput!: HTMLInputElement
   private intensitySlider!: HTMLInputElement
-  private intensityValue!: HTMLSpanElement
+  private intensityInput!: HTMLInputElement
   private darknessSlider!: HTMLInputElement
-  private darknessValue!: HTMLSpanElement
+  private darknessInput!: HTMLInputElement
   private grittinessSlider!: HTMLInputElement
-  private grittinessValue!: HTMLSpanElement
+  private grittinessInput!: HTMLInputElement
   private filmGrainSlider!: HTMLInputElement
-  private filmGrainValue!: HTMLSpanElement
+  private filmGrainInput!: HTMLInputElement
   private vignetteSlider!: HTMLInputElement
-  private vignetteValue!: HTMLSpanElement
+  private vignetteInput!: HTMLInputElement
   private presetSelect!: HTMLSelectElement
   private resetButton!: HTMLButtonElement
+  private exportButton!: HTMLButtonElement
+  private importButton!: HTMLButtonElement
+  private importFile!: HTMLInputElement
 
   constructor(callbacks: ShaderDebugCallbacks, initialConfig: ShaderConfig) {
     this.callbacks = callbacks
@@ -82,26 +85,38 @@ export class ShaderDebugUI {
         </div>
 
         <div class="setting-group">
-          <label for="luminance-threshold">Luminance Threshold: <span id="luminance-value">0.30</span></label>
-          <input type="range" id="luminance-threshold" min="0" max="1" step="0.01" value="0.3" />
+          <label for="luminance-threshold">Luminance Threshold:</label>
+          <div class="slider-input-group">
+            <input type="range" id="luminance-threshold" min="0" max="1" step="0.01" value="0.3" />
+            <input type="number" id="luminance-input" min="0" max="1" step="0.01" value="0.3" class="number-input" />
+          </div>
           <small>Controls dark/bright area balance</small>
         </div>
 
         <div class="setting-group">
-          <label for="color-steps">Color Steps: <span id="color-steps-value">8</span></label>
-          <input type="range" id="color-steps" min="2" max="16" step="1" value="8" />
+          <label for="color-steps">Color Steps:</label>
+          <div class="slider-input-group">
+            <input type="range" id="color-steps" min="2" max="16" step="1" value="8" />
+            <input type="number" id="color-steps-input" min="2" max="16" step="1" value="8" class="number-input" />
+          </div>
           <small>Number of posterization levels</small>
         </div>
 
         <div class="setting-group">
-          <label for="intensity">Intensity: <span id="intensity-value">1.00</span></label>
-          <input type="range" id="intensity" min="0" max="2" step="0.01" value="1" />
+          <label for="intensity">Intensity:</label>
+          <div class="slider-input-group">
+            <input type="range" id="intensity" min="0" max="2" step="0.01" value="1" />
+            <input type="number" id="intensity-input" min="0" max="2" step="0.01" value="1" class="number-input" />
+          </div>
           <small>Overall effect strength</small>
         </div>
 
         <div class="setting-group">
-          <label for="darkness-bias">Darkness Bias: <span id="darkness-value">0.40</span></label>
-          <input type="range" id="darkness-bias" min="0" max="1" step="0.01" value="0.4" />
+          <label for="darkness-bias">Darkness Bias:</label>
+          <div class="slider-input-group">
+            <input type="range" id="darkness-bias" min="0" max="1" step="0.01" value="0.4" />
+            <input type="number" id="darkness-input" min="0" max="1" step="0.01" value="0.4" class="number-input" />
+          </div>
           <small>Additional darkening for shadows</small>
         </div>
 
@@ -110,26 +125,42 @@ export class ShaderDebugUI {
         </div>
 
         <div class="setting-group">
-          <label for="grittiness">Grittiness: <span id="grittiness-value">0.60</span></label>
-          <input type="range" id="grittiness" min="0" max="1" step="0.01" value="0.6" />
+          <label for="grittiness">Grittiness:</label>
+          <div class="slider-input-group">
+            <input type="range" id="grittiness" min="0" max="1" step="0.01" value="0.6" />
+            <input type="number" id="grittiness-input" min="0" max="1" step="0.01" value="0.6" class="number-input" />
+          </div>
           <small>Overall dirt, dust, and imperfections</small>
         </div>
 
         <div class="setting-group">
-          <label for="film-grain">Film Grain: <span id="film-grain-value">0.80</span></label>
-          <input type="range" id="film-grain" min="0" max="2" step="0.01" value="0.8" />
+          <label for="film-grain">Film Grain:</label>
+          <div class="slider-input-group">
+            <input type="range" id="film-grain" min="0" max="2" step="0.01" value="0.8" />
+            <input type="number" id="film-grain-input" min="0" max="2" step="0.01" value="0.8" class="number-input" />
+          </div>
           <small>Film noise and texture intensity</small>
         </div>
 
         <div class="setting-group">
-          <label for="vignette-strength">Vignette: <span id="vignette-value">0.40</span></label>
-          <input type="range" id="vignette-strength" min="0" max="1" step="0.01" value="0.4" />
+          <label for="vignette-strength">Vignette:</label>
+          <div class="slider-input-group">
+            <input type="range" id="vignette-strength" min="0" max="1" step="0.01" value="0.4" />
+            <input type="number" id="vignette-input" min="0" max="1" step="0.01" value="0.4" class="number-input" />
+          </div>
           <small>Edge darkening for old camera look</small>
         </div>
 
         <div class="setting-group">
-          <button id="reset-shader">Reset to Defaults</button>
-          <small>Restore original Inscryption settings</small>
+          <div class="button-row">
+            <button id="reset-shader">Reset to Defaults</button>
+            <button id="export-settings">Export Settings</button>
+          </div>
+          <div class="button-row">
+            <button id="import-settings">Import Settings</button>
+            <input type="file" id="import-file" accept=".json" style="display: none;" />
+          </div>
+          <small>Save and load your custom shader configurations</small>
         </div>
 
         <div class="setting-group">
@@ -210,15 +241,48 @@ export class ShaderDebugUI {
         margin-bottom: 8px;
       }
 
-      .shader-debug-panel input[type="range"] {
-        width: 100%;
+      .shader-debug-panel .slider-input-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
         margin: 8px 0;
+      }
+
+      .shader-debug-panel input[type="range"] {
+        flex: 1;
         accent-color: #6cf;
+      }
+
+      .shader-debug-panel .number-input {
+        width: 80px;
+        padding: 4px 8px;
+        background: var(--hud-bg, #1b2430);
+        border: 1px solid var(--hud-border, #2a384a);
+        border-radius: 4px;
+        color: var(--hud-text, #e0e6ed);
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .shader-debug-panel .number-input:focus {
+        outline: none;
+        border-color: #6cf;
+        box-shadow: 0 0 0 2px rgba(102, 204, 255, 0.2);
       }
 
       .shader-debug-panel input[type="checkbox"] {
         margin-right: 8px;
         accent-color: #6cf;
+      }
+
+      .shader-debug-panel .button-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .shader-debug-panel .button-row button {
+        flex: 1;
       }
 
       .shader-debug-panel select {
@@ -320,21 +384,24 @@ export class ShaderDebugUI {
   private cacheElements(panel: HTMLDivElement): void {
     this.enabledCheckbox = panel.querySelector('#shader-enabled') as HTMLInputElement
     this.luminanceSlider = panel.querySelector('#luminance-threshold') as HTMLInputElement
-    this.luminanceValue = panel.querySelector('#luminance-value') as HTMLSpanElement
+    this.luminanceInput = panel.querySelector('#luminance-input') as HTMLInputElement
     this.colorStepsSlider = panel.querySelector('#color-steps') as HTMLInputElement
-    this.colorStepsValue = panel.querySelector('#color-steps-value') as HTMLSpanElement
+    this.colorStepsInput = panel.querySelector('#color-steps-input') as HTMLInputElement
     this.intensitySlider = panel.querySelector('#intensity') as HTMLInputElement
-    this.intensityValue = panel.querySelector('#intensity-value') as HTMLSpanElement
+    this.intensityInput = panel.querySelector('#intensity-input') as HTMLInputElement
     this.darknessSlider = panel.querySelector('#darkness-bias') as HTMLInputElement
-    this.darknessValue = panel.querySelector('#darkness-value') as HTMLSpanElement
+    this.darknessInput = panel.querySelector('#darkness-input') as HTMLInputElement
     this.grittinessSlider = panel.querySelector('#grittiness') as HTMLInputElement
-    this.grittinessValue = panel.querySelector('#grittiness-value') as HTMLSpanElement
+    this.grittinessInput = panel.querySelector('#grittiness-input') as HTMLInputElement
     this.filmGrainSlider = panel.querySelector('#film-grain') as HTMLInputElement
-    this.filmGrainValue = panel.querySelector('#film-grain-value') as HTMLSpanElement
+    this.filmGrainInput = panel.querySelector('#film-grain-input') as HTMLInputElement
     this.vignetteSlider = panel.querySelector('#vignette-strength') as HTMLInputElement
-    this.vignetteValue = panel.querySelector('#vignette-value') as HTMLSpanElement
+    this.vignetteInput = panel.querySelector('#vignette-input') as HTMLInputElement
     this.presetSelect = panel.querySelector('#shader-preset') as HTMLSelectElement
     this.resetButton = panel.querySelector('#reset-shader') as HTMLButtonElement
+    this.exportButton = panel.querySelector('#export-settings') as HTMLButtonElement
+    this.importButton = panel.querySelector('#import-settings') as HTMLButtonElement
+    this.importFile = panel.querySelector('#import-file') as HTMLInputElement
   }
 
   private setupEventListeners(): void {
@@ -350,55 +417,56 @@ export class ShaderDebugUI {
       this.callbacks.onToggleShader(enabled)
     })
 
-    // Parameter sliders
-    this.luminanceSlider.addEventListener('input', (e) => {
-      const value = parseFloat((e.target as HTMLInputElement).value)
-      this.currentConfig.luminanceThreshold = value
-      this.luminanceValue.textContent = value.toFixed(2)
-      this.callbacks.onConfigChange({ luminanceThreshold: value })
-    })
+    // Setup slider-input pairs with proper synchronization
+    this.setupSliderInputPair(
+      this.luminanceSlider, 
+      this.luminanceInput, 
+      'luminanceThreshold',
+      (value) => this.callbacks.onConfigChange({ luminanceThreshold: value })
+    )
 
-    this.colorStepsSlider.addEventListener('input', (e) => {
-      const value = parseInt((e.target as HTMLInputElement).value)
-      this.currentConfig.colorSteps = value
-      this.colorStepsValue.textContent = value.toString()
-      this.callbacks.onConfigChange({ colorSteps: value })
-    })
+    this.setupSliderInputPair(
+      this.colorStepsSlider, 
+      this.colorStepsInput, 
+      'colorSteps',
+      (value) => this.callbacks.onConfigChange({ colorSteps: value }),
+      true // isInteger
+    )
 
-    this.intensitySlider.addEventListener('input', (e) => {
-      const value = parseFloat((e.target as HTMLInputElement).value)
-      this.currentConfig.intensity = value
-      this.intensityValue.textContent = value.toFixed(2)
-      this.callbacks.onConfigChange({ intensity: value })
-    })
+    this.setupSliderInputPair(
+      this.intensitySlider, 
+      this.intensityInput, 
+      'intensity',
+      (value) => this.callbacks.onConfigChange({ intensity: value })
+    )
 
-    this.darknessSlider.addEventListener('input', (e) => {
-      const value = parseFloat((e.target as HTMLInputElement).value)
-      this.currentConfig.darknessBias = value
-      this.darknessValue.textContent = value.toFixed(2)
-      this.callbacks.onConfigChange({ darknessBias: value })
-    })
+    this.setupSliderInputPair(
+      this.darknessSlider, 
+      this.darknessInput, 
+      'darknessBias',
+      (value) => this.callbacks.onConfigChange({ darknessBias: value })
+    )
 
-    this.grittinessSlider.addEventListener('input', (e) => {
-      const value = parseFloat((e.target as HTMLInputElement).value)
-      this.currentConfig.grittiness = value
-      this.grittinessValue.textContent = value.toFixed(2)
-      this.callbacks.onConfigChange({ grittiness: value })
-    })
+    this.setupSliderInputPair(
+      this.grittinessSlider, 
+      this.grittinessInput, 
+      'grittiness',
+      (value) => this.callbacks.onConfigChange({ grittiness: value })
+    )
 
-    this.filmGrainSlider.addEventListener('input', (e) => {
-      const value = parseFloat((e.target as HTMLInputElement).value)
-      this.currentConfig.filmGrainIntensity = value
-      this.filmGrainValue.textContent = value.toFixed(2)
-      this.callbacks.onConfigChange({ filmGrainIntensity: value })
-    })
+    this.setupSliderInputPair(
+      this.filmGrainSlider, 
+      this.filmGrainInput, 
+      'filmGrainIntensity',
+      (value) => this.callbacks.onConfigChange({ filmGrainIntensity: value })
+    )
 
-    this.vignetteSlider.addEventListener('input', (e) => {
-      const value = parseFloat((e.target as HTMLInputElement).value)
-      this.currentConfig.vignetteStrength = value
-      this.vignetteValue.textContent = value.toFixed(2)
-      this.callbacks.onConfigChange({ vignetteStrength: value })
-    })
+    this.setupSliderInputPair(
+      this.vignetteSlider, 
+      this.vignetteInput, 
+      'vignetteStrength',
+      (value) => this.callbacks.onConfigChange({ vignetteStrength: value })
+    )
 
     // Preset selection
     this.presetSelect.addEventListener('change', (e) => {
@@ -409,6 +477,72 @@ export class ShaderDebugUI {
     // Reset button
     this.resetButton.addEventListener('click', () => {
       this.loadPreset('inscryption')
+    })
+
+    // Export button
+    this.exportButton.addEventListener('click', () => {
+      this.exportSettings()
+    })
+
+    // Import button
+    this.importButton.addEventListener('click', () => {
+      this.importFile.click()
+    })
+
+    // Import file handler
+    this.importFile.addEventListener('change', (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (file) {
+        this.importSettings(file)
+      }
+    })
+  }
+
+  private setupSliderInputPair(
+    slider: HTMLInputElement, 
+    input: HTMLInputElement, 
+    configKey: keyof ShaderConfig,
+    onChange: (value: number) => void,
+    isInteger: boolean = false
+  ): void {
+    // Slider change handler
+    const handleSliderChange = () => {
+      const value = isInteger ? parseInt(slider.value) : parseFloat(slider.value)
+      if (!isNaN(value)) {
+        (this.currentConfig as any)[configKey] = value
+        input.value = value.toString()
+        onChange(value)
+      }
+    }
+
+    // Input change handler
+    const handleInputChange = () => {
+      const value = isInteger ? parseInt(input.value) : parseFloat(input.value)
+      const minValue = isInteger ? parseInt(input.min) : parseFloat(input.min)
+      const maxValue = isInteger ? parseInt(input.max) : parseFloat(input.max)
+      
+      if (!isNaN(value)) {
+        // Clamp value to valid range
+        const clampedValue = Math.max(minValue, Math.min(maxValue, value))
+        ;(this.currentConfig as any)[configKey] = clampedValue
+        slider.value = clampedValue.toString()
+        input.value = clampedValue.toString()
+        onChange(clampedValue)
+      }
+    }
+
+    // Add event listeners with both 'input' and 'change' for better responsiveness
+    slider.addEventListener('input', handleSliderChange)
+    slider.addEventListener('change', handleSliderChange)
+    input.addEventListener('input', handleInputChange)
+    input.addEventListener('change', handleInputChange)
+    
+    // Handle Enter key for immediate application
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        handleInputChange()
+        input.blur()
+      }
     })
   }
 
@@ -515,26 +649,139 @@ export class ShaderDebugUI {
   private updateUI(): void {
     this.enabledCheckbox.checked = this.currentConfig.enabled
 
-    this.luminanceSlider.value = this.currentConfig.luminanceThreshold.toString()
-    this.luminanceValue.textContent = this.currentConfig.luminanceThreshold.toFixed(2)
+    // Update slider-input pairs
+    this.updateSliderInputPair(this.luminanceSlider, this.luminanceInput, this.currentConfig.luminanceThreshold)
+    this.updateSliderInputPair(this.colorStepsSlider, this.colorStepsInput, this.currentConfig.colorSteps, true)
+    this.updateSliderInputPair(this.intensitySlider, this.intensityInput, this.currentConfig.intensity)
+    this.updateSliderInputPair(this.darknessSlider, this.darknessInput, this.currentConfig.darknessBias)
+    this.updateSliderInputPair(this.grittinessSlider, this.grittinessInput, this.currentConfig.grittiness)
+    this.updateSliderInputPair(this.filmGrainSlider, this.filmGrainInput, this.currentConfig.filmGrainIntensity)
+    this.updateSliderInputPair(this.vignetteSlider, this.vignetteInput, this.currentConfig.vignetteStrength)
+  }
 
-    this.colorStepsSlider.value = this.currentConfig.colorSteps.toString()
-    this.colorStepsValue.textContent = this.currentConfig.colorSteps.toString()
+  private updateSliderInputPair(slider: HTMLInputElement, input: HTMLInputElement, value: number, isInteger: boolean = false): void {
+    const stringValue = isInteger ? value.toString() : value.toFixed(2)
+    slider.value = stringValue
+    input.value = stringValue
+  }
 
-    this.intensitySlider.value = this.currentConfig.intensity.toString()
-    this.intensityValue.textContent = this.currentConfig.intensity.toFixed(2)
+  private exportSettings(): void {
+    try {
+      const exportData = {
+        name: `Shader Settings ${new Date().toLocaleDateString()}`,
+        timestamp: new Date().toISOString(),
+        config: { ...this.currentConfig }
+      }
 
-    this.darknessSlider.value = this.currentConfig.darknessBias.toString()
-    this.darknessValue.textContent = this.currentConfig.darknessBias.toFixed(2)
+      const dataStr = JSON.stringify(exportData, null, 2)
+      const dataBlob = new Blob([dataStr], { type: 'application/json' })
+      
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(dataBlob)
+      link.download = `shader-settings-${Date.now()}.json`
+      link.click()
+      
+      URL.revokeObjectURL(link.href)
+      
+      this.showNotification('Settings exported successfully!', 'success')
+    } catch (error) {
+      console.error('Failed to export settings:', error)
+      this.showNotification('Failed to export settings', 'error')
+    }
+  }
 
-    this.grittinessSlider.value = this.currentConfig.grittiness.toString()
-    this.grittinessValue.textContent = this.currentConfig.grittiness.toFixed(2)
+  private async importSettings(file: File): Promise<void> {
+    try {
+      const text = await file.text()
+      const importData = JSON.parse(text)
+      
+      // Validate the imported data
+      if (!importData.config || typeof importData.config !== 'object') {
+        throw new Error('Invalid settings file format')
+      }
 
-    this.filmGrainSlider.value = this.currentConfig.filmGrainIntensity.toString()
-    this.filmGrainValue.textContent = this.currentConfig.filmGrainIntensity.toFixed(2)
+      // Validate required properties
+      const requiredProps: (keyof ShaderConfig)[] = [
+        'enabled', 'luminanceThreshold', 'colorSteps', 'intensity', 
+        'darknessBias', 'grittiness', 'filmGrainIntensity', 'vignetteStrength'
+      ]
 
-    this.vignetteSlider.value = this.currentConfig.vignetteStrength.toString()
-    this.vignetteValue.textContent = this.currentConfig.vignetteStrength.toFixed(2)
+      for (const prop of requiredProps) {
+        if (!(prop in importData.config)) {
+          throw new Error(`Missing required property: ${prop}`)
+        }
+      }
+
+      // Apply the imported configuration
+      this.currentConfig = { ...importData.config }
+      this.updateUI()
+      this.callbacks.onPresetLoad(this.currentConfig)
+      
+      const name = importData.name || 'Imported Settings'
+      this.showNotification(`${name} loaded successfully!`, 'success')
+      
+    } catch (error) {
+      console.error('Failed to import settings:', error)
+      this.showNotification('Failed to import settings: Invalid file format', 'error')
+    } finally {
+      // Clear the file input
+      this.importFile.value = ''
+    }
+  }
+
+  private showNotification(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
+    const colors = {
+      success: '#22c55e',
+      error: '#dc2626',
+      info: '#3b82f6'
+    }
+
+    const notification = document.createElement('div')
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${colors[type]};
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 10001;
+      max-width: 300px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      animation: slideInRight 0.3s ease-out;
+    `
+    notification.textContent = message
+
+    // Add animation styles if not already present
+    if (!document.getElementById('notification-styles')) {
+      const style = document.createElement('style')
+      style.id = 'notification-styles'
+      style.textContent = `
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(100%); opacity: 0; }
+        }
+      `
+      document.head.appendChild(style)
+    }
+
+    document.body.appendChild(notification)
+
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      notification.style.animation = 'slideOutRight 0.3s ease-in'
+      setTimeout(() => {
+        if (notification.parentNode) {
+          document.body.removeChild(notification)
+        }
+      }, 300)
+    }, 3000)
   }
 
   public show(): void {

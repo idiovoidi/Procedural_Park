@@ -1,0 +1,14 @@
+{
+  "name": "Example Shader Settings",
+  "timestamp": "2024-10-15T12:00:00.000Z",
+  "config": {
+    "enabled": true,
+    "luminanceThreshold": 0.35,
+    "colorSteps": 6,
+    "intensity": 1.2,
+    "darknessBias": 0.45,
+    "grittiness": 0.7,
+    "filmGrainIntensity": 0.9,
+    "vignetteStrength": 0.3
+  }
+}

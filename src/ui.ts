@@ -109,6 +109,13 @@ export class UIManager {
       this.onClearGallery?.()
     })
 
+    // Shader settings button
+    const shaderSettingsBtn = document.getElementById('shaderSettings') as HTMLButtonElement
+    shaderSettingsBtn?.addEventListener('click', () => {
+      this.audioCallbacks.onClick?.()
+      this.toggleShaderDebugUI()
+    })
+
     // Day/Night toggle button
     const dayNightToggleBtn = document.getElementById('dayNightToggle') as HTMLButtonElement
     dayNightToggleBtn?.addEventListener('click', () => {
