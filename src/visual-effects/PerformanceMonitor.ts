@@ -31,9 +31,9 @@ export interface QualityLevel {
 }
 
 export class PerformanceMonitor {
-  private metrics: PerformanceMetrics
+  private metrics!: PerformanceMetrics
   private thresholds: PerformanceThresholds
-  private qualityLevels: QualityLevel[]
+  private qualityLevels!: QualityLevel[]
   private currentQualityLevel: number = 2 // Start at medium quality
   
   // Performance tracking

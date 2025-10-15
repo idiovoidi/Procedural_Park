@@ -4,6 +4,8 @@ import { ChromaticAberrationFilter, type ChromaticAberrationConfig } from './Chr
 import { FilmGrainFilter, type FilmGrainConfig } from './FilmGrainFilter'
 import { CRTFilter, type CRTConfig } from './CRTFilter'
 import { PerformanceMonitor, type PerformanceMetrics, type PerformanceThresholds, type QualityLevel } from './PerformanceMonitor'
+import { PerformanceOptimizer, type DeviceCapabilities, type MemoryUsage } from './PerformanceOptimizer'
+import { ErrorHandler, type ErrorReport, type FallbackConfig } from './ErrorHandler'
 
 export interface EffectsConfig {
   lowRes: LowResConfig & { enabled: boolean }
@@ -42,8 +44,10 @@ export class VisualEffectsManager {
   private renderTargets: THREE.WebGLRenderTarget[] = []
   private currentTargetIndex: number = 0
   
-  // Performance monitoring
+  // Performance monitoring and optimization
   private performanceMonitor: PerformanceMonitor
+  private performanceOptimizer: PerformanceOptimizer
+  private errorHandler: ErrorHandler
   private lastFrameTime: number = 0
   private frameCount: number = 0
   private averageFPS: number = 60
@@ -53,7 +57,8 @@ export class VisualEffectsManager {
     gameScene: THREE.Scene,
     gameCamera: THREE.Camera,
     config: EffectsConfig,
-    performanceThresholds?: Partial<PerformanceThresholds>
+    performanceThresholds?: Partial<PerformanceThresholds>,
+    fallbackConfig?: Partial<FallbackConfig>
   ) {
     this.renderer = renderer
     this.gameScene = gameScene
@@ -67,46 +72,78 @@ export class VisualEffectsManager {
       (metrics) => this.handlePerformanceWarning(metrics)
     )
     
+    // Initialize performance optimizer for device-specific optimizations
+    this.performanceOptimizer = new PerformanceOptimizer(renderer)
+    
+    // Initialize error handler for comprehensive error handling and recovery
+    this.errorHandler = new ErrorHandler(
+      renderer,
+      fallbackConfig,
+      (error) => this.handleError(error),
+      (recovery) => this.handleRecovery(recovery)
+    )
+    
     this.initializeEffects()
     this.setupFilterPipeline()
     this.createRenderTargets()
   }
 
   /**
-   * Initialize all visual effects based on configuration
+   * Initialize all visual effects based on configuration with comprehensive error handling
    */
   private initializeEffects(): void {
     try {
       // Initialize low-resolution renderer
       if (this.config.lowRes.enabled) {
-        this.lowResRenderer = new LowResolutionRenderer(
-          this.renderer,
-          this.gameScene,
-          this.gameCamera,
-          this.config.lowRes
-        )
-        this.lowResRenderer.initialize()
+        try {
+          this.lowResRenderer = new LowResolutionRenderer(
+            this.renderer,
+            this.gameScene,
+            this.gameCamera,
+            this.config.lowRes
+          )
+          this.lowResRenderer.initialize()
+        } catch (error) {
+          console.error('Failed to initialize low-resolution renderer:', error)
+          this.config.lowRes.enabled = false // Disable on failure
+        }
       }
 
-      // Initialize chromatic aberration filter
+      // Initialize chromatic aberration filter with error handling
       if (this.config.chromatic.enabled) {
-        this.chromaticAberrationFilter = new ChromaticAberrationFilter(this.config.chromatic)
+        try {
+          this.chromaticAberrationFilter = new ChromaticAberrationFilter(this.config.chromatic)
+        } catch (error) {
+          console.error('Failed to initialize chromatic aberration filter:', error)
+          this.config.chromatic.enabled = false // Disable on failure
+        }
       }
 
-      // Initialize CRT filter
+      // Initialize CRT filter with error handling
       if (this.config.crt.enabled) {
-        this.crtFilter = new CRTFilter(this.config.crt)
+        try {
+          this.crtFilter = new CRTFilter(this.config.crt)
+        } catch (error) {
+          console.error('Failed to initialize CRT filter:', error)
+          this.config.crt.enabled = false // Disable on failure
+        }
       }
 
-      // Initialize film grain filter
+      // Initialize film grain filter with error handling
       if (this.config.grain.enabled) {
-        this.filmGrainFilter = new FilmGrainFilter(this.config.grain)
+        try {
+          this.filmGrainFilter = new FilmGrainFilter(this.config.grain)
+        } catch (error) {
+          console.error('Failed to initialize film grain filter:', error)
+          this.config.grain.enabled = false // Disable on failure
+        }
       }
 
       console.log('Visual effects initialized successfully')
     } catch (error) {
-      console.error('Failed to initialize visual effects:', error)
-      throw error
+      console.error('Critical failure during visual effects initialization:', error)
+      // Continue with degraded functionality rather than throwing
+      this.handleCriticalInitializationFailure(error)
     }
   }
 
@@ -156,22 +193,48 @@ export class VisualEffectsManager {
   }
 
   /**
-   * Create render targets for filter chain processing
+   * Create render targets for filter chain processing with performance optimization and error handling
    */
   private createRenderTargets(): void {
     const size = this.renderer.getSize(new THREE.Vector2())
     
-    // Create two render targets for ping-pong rendering
+    // Create two render targets for ping-pong rendering with optimized settings
     for (let i = 0; i < 2; i++) {
-      const renderTarget = new THREE.WebGLRenderTarget(size.x, size.y, {
-        minFilter: THREE.LinearFilter,
-        magFilter: THREE.LinearFilter,
-        format: THREE.RGBAFormat,
-        type: THREE.UnsignedByteType,
-        generateMipmaps: false
-      })
-      this.renderTargets.push(renderTarget)
+      try {
+        const renderTarget = this.performanceOptimizer.createOptimizedRenderTarget(
+          size.x,
+          size.y,
+          true, // needs alpha
+          false // doesn't need depth
+        )
+        this.renderTargets.push(renderTarget)
+      } catch (error) {
+        console.error(`Failed to create render target ${i}:`, error)
+        
+        // Try fallback render target creation
+        const fallbackTarget = this.errorHandler.handleRenderTargetError(
+          size.x,
+          size.y,
+          {
+            minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            format: THREE.RGBAFormat,
+            type: THREE.UnsignedByteType,
+            generateMipmaps: false
+          },
+          error
+        )
+        
+        if (fallbackTarget) {
+          this.renderTargets.push(fallbackTarget)
+          console.log(`Created fallback render target ${i}`)
+        } else {
+          console.error(`Failed to create fallback render target ${i}`)
+        }
+      }
     }
+    
+    console.log(`Created ${this.renderTargets.length} render targets for ${size.x}x${size.y}`)
   }
 
   /**
@@ -191,9 +254,15 @@ export class VisualEffectsManager {
 
   /**
    * Main render method that combines low-res rendering with complete filter pipeline
-   * Ensures proper render order and texture management
+   * Ensures proper render order and texture management with comprehensive error handling
    */
   public render(): void {
+    // Check for WebGL context loss
+    if (this.errorHandler.isWebGLContextLost()) {
+      console.warn('Skipping render due to WebGL context loss')
+      return
+    }
+
     // Start performance monitoring
     this.performanceMonitor.startFrame()
 
@@ -268,10 +337,16 @@ export class VisualEffectsManager {
       throw new Error('Low-resolution renderer not available')
     }
 
-    // Create a render target for the low-resolution rendering
-    const lowResTarget = new THREE.WebGLRenderTarget(
+    // Get optimized size for low-resolution rendering
+    const optimizedSize = this.performanceOptimizer.getOptimizedTextureSize(
       this.config.lowRes.width,
-      this.config.lowRes.height,
+      this.config.lowRes.height
+    )
+
+    // Create a render target for the low-resolution rendering with optimized settings
+    const lowResTarget = new THREE.WebGLRenderTarget(
+      optimizedSize.width,
+      optimizedSize.height,
       {
         minFilter: THREE.NearestFilter, // Point filtering for sharp pixels
         magFilter: THREE.NearestFilter, // Point filtering for upscaling
@@ -286,9 +361,9 @@ export class VisualEffectsManager {
     const originalSize = this.renderer.getSize(new THREE.Vector2())
 
     try {
-      // Render scene to low-resolution target
+      // Render scene to low-resolution target with optimized size
       this.renderer.setRenderTarget(lowResTarget)
-      this.renderer.setSize(this.config.lowRes.width, this.config.lowRes.height, false)
+      this.renderer.setSize(optimizedSize.width, optimizedSize.height, false)
       this.renderer.render(this.gameScene, this.gameCamera)
 
       // Restore original render target and size
@@ -611,16 +686,100 @@ export class VisualEffectsManager {
   }
 
   /**
-   * Update performance metrics for monitoring
+   * Handle automatic quality level changes from performance monitor
    */
-  private updatePerformanceMetrics(startTime: number): void {
-    const frameTime = performance.now() - startTime
-    this.lastFrameTime = frameTime
-    this.frameCount++
+  private handleQualityChange(qualityLevel: QualityLevel): void {
+    console.log(`Automatically adjusting quality to: ${qualityLevel.name}`)
+    
+    try {
+      // Apply quality settings to effects configuration
+      const newConfig: Partial<EffectsConfig> = {}
+      
+      // Low-resolution settings
+      if (qualityLevel.lowRes.enabled !== this.config.lowRes.enabled ||
+          qualityLevel.lowRes.width !== this.config.lowRes.width ||
+          qualityLevel.lowRes.height !== this.config.lowRes.height) {
+        newConfig.lowRes = {
+          ...this.config.lowRes,
+          enabled: qualityLevel.lowRes.enabled,
+          width: qualityLevel.lowRes.width,
+          height: qualityLevel.lowRes.height
+        }
+      }
+      
+      // Chromatic aberration settings
+      if (qualityLevel.chromatic.enabled !== this.config.chromatic.enabled) {
+        newConfig.chromatic = {
+          ...this.config.chromatic,
+          enabled: qualityLevel.chromatic.enabled,
+          offset: qualityLevel.chromatic.intensity
+        }
+      }
+      
+      // CRT settings
+      if (qualityLevel.crt.enabled !== this.config.crt.enabled) {
+        newConfig.crt = {
+          ...this.config.crt,
+          enabled: qualityLevel.crt.enabled,
+          // Adjust CRT complexity based on quality level
+          scanlines: {
+            ...this.config.crt.scanlines,
+            enabled: qualityLevel.crt.complexity >= 1
+          },
+          curvature: {
+            ...this.config.crt.curvature,
+            enabled: qualityLevel.crt.complexity >= 2
+          },
+          phosphor: {
+            ...this.config.crt.phosphor,
+            enabled: qualityLevel.crt.complexity >= 3
+          },
+          noise: {
+            ...this.config.crt.noise,
+            enabled: qualityLevel.crt.complexity >= 3
+          },
+          flicker: {
+            ...this.config.crt.flicker,
+            enabled: qualityLevel.crt.complexity >= 3
+          }
+        }
+      }
+      
+      // Film grain settings
+      if (qualityLevel.grain.enabled !== this.config.grain.enabled) {
+        newConfig.grain = {
+          ...this.config.grain,
+          enabled: qualityLevel.grain.enabled,
+          intensity: qualityLevel.grain.intensity
+        }
+      }
+      
+      // Apply configuration changes
+      if (Object.keys(newConfig).length > 0) {
+        this.updateConfig(newConfig)
+      }
+      
+    } catch (error) {
+      console.error('Failed to apply automatic quality adjustment:', error)
+    }
+  }
 
-    // Update average FPS every 60 frames
-    if (this.frameCount % 60 === 0) {
-      this.averageFPS = 1000 / frameTime
+  /**
+   * Handle performance warnings from the monitor
+   */
+  private handlePerformanceWarning(metrics: PerformanceMetrics): void {
+    console.warn('Performance warning detected:', {
+      fps: metrics.averageFPS.toFixed(1),
+      frameTime: metrics.averageFrameTime.toFixed(2) + 'ms',
+      memoryUsage: (metrics.memoryUsage / 1024 / 1024).toFixed(1) + 'MB'
+    })
+    
+    // Log effect impacts to help identify performance bottlenecks
+    if (metrics.effectImpact.size > 0) {
+      console.warn('Effect performance impact:')
+      for (const [effect, impact] of metrics.effectImpact) {
+        console.warn(`  ${effect}: ${impact.toFixed(2)}ms`)
+      }
     }
   }
 
@@ -943,6 +1102,280 @@ export class VisualEffectsManager {
   }
 
   /**
+   * Get current performance metrics
+   */
+  public getPerformanceMetrics(): PerformanceMetrics {
+    return this.performanceMonitor.getMetrics()
+  }
+
+  /**
+   * Get performance impact for a specific effect
+   */
+  public getEffectPerformanceImpact(effectName: string): number {
+    return this.performanceMonitor.getEffectImpact(effectName)
+  }
+
+  /**
+   * Get all effect performance impacts
+   */
+  public getAllEffectPerformanceImpacts(): Map<string, number> {
+    return this.performanceMonitor.getAllEffectImpacts()
+  }
+
+  /**
+   * Get current quality level
+   */
+  public getCurrentQualityLevel(): QualityLevel {
+    return this.performanceMonitor.getCurrentQualityLevel()
+  }
+
+  /**
+   * Manually set quality level (disables automatic adjustment temporarily)
+   */
+  public setQualityLevel(level: number): void {
+    this.performanceMonitor.setQualityLevel(level)
+  }
+
+  /**
+   * Get all available quality levels
+   */
+  public getQualityLevels(): QualityLevel[] {
+    return this.performanceMonitor.getQualityLevels()
+  }
+
+  /**
+   * Check if performance is currently poor
+   */
+  public isPoorPerformance(): boolean {
+    return this.performanceMonitor.isPoorPerformance()
+  }
+
+  /**
+   * Check if memory usage is high
+   */
+  public isHighMemoryUsage(): boolean {
+    return this.performanceMonitor.isHighMemoryUsage()
+  }
+
+  /**
+   * Get performance summary as formatted string
+   */
+  public getPerformanceSummary(): string {
+    return this.performanceMonitor.getPerformanceSummary()
+  }
+
+  /**
+   * Reset performance metrics
+   */
+  public resetPerformanceMetrics(): void {
+    this.performanceMonitor.reset()
+  }
+
+  /**
+   * Get device capabilities for optimization decisions
+   */
+  public getDeviceCapabilities(): DeviceCapabilities {
+    return this.performanceOptimizer.getDeviceCapabilities()
+  }
+
+  /**
+   * Get current memory usage
+   */
+  public getMemoryUsage(): MemoryUsage {
+    return this.performanceOptimizer.getMemoryUsage()
+  }
+
+  /**
+   * Check if memory usage is high
+   */
+  public isMemoryUsageHigh(): boolean {
+    return this.performanceOptimizer.isMemoryUsageHigh()
+  }
+
+  /**
+   * Get performance recommendations based on device capabilities
+   */
+  public getPerformanceRecommendations(): string[] {
+    return this.performanceOptimizer.getPerformanceRecommendations()
+  }
+
+  /**
+   * Profile a shader for performance analysis
+   */
+  public profileShader(
+    name: string,
+    vertexShader: string,
+    fragmentShader: string,
+    uniforms: { [key: string]: any } = {}
+  ) {
+    return this.performanceOptimizer.profileShader(name, vertexShader, fragmentShader, uniforms)
+  }
+
+  /**
+   * Check if an effect should be enabled based on device capabilities
+   */
+  public shouldEnableEffect(effectName: string, complexity: 'low' | 'medium' | 'high'): boolean {
+    return this.performanceOptimizer.shouldEnableEffect(effectName, complexity)
+  }
+
+  /**
+   * Get optimized texture size for the current device
+   */
+  public getOptimizedTextureSize(width: number, height: number): { width: number; height: number } {
+    return this.performanceOptimizer.getOptimizedTextureSize(width, height)
+  }
+
+  /**
+   * Handle critical initialization failure
+   */
+  private handleCriticalInitializationFailure(error: any): void {
+    console.error('Critical initialization failure - entering safe mode')
+    
+    // Disable all effects for safe mode
+    this.config.lowRes.enabled = false
+    this.config.chromatic.enabled = false
+    this.config.crt.enabled = false
+    this.config.grain.enabled = false
+    
+    // Clear all filters
+    this.filters = []
+    
+    // Dispose any partially created resources
+    if (this.lowResRenderer) {
+      try {
+        this.lowResRenderer.dispose()
+      } catch (disposeError) {
+        console.error('Error disposing low-res renderer:', disposeError)
+      }
+      this.lowResRenderer = null
+    }
+    
+    if (this.chromaticAberrationFilter) {
+      try {
+        this.chromaticAberrationFilter.dispose()
+      } catch (disposeError) {
+        console.error('Error disposing chromatic aberration filter:', disposeError)
+      }
+      this.chromaticAberrationFilter = null
+    }
+    
+    if (this.crtFilter) {
+      try {
+        this.crtFilter.dispose()
+      } catch (disposeError) {
+        console.error('Error disposing CRT filter:', disposeError)
+      }
+      this.crtFilter = null
+    }
+    
+    if (this.filmGrainFilter) {
+      try {
+        this.filmGrainFilter.dispose()
+      } catch (disposeError) {
+        console.error('Error disposing film grain filter:', disposeError)
+      }
+      this.filmGrainFilter = null
+    }
+  }
+
+  /**
+   * Handle error reports from the error handler
+   */
+  private handleError(error: ErrorReport): void {
+    console.warn(`Visual Effects Error [${error.severity}]: ${error.message}`)
+    
+    // Take action based on error severity
+    if (error.severity === 'critical') {
+      // For critical errors, consider disabling effects
+      if (error.type === 'webgl_context') {
+        console.warn('WebGL context lost - visual effects will be disabled until recovery')
+      } else if (error.type === 'memory') {
+        // Try to reduce memory usage
+        this.handleMemoryPressure()
+      }
+    }
+  }
+
+  /**
+   * Handle successful recovery reports
+   */
+  private handleRecovery(recovery: ErrorReport): void {
+    console.log(`Visual Effects Recovery: ${recovery.message}`)
+    
+    if (recovery.type === 'webgl_context') {
+      // Context recovered - reinitialize effects
+      console.log('WebGL context recovered - reinitializing visual effects')
+      try {
+        this.initializeEffects()
+        this.setupFilterPipeline()
+        this.createRenderTargets()
+      } catch (error) {
+        console.error('Failed to reinitialize after context recovery:', error)
+      }
+    }
+  }
+
+  /**
+   * Handle memory pressure by reducing effect complexity
+   */
+  private handleMemoryPressure(): void {
+    console.warn('Memory pressure detected - reducing effect complexity')
+    
+    // Disable high-memory effects first
+    if (this.config.crt.enabled) {
+      this.config.crt.enabled = false
+      console.log('Disabled CRT effects due to memory pressure')
+    }
+    
+    if (this.config.chromatic.enabled) {
+      this.config.chromatic.enabled = false
+      console.log('Disabled chromatic aberration due to memory pressure')
+    }
+    
+    // Reduce low-res resolution
+    if (this.config.lowRes.enabled) {
+      this.config.lowRes.width = Math.max(320, Math.floor(this.config.lowRes.width * 0.75))
+      this.config.lowRes.height = Math.max(180, Math.floor(this.config.lowRes.height * 0.75))
+      console.log(`Reduced low-res resolution to ${this.config.lowRes.width}x${this.config.lowRes.height}`)
+    }
+    
+    // Rebuild filter pipeline with reduced effects
+    this.setupFilterPipeline()
+  }
+
+  /**
+   * Get error handler for external access
+   */
+  public getErrorHandler(): ErrorHandler {
+    return this.errorHandler
+  }
+
+  /**
+   * Get error history
+   */
+  public getErrorHistory(): ErrorReport[] {
+    return this.errorHandler.getErrorHistory()
+  }
+
+  /**
+   * Get system health status
+   */
+  public getHealthStatus(): {
+    status: 'healthy' | 'warning' | 'critical'
+    issues: string[]
+    recommendations: string[]
+  } {
+    return this.errorHandler.getHealthStatus()
+  }
+
+  /**
+   * Check if WebGL context is lost
+   */
+  public isWebGLContextLost(): boolean {
+    return this.errorHandler.isWebGLContextLost()
+  }
+
+  /**
    * Get list of all available effects
    */
   public getAvailableEffects(): Array<{
@@ -1166,6 +1599,17 @@ export class VisualEffectsManager {
    */
   public dispose(): void {
     try {
+      // Dispose performance monitor, optimizer, and error handler
+      if (this.performanceMonitor) {
+        this.performanceMonitor.dispose()
+      }
+      if (this.performanceOptimizer) {
+        this.performanceOptimizer.dispose()
+      }
+      if (this.errorHandler) {
+        this.errorHandler.dispose()
+      }
+
       // Dispose low-resolution renderer
       if (this.lowResRenderer) {
         this.lowResRenderer.dispose()

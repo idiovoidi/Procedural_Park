@@ -194,13 +194,20 @@
 
 
 
+
+
+
 - [ ] 6. Create VisualEffectsManager for filter orchestration
 
   - [ ] 6.1 Implement VisualEffectsManager class with filter pipeline
     - Create centralized manager for all visual effects including CRT
+
+
     - Implement proper filter ordering for optimal visual quality
     - Add filter array management and updates
     - _Requirements: 5.1, 5.2, 8.1, 8.2_
+
+
 
   - [ ] 6.2 Add configuration management system
     - Implement EffectsConfig interface with all effect parameters including CRT

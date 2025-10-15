@@ -28,6 +28,9 @@ export default defineConfig({
       },
     },
   },
+  css: {
+    devSourcemap: true,
+  },
   optimizeDeps: {
     include: ['three'],
   },
