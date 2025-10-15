@@ -15,7 +15,7 @@ export const INSCRYPTION_SHADER_DEFAULTS: ShaderConfig = {
   // Luminance threshold of 0.3 provides optimal balance between dark and bright areas
   // Values below this threshold get aggressive posterization
   // Values above preserve more color gradation for readability
-  luminanceThreshold: 0.3,
+  luminanceThreshold: 0.08,
 
   // 8 color steps provides appropriate posterization level
   // Enough steps to avoid harsh banding while maintaining the stylized look
