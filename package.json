@@ -1,0 +1,29 @@
+{
+  "name": "ai-snap",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.{ts,css}\""
+  },
+  "devDependencies": {
+    "@types/three": "^0.180.0",
+    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/parser": "^8.45.0",
+    "eslint": "^9.37.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.6.2",
+    "typescript": "~5.8.3",
+    "vite": "^7.1.0"
+  },
+  "dependencies": {
+    "postprocessing": "^6.37.8",
+    "three": "^0.179.1"
+  }
+}

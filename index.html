@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Snap</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="hud">
+      <div id="topbar">
+        <div class="stats-group">
+          <span id="film">Photos: <b id="filmCount">0</b></span>
+          <span id="score">Last: <b id="lastScore">0</b></span>
+          <span id="totalScore">Total: <b id="totalScoreValue">0</b></span>
+        </div>
+        <div class="controls-group">
+          <button id="dayNightToggle" title="Toggle Day/Night (N)">🌙 Night Mode</button>
+          <button id="toggleSettings" title="Settings (ESC)">⚙️</button>
+          <button id="toggleGallery" title="Toggle Gallery (G)">📷</button>
+          <button id="restartRide" title="Restart Ride (R)">🔄</button>
+        </div>
+      </div>
+
+      <div id="crosshair">
+        <div class="dot"></div>
+        <div class="focus-ring"></div>
+      </div>
+
+      <div id="creature-info" class="hidden">
+        <div class="creature-name"></div>
+        <div class="creature-distance"></div>
+        <div class="creature-rarity"></div>
+      </div>
+
+      <div id="mini-map">
+        <canvas id="mini-map-canvas" width="150" height="150"></canvas>
+        <div id="player-dot"></div>
+      </div>
+
+      <div id="settings-panel" class="hidden">
+        <div class="panel-header">
+          <h3>Settings</h3>
+          <button class="close-btn">&times;</button>
+        </div>
+        <div class="panel-content">
+          <div class="setting-group">
+            <label for="rideSpeed">Ride Speed:</label>
+            <input type="range" id="rideSpeed" min="0.01" max="0.1" step="0.005" value="0.025" />
+            <span id="rideSpeedValue">Normal</span>
+          </div>
+          <div class="setting-group">
+            <label for="showCreatureInfo">Show Creature Info:</label>
+            <input type="checkbox" id="showCreatureInfo" checked />
+          </div>
+          <div class="setting-group">
+            <button id="clearGallery">Clear Gallery</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="help">
+        <div>
+          🎮 Drag: Look (Ride) | Click: FPS Look (Free Roam) | 📸 Space: Photo | 🎬 ; : Record Video
+          | 🚶 V: Toggle Mode | WASD: Move | ⏸️ P: Pause | ⬆️ ↑/+: Speed Up | ⬇️ ↓/-: Slow Down | 📷
+          G: Gallery | ⚙️ ESC: Settings | 🔄 R: Restart | 🧬 X: Randomize Lab Creature | 🐛 F3:
+          Debug
+        </div>
+      </div>
+
+      <div id="gallery" class="hidden">
+        <div class="gallery-header">
+          <h3>Photo Gallery</h3>
+          <button class="close-btn">&times;</button>
+        </div>
+        <div class="gallery-content"></div>
+      </div>
+
+      <div id="toast" class="hidden"></div>
+
+      <div id="loading" class="hidden">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading creatures...</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
