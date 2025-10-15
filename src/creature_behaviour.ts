@@ -62,7 +62,7 @@ export function updateBehaviorState(
 function handleCameraInteractions(
   context: BehaviorContext,
   behaviorState: BehaviorState_Internal,
-  dt: number,
+  _dt: number,
   camera: THREE.Camera
 ): void {
   const { group, anchor, anatomy, rand } = context

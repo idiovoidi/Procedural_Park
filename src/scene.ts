@@ -20,8 +20,8 @@ export class SceneManager {
   constructor(container: HTMLElement) {
     // Scene setup
     this.scene = new THREE.Scene()
-    this.scene.background = new THREE.Color('#0b0f16')
-    this.scene.fog = new THREE.Fog(0x0b0f16, 50, 450)
+    this.scene.background = new THREE.Color('#4a6b5a') // Much lighter initial background
+    this.scene.fog = new THREE.Fog(0x4a6b5a, 50, 450)
 
     // Clear any existing Three.js canvas to prevent WebGL context conflicts
     const existingCanvas = container.querySelector('canvas')
@@ -106,15 +106,15 @@ export class SceneManager {
       this.scene.background = new THREE.Color(0x87ceeb)
     } else {
       this.directionalLight.color.set(0x406080)
-      this.directionalLight.intensity = 0.8
-      this.ambientLight.color.set(0x102030)
-      this.ambientLight.intensity = 0.4
+      this.directionalLight.intensity = 1.2 // Brighter night lighting
+      this.ambientLight.color.set(0x203040) // Lighter night ambient
+      this.ambientLight.intensity = 0.5
       if (this.scene.fog) {
-        this.scene.fog.color.set(0x0b0f16)
+        this.scene.fog.color.set(0x2a3a4a) // Much lighter night fog
         ;(this.scene.fog as THREE.Fog).near = 50
         ;(this.scene.fog as THREE.Fog).far = 450
       }
-      this.scene.background = new THREE.Color(0x0b0f16)
+      this.scene.background = new THREE.Color(0x2a3a4a) // Lighter night background
     }
   }
 

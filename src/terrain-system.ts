@@ -24,10 +24,10 @@ export interface BiomeConfig {
 export const BIOME_CONFIGS: Record<BiomeType, BiomeConfig> = {
   forest: {
     name: 'Enchanted Forest',
-    groundColor: new THREE.Color(0x2d4a2b),
-    fogColor: new THREE.Color(0x1a2f1a),
+    groundColor: new THREE.Color(0x4a6b3f), // Lighter forest green
+    fogColor: new THREE.Color(0x5a7f5a), // Lighter forest fog
     fogDensity: 0.02,
-    ambientLightColor: new THREE.Color(0x4a6b4a),
+    ambientLightColor: new THREE.Color(0x5a7b5a),
     directionalLightColor: new THREE.Color(0xffffff),
     vegetationDensity: 0.8,
     rockDensity: 0.3,
@@ -36,7 +36,7 @@ export const BIOME_CONFIGS: Record<BiomeType, BiomeConfig> = {
   },
   meadow: {
     name: 'Sunlit Meadow',
-    groundColor: new THREE.Color(0x4a6b2f),
+    groundColor: new THREE.Color(0x6a8b4f), // Brighter meadow green
     fogColor: new THREE.Color(0x87ceeb),
     fogDensity: 0.01,
     ambientLightColor: new THREE.Color(0x87ceeb),
@@ -48,7 +48,7 @@ export const BIOME_CONFIGS: Record<BiomeType, BiomeConfig> = {
   },
   rocky: {
     name: 'Stone Peaks',
-    groundColor: new THREE.Color(0x5a5a5a),
+    groundColor: new THREE.Color(0x7a7a7a), // Lighter stone gray
     fogColor: new THREE.Color(0x696969),
     fogDensity: 0.015,
     ambientLightColor: new THREE.Color(0x708090),
@@ -60,8 +60,8 @@ export const BIOME_CONFIGS: Record<BiomeType, BiomeConfig> = {
   },
   wetland: {
     name: 'Mystic Wetlands',
-    groundColor: new THREE.Color(0x2f4f2f),
-    fogColor: new THREE.Color(0x2f4f4f),
+    groundColor: new THREE.Color(0x4f6f4f), // Lighter wetland green
+    fogColor: new THREE.Color(0x6f8f8f), // Lighter wetland fog
     fogDensity: 0.025,
     ambientLightColor: new THREE.Color(0x4682b4),
     directionalLightColor: new THREE.Color(0xe6e6fa),
@@ -72,10 +72,10 @@ export const BIOME_CONFIGS: Record<BiomeType, BiomeConfig> = {
   },
   crystal_cave: {
     name: 'Crystal Caverns',
-    groundColor: new THREE.Color(0x1a1a2e),
-    fogColor: new THREE.Color(0x16213e),
+    groundColor: new THREE.Color(0x3a3a5e), // Much lighter cave floor
+    fogColor: new THREE.Color(0x46516e), // Lighter crystal cave fog
     fogDensity: 0.03,
-    ambientLightColor: new THREE.Color(0x4a4a8a),
+    ambientLightColor: new THREE.Color(0x5a5a9a),
     directionalLightColor: new THREE.Color(0xda70d6),
     vegetationDensity: 0.1,
     rockDensity: 0.4,
@@ -271,7 +271,7 @@ export class TerrainSystem {
     // Simple fallback ground plane to ensure something is always visible
     const groundGeo = new THREE.PlaneGeometry(this.mapSize, this.mapSize)
     const groundMat = new THREE.MeshStandardMaterial({
-      color: 0x2d4a2b,
+      color: 0x5a7a4f, // Much lighter fallback ground color
       metalness: 0.1,
       roughness: 0.9,
     })

@@ -1,5 +1,9 @@
 import type { ShaderConfig } from './ShaderManager'
-import { INSCRYPTION_SHADER_DEFAULTS, DEVELOPMENT_PRESETS, SHADER_QUALITY_PRESETS } from './InscryptionShaderConfig'
+import {
+  INSCRYPTION_SHADER_DEFAULTS,
+  DEVELOPMENT_PRESETS,
+  SHADER_QUALITY_PRESETS,
+} from './InscryptionShaderConfig'
 
 export interface ShaderDebugCallbacks {
   onConfigChange: (config: Partial<ShaderConfig>) => void
@@ -23,6 +27,12 @@ export class ShaderDebugUI {
   private intensityValue!: HTMLSpanElement
   private darknessSlider!: HTMLInputElement
   private darknessValue!: HTMLSpanElement
+  private grittinessSlider!: HTMLInputElement
+  private grittinessValue!: HTMLSpanElement
+  private filmGrainSlider!: HTMLInputElement
+  private filmGrainValue!: HTMLSpanElement
+  private vignetteSlider!: HTMLInputElement
+  private vignetteValue!: HTMLSpanElement
   private presetSelect!: HTMLSelectElement
   private resetButton!: HTMLButtonElement
 
@@ -39,7 +49,7 @@ export class ShaderDebugUI {
     const panel = document.createElement('div')
     panel.id = 'shader-debug-panel'
     panel.className = 'shader-debug-panel hidden'
-    
+
     panel.innerHTML = `
       <div class="panel-header">
         <h3>🎨 Shader Debug</h3>
@@ -96,6 +106,28 @@ export class ShaderDebugUI {
         </div>
 
         <div class="setting-group">
+          <h4>🎬 Grit Effects</h4>
+        </div>
+
+        <div class="setting-group">
+          <label for="grittiness">Grittiness: <span id="grittiness-value">0.60</span></label>
+          <input type="range" id="grittiness" min="0" max="1" step="0.01" value="0.6" />
+          <small>Overall dirt, dust, and imperfections</small>
+        </div>
+
+        <div class="setting-group">
+          <label for="film-grain">Film Grain: <span id="film-grain-value">0.80</span></label>
+          <input type="range" id="film-grain" min="0" max="2" step="0.01" value="0.8" />
+          <small>Film noise and texture intensity</small>
+        </div>
+
+        <div class="setting-group">
+          <label for="vignette-strength">Vignette: <span id="vignette-value">0.40</span></label>
+          <input type="range" id="vignette-strength" min="0" max="1" step="0.01" value="0.4" />
+          <small>Edge darkening for old camera look</small>
+        </div>
+
+        <div class="setting-group">
           <button id="reset-shader">Reset to Defaults</button>
           <small>Restore original Inscryption settings</small>
         </div>
@@ -116,10 +148,10 @@ export class ShaderDebugUI {
 
     // Add styles
     this.addStyles()
-    
+
     // Cache control elements
     this.cacheElements(panel)
-    
+
     document.body.appendChild(panel)
     return panel
   }
@@ -295,6 +327,12 @@ export class ShaderDebugUI {
     this.intensityValue = panel.querySelector('#intensity-value') as HTMLSpanElement
     this.darknessSlider = panel.querySelector('#darkness-bias') as HTMLInputElement
     this.darknessValue = panel.querySelector('#darkness-value') as HTMLSpanElement
+    this.grittinessSlider = panel.querySelector('#grittiness') as HTMLInputElement
+    this.grittinessValue = panel.querySelector('#grittiness-value') as HTMLSpanElement
+    this.filmGrainSlider = panel.querySelector('#film-grain') as HTMLInputElement
+    this.filmGrainValue = panel.querySelector('#film-grain-value') as HTMLSpanElement
+    this.vignetteSlider = panel.querySelector('#vignette-strength') as HTMLInputElement
+    this.vignetteValue = panel.querySelector('#vignette-value') as HTMLSpanElement
     this.presetSelect = panel.querySelector('#shader-preset') as HTMLSelectElement
     this.resetButton = panel.querySelector('#reset-shader') as HTMLButtonElement
   }
@@ -341,6 +379,27 @@ export class ShaderDebugUI {
       this.callbacks.onConfigChange({ darknessBias: value })
     })
 
+    this.grittinessSlider.addEventListener('input', (e) => {
+      const value = parseFloat((e.target as HTMLInputElement).value)
+      this.currentConfig.grittiness = value
+      this.grittinessValue.textContent = value.toFixed(2)
+      this.callbacks.onConfigChange({ grittiness: value })
+    })
+
+    this.filmGrainSlider.addEventListener('input', (e) => {
+      const value = parseFloat((e.target as HTMLInputElement).value)
+      this.currentConfig.filmGrainIntensity = value
+      this.filmGrainValue.textContent = value.toFixed(2)
+      this.callbacks.onConfigChange({ filmGrainIntensity: value })
+    })
+
+    this.vignetteSlider.addEventListener('input', (e) => {
+      const value = parseFloat((e.target as HTMLInputElement).value)
+      this.currentConfig.vignetteStrength = value
+      this.vignetteValue.textContent = value.toFixed(2)
+      this.callbacks.onConfigChange({ vignetteStrength: value })
+    })
+
     // Preset selection
     this.presetSelect.addEventListener('change', (e) => {
       const presetName = (e.target as HTMLSelectElement).value
@@ -374,7 +433,7 @@ export class ShaderDebugUI {
       if (e.key >= '1' && e.key <= '4') {
         e.preventDefault()
         const presetIndex = parseInt(e.key) - 1
-        
+
         if (e.shiftKey) {
           // Quality presets with Shift
           const qualityPresets = ['high', 'medium', 'low', 'minimal']
@@ -411,7 +470,7 @@ export class ShaderDebugUI {
     this.currentConfig = { ...preset }
     this.updateUI()
     this.callbacks.onPresetLoad(preset)
-    
+
     // Show visual feedback
     this.showPresetFeedback(presetName)
   }
@@ -455,18 +514,27 @@ export class ShaderDebugUI {
 
   private updateUI(): void {
     this.enabledCheckbox.checked = this.currentConfig.enabled
-    
+
     this.luminanceSlider.value = this.currentConfig.luminanceThreshold.toString()
     this.luminanceValue.textContent = this.currentConfig.luminanceThreshold.toFixed(2)
-    
+
     this.colorStepsSlider.value = this.currentConfig.colorSteps.toString()
     this.colorStepsValue.textContent = this.currentConfig.colorSteps.toString()
-    
+
     this.intensitySlider.value = this.currentConfig.intensity.toString()
     this.intensityValue.textContent = this.currentConfig.intensity.toFixed(2)
-    
+
     this.darknessSlider.value = this.currentConfig.darknessBias.toString()
     this.darknessValue.textContent = this.currentConfig.darknessBias.toFixed(2)
+
+    this.grittinessSlider.value = this.currentConfig.grittiness.toString()
+    this.grittinessValue.textContent = this.currentConfig.grittiness.toFixed(2)
+
+    this.filmGrainSlider.value = this.currentConfig.filmGrainIntensity.toString()
+    this.filmGrainValue.textContent = this.currentConfig.filmGrainIntensity.toFixed(2)
+
+    this.vignetteSlider.value = this.currentConfig.vignetteStrength.toString()
+    this.vignetteValue.textContent = this.currentConfig.vignetteStrength.toFixed(2)
   }
 
   public show(): void {

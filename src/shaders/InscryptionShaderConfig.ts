@@ -5,6 +5,7 @@ import type { ShaderConfig } from './ShaderManager'
  * These values are tuned to achieve the distinctive Inscryption aesthetic:
  * - Dark areas are aggressively posterized for deep blacks and hard shadows
  * - Bright areas preserve more detail for text readability
+ * - Grit effects add film grain, dirt, and vintage camera imperfections
  * - Overall effect creates a mysterious, atmospheric look
  */
 export const INSCRYPTION_SHADER_DEFAULTS: ShaderConfig = {
@@ -27,40 +28,64 @@ export const INSCRYPTION_SHADER_DEFAULTS: ShaderConfig = {
   // Darkness bias of 0.4 enhances low-luminance areas
   // Creates deeper blacks characteristic of Inscryption's aesthetic
   darknessBias: 0.4,
+  
+  // Grit effects for that aged, mysterious atmosphere
+  // Grittiness of 0.6 adds noticeable but not overwhelming dirt and imperfections
+  grittiness: 0.6,
+  
+  // Film grain intensity of 0.8 creates that old camera/film aesthetic
+  // Adds subtle noise that enhances the vintage feel
+  filmGrainIntensity: 0.8,
+  
+  // Vignette strength of 0.4 creates subtle edge darkening
+  // Mimics old camera lenses and focuses attention on center
+  vignetteStrength: 0.4,
 }
 
 /**
  * Quality presets for different hardware capabilities
  */
 export const SHADER_QUALITY_PRESETS = {
-  // High quality for powerful hardware
+  // High quality for powerful hardware - full grit effects
   high: {
     ...INSCRYPTION_SHADER_DEFAULTS,
     colorSteps: 12,
     intensity: 1.0,
+    grittiness: 0.8,
+    filmGrainIntensity: 1.0,
+    vignetteStrength: 0.5,
   },
   
-  // Medium quality for average hardware
+  // Medium quality for average hardware - balanced grit
   medium: {
     ...INSCRYPTION_SHADER_DEFAULTS,
     colorSteps: 8,
     intensity: 0.9,
+    grittiness: 0.6,
+    filmGrainIntensity: 0.8,
+    vignetteStrength: 0.4,
   },
   
-  // Low quality for weaker hardware or mobile devices
+  // Low quality for weaker hardware - reduced grit effects
   low: {
     ...INSCRYPTION_SHADER_DEFAULTS,
     colorSteps: 6,
     intensity: 0.8,
     darknessBias: 0.3,
+    grittiness: 0.4,
+    filmGrainIntensity: 0.5,
+    vignetteStrength: 0.3,
   },
   
-  // Minimal quality for very weak hardware
+  // Minimal quality for very weak hardware - minimal grit
   minimal: {
     ...INSCRYPTION_SHADER_DEFAULTS,
     colorSteps: 4,
     intensity: 0.6,
     darknessBias: 0.2,
+    grittiness: 0.2,
+    filmGrainIntensity: 0.3,
+    vignetteStrength: 0.2,
   },
 } as const
 
@@ -71,30 +96,47 @@ export const DEVELOPMENT_PRESETS = {
   // Original Inscryption-style (default)
   inscryption: INSCRYPTION_SHADER_DEFAULTS,
   
-  // More aggressive posterization for dramatic effect
+  // More aggressive posterization and heavy grit for dramatic effect
   dramatic: {
     ...INSCRYPTION_SHADER_DEFAULTS,
     luminanceThreshold: 0.4,
     colorSteps: 6,
     darknessBias: 0.6,
+    grittiness: 0.9,
+    filmGrainIntensity: 1.2,
+    vignetteStrength: 0.6,
   },
   
-  // Subtle effect for less stylized look
+  // Subtle effect for less stylized look with minimal grit
   subtle: {
     ...INSCRYPTION_SHADER_DEFAULTS,
     luminanceThreshold: 0.2,
     colorSteps: 12,
     intensity: 0.7,
     darknessBias: 0.2,
+    grittiness: 0.3,
+    filmGrainIntensity: 0.4,
+    vignetteStrength: 0.2,
   },
   
-  // High contrast for testing readability
+  // High contrast with intense grit for testing readability
   highContrast: {
     ...INSCRYPTION_SHADER_DEFAULTS,
     luminanceThreshold: 0.5,
     colorSteps: 4,
     intensity: 1.0,
     darknessBias: 0.8,
+    grittiness: 0.7,
+    filmGrainIntensity: 0.9,
+    vignetteStrength: 0.5,
+  },
+  
+  // Clean preset with no grit effects for comparison
+  clean: {
+    ...INSCRYPTION_SHADER_DEFAULTS,
+    grittiness: 0.0,
+    filmGrainIntensity: 0.0,
+    vignetteStrength: 0.0,
   },
 } as const
 
@@ -123,5 +165,8 @@ export function validateShaderConfig(config: Partial<ShaderConfig>): ShaderConfi
     colorSteps: Math.max(2, Math.min(16, Math.floor(config.colorSteps ?? INSCRYPTION_SHADER_DEFAULTS.colorSteps))),
     intensity: Math.max(0.0, Math.min(2.0, config.intensity ?? INSCRYPTION_SHADER_DEFAULTS.intensity)),
     darknessBias: Math.max(0.0, Math.min(1.0, config.darknessBias ?? INSCRYPTION_SHADER_DEFAULTS.darknessBias)),
+    grittiness: Math.max(0.0, Math.min(1.0, config.grittiness ?? INSCRYPTION_SHADER_DEFAULTS.grittiness)),
+    filmGrainIntensity: Math.max(0.0, Math.min(2.0, config.filmGrainIntensity ?? INSCRYPTION_SHADER_DEFAULTS.filmGrainIntensity)),
+    vignetteStrength: Math.max(0.0, Math.min(1.0, config.vignetteStrength ?? INSCRYPTION_SHADER_DEFAULTS.vignetteStrength)),
   }
 }

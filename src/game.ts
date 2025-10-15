@@ -45,6 +45,9 @@ export class Game {
       colorSteps: 8,
       intensity: 1.0,
       darknessBias: 0.4,
+      grittiness: 0.6,
+      filmGrainIntensity: 0.8,
+      vignetteStrength: 0.5,
     }
 
     // Initialize all systems

@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { createPatternTexture, createBellyTexture, type PatternType } from './textures'
+import { createPatternTexture, type PatternType } from './textures'
 import {
   updateBehaviorState as updateBehaviorStateLogic,
   updateMovement,

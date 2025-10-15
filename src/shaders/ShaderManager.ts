@@ -13,6 +13,9 @@ export interface ShaderConfig {
   colorSteps: number // 2 - 16
   intensity: number // 0.0 - 2.0
   darknessBias: number // 0.0 - 1.0
+  grittiness: number // 0.0 - 1.0
+  filmGrainIntensity: number // 0.0 - 2.0
+  vignetteStrength: number // 0.0 - 1.0
 }
 
 // Extended callbacks for performance monitoring
@@ -150,6 +153,15 @@ export class ShaderManager {
     if (config.darknessBias !== undefined) {
       uniforms.darknessBias.value = config.darknessBias
     }
+    if (config.grittiness !== undefined) {
+      uniforms.grittiness.value = config.grittiness
+    }
+    if (config.filmGrainIntensity !== undefined) {
+      uniforms.filmGrainIntensity.value = config.filmGrainIntensity
+    }
+    if (config.vignetteStrength !== undefined) {
+      uniforms.vignetteStrength.value = config.vignetteStrength
+    }
   }
 
   // Validate configuration parameters using centralized validation
@@ -173,6 +185,15 @@ export class ShaderManager {
     }
     if (config.darknessBias !== undefined) {
       validated.darknessBias = fullConfig.darknessBias
+    }
+    if (config.grittiness !== undefined) {
+      validated.grittiness = fullConfig.grittiness
+    }
+    if (config.filmGrainIntensity !== undefined) {
+      validated.filmGrainIntensity = fullConfig.filmGrainIntensity
+    }
+    if (config.vignetteStrength !== undefined) {
+      validated.vignetteStrength = fullConfig.vignetteStrength
     }
 
     return validated
