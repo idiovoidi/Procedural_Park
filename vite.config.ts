@@ -19,19 +19,49 @@ export default defineConfig({
     },
   },
   build: {
-    sourcemap: true,
+    sourcemap: false, // Disable sourcemaps in production for smaller bundle
+    minify: 'terser',
     rollupOptions: {
       output: {
         manualChunks: {
+          // Three.js and related libraries
           three: ['three'],
+          'three-postprocessing': ['postprocessing'],
+          // Vendor chunk for other dependencies
+          vendor: ['three/examples/jsm/postprocessing/EffectComposer.js'],
         },
+        // Optimize chunk naming and structure
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+      },
+      // External dependencies that shouldn't be bundled
+      external: [],
+      // Tree shaking optimization
+      treeshake: {
+        preset: 'recommended',
+        manualPureFunctions: ['console.log', 'console.warn'],
       },
     },
+    // Enable code splitting
+    chunkSizeWarningLimit: 1000,
   },
   css: {
-    devSourcemap: true,
+    devSourcemap: false, // Disable CSS sourcemaps in production
   },
   optimizeDeps: {
-    include: ['three'],
+    include: [
+      'three',
+      'three/examples/jsm/postprocessing/EffectComposer.js',
+      'three/examples/jsm/postprocessing/RenderPass.js',
+      'three/examples/jsm/postprocessing/ShaderPass.js',
+    ],
+    exclude: ['@types/three'], // Exclude type definitions from bundle
+  },
+  // Enable experimental features for better performance
+  esbuild: {
+    // Remove console logs in production build
+    drop: ['console', 'debugger'],
+    legalComments: 'none',
   },
 })

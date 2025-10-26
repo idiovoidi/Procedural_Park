@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { getPooledVector3, releaseVector3, HALF_PI, memoizedSin, memoizedCos } from './utils'
 
 export type CameraMode = 'ride' | 'freeroam'
 
@@ -102,10 +103,7 @@ export class CameraController {
         const dx = e.movementX || 0
         const dy = e.movementY || 0
         this.yawTarget -= dx * 0.002 // Negative for correct left/right
-        this.pitchTarget = Math.max(
-          -Math.PI / 2 + 0.1,
-          Math.min(Math.PI / 2 - 0.1, this.pitchTarget - dy * 0.002) // Negative for correct up/down
-        )
+        this.pitchTarget = Math.max(-HALF_PI + 0.1, Math.min(HALF_PI - 0.1, this.pitchTarget - dy * 0.002)) // Negative for correct up/down
       }
     })
 
@@ -141,11 +139,11 @@ export class CameraController {
 
     const pos = this.curve.getPointAt(this.rideT)
     const tangent = this.curve.getTangentAt(this.rideT)
-    const normal = new THREE.Vector3(0, 1, 0)
-    const side = new THREE.Vector3().crossVectors(tangent, normal).normalize()
+    const normal = getPooledVector3(0, 1, 0)
+    const side = getPooledVector3().crossVectors(tangent, normal).normalize()
 
     this.camera.position.copy(pos)
-    const lookTarget = new THREE.Vector3().copy(pos).addScaledVector(tangent, 2)
+    const lookTarget = getPooledVector3().copy(pos).addScaledVector(tangent, 2)
 
     // Smooth input for stability
     this.yaw += (this.yawTarget - this.yaw) * Math.min(1, 10 * dtSeconds)
@@ -155,6 +153,11 @@ export class CameraController {
     const pitchQuat = new THREE.Quaternion().setFromAxisAngle(side, this.pitch)
     lookTarget.sub(pos).applyQuaternion(yawQuat).applyQuaternion(pitchQuat).add(pos)
     this.camera.lookAt(lookTarget)
+
+    // Clean up pooled vectors
+    releaseVector3(normal)
+    releaseVector3(side)
+    releaseVector3(lookTarget)
   }
 
   private updateFreeRoamMode(dtSeconds: number) {
@@ -163,11 +166,11 @@ export class CameraController {
     this.pitch = this.pitchTarget
 
     // Calculate movement direction based on camera yaw (fixed directions)
-    const forward = new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw))
-    const right = new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw))
+    const forward = getPooledVector3(-memoizedSin(this.yaw), 0, -memoizedCos(this.yaw))
+    const right = getPooledVector3(memoizedCos(this.yaw), 0, -memoizedSin(this.yaw))
 
     // Apply WASD movement
-    const velocity = new THREE.Vector3()
+    const velocity = getPooledVector3()
     if (this.moveForward) velocity.add(forward)
     if (this.moveBackward) velocity.sub(forward)
     if (this.moveLeft) velocity.sub(right)
@@ -183,12 +186,18 @@ export class CameraController {
     this.camera.position.copy(this.freeRoamPosition)
 
     // Calculate look target (fixed to match movement)
-    const lookTarget = new THREE.Vector3()
-    lookTarget.x = this.freeRoamPosition.x - Math.sin(this.yaw) * Math.cos(this.pitch)
-    lookTarget.y = this.freeRoamPosition.y + Math.sin(this.pitch)
-    lookTarget.z = this.freeRoamPosition.z - Math.cos(this.yaw) * Math.cos(this.pitch)
+    const lookTarget = getPooledVector3()
+    lookTarget.x = this.freeRoamPosition.x - memoizedSin(this.yaw) * memoizedCos(this.pitch)
+    lookTarget.y = this.freeRoamPosition.y + memoizedSin(this.pitch)
+    lookTarget.z = this.freeRoamPosition.z - memoizedCos(this.yaw) * memoizedCos(this.pitch)
 
     this.camera.lookAt(lookTarget)
+
+    // Clean up pooled vectors
+    releaseVector3(forward)
+    releaseVector3(right)
+    releaseVector3(velocity)
+    releaseVector3(lookTarget)
   }
 
   public getRideProgress(): number {

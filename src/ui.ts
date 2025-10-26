@@ -195,7 +195,7 @@ export class UIManager {
 
   private getRideSpeedLabel(speed: number): string {
     if (speed <= GAME_CONFIG.CAMERA_SPEED_VERY_SLOW) return 'Very Slow'
-    if (speed <= GAME_CONFIG.CAMERA_SPEED_SLOW) return 'Slow'
+    if (speed <= GAME_CONFIG.CAMERA_SPEED_DEFAULT) return 'Slow'
     if (speed <= GAME_CONFIG.CAMERA_SPEED_NORMAL) return 'Normal'
     if (speed <= GAME_CONFIG.CAMERA_SPEED_FAST) return 'Fast'
     return 'Very Fast'

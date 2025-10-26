@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { createPatternTexture, type PatternType } from './textures'
-import { TAU, randomCenteredSeeded } from './utils'
+import { TAU, randomCenteredSeeded, HALF_PI, QUARTER_PI, memoizedSin, memoizedCos, memoizedSqrt } from './utils'
 import {
   updateBehaviorState as updateBehaviorStateLogic,
   updateMovement,
@@ -499,7 +499,7 @@ function buildTorso(
         ),
         material
       )
-      body.rotation.z = Math.PI / 2 // Horizontal orientation
+      body.rotation.z = HALF_PI // Horizontal orientation
       body.scale.y = bodyScale.height
       return body
     }
@@ -521,7 +521,7 @@ function buildTorso(
     case 'crystal': {
       const crystalGeometry = new THREE.OctahedronGeometry((0.8 + rand() * 0.4) * sizeMultiplier, 1)
       const crystalMesh = new THREE.Mesh(crystalGeometry, material)
-      crystalMesh.rotation.set(rand() * Math.PI, rand() * Math.PI, rand() * Math.PI)
+      crystalMesh.rotation.set(rand() * TAU, rand() * TAU, rand() * TAU)
       return crystalMesh
     }
     case 'cloud': {
@@ -653,7 +653,7 @@ function buildHead(
         12
       )
       const snout = new THREE.Mesh(snoutGeom, material)
-      snout.rotation.x = Math.PI / 2
+      snout.rotation.x = HALF_PI
       snout.position.set(0, -anatomy.headSize * 0.2, anatomy.headSize * 0.9 * headSizeMultiplier)
       headGroup.add(snout)
       break
@@ -709,7 +709,7 @@ function buildEyes(rand: Random, anatomy: Anatomy, head: THREE.Object3D | null):
   } else {
     // Multiple eyes arranged in a pattern
     for (let i = 0; i < anatomy.eyeCount; i++) {
-      const theta = (i / anatomy.eyeCount) * Math.PI * 1.2 - Math.PI * 0.6
+      const theta = (i / anatomy.eyeCount) * TAU * 1.2 - TAU * 0.6
       eyePositions.push({
         x: Math.sin(theta) * anatomy.headSize * 0.5,
         y: anatomy.headSize * 0.15 + normalish(rand) * 0.1,
@@ -863,7 +863,7 @@ function buildLimbs(
             opacity: 0.8,
           })
         )
-        fin.rotation.x = Math.PI / 2
+        fin.rotation.x = HALF_PI
         limbGroup.add(fin)
         break
       }
@@ -1651,11 +1651,11 @@ function buildCreature(
   ) => {
     updateBehaviorState(dt, camera, allCreatures)
     // Floating motion
-    const upDown = Math.sin((tSec + timeOffset) * floatSpeed) * floatAmplitude
+    const upDown = memoizedSin((tSec + timeOffset) * floatSpeed) * floatAmplitude
     group.position.set(anchor.x, anchor.y + upDown, anchor.z)
 
     // Gentle body breathing
-    const s = 1.0 + Math.sin((tSec + timeOffset) * 1.6) * 0.03
+    const s = 1.0 + memoizedSin((tSec + timeOffset) * 1.6) * 0.03
     group.scale.setScalar(s)
 
     // Apply behavior-based animations
@@ -1663,7 +1663,7 @@ function buildCreature(
     applyBehaviorEffects(behaviorState, group, tSec)
 
     // Turn body towards target yaw smoothly
-    const yawDelta = ((targetYaw - facingYaw + Math.PI * 3) % TAU) - Math.PI
+    const yawDelta = ((targetYaw - facingYaw + TAU * 1.5) % TAU) - TAU / 2
     facingYaw += Math.max(-1.5 * dt, Math.min(1.5 * dt, yawDelta))
     group.rotation.y = facingYaw
 
@@ -1674,55 +1674,55 @@ function buildCreature(
       const speedMultiplier = getWingFlapSpeedMultiplier(behaviorState)
       const speed = flapSpeed * speedMultiplier
       wing.rotation.z =
-        dir * (Math.PI * 0.2 + Math.sin((tSec + timeOffset) * speed) * Math.PI * 0.12)
+        dir * (QUARTER_PI + memoizedSin((tSec + timeOffset) * speed) * QUARTER_PI * 0.3)
     }
 
     // Tails sway
     for (const tail of tails) {
-      tail.rotation.y = Math.sin((tSec + timeOffset) * tailSpeed) * 0.6
-      tail.rotation.x = Math.cos((tSec + timeOffset) * tailSpeed * 0.7) * 0.2
+      tail.rotation.y = memoizedSin((tSec + timeOffset) * tailSpeed) * 0.6
+      tail.rotation.x = memoizedCos((tSec + timeOffset) * tailSpeed * 0.7) * 0.2
     }
 
     // Antennae wiggle
     for (const ant of antennae) {
-      ant.rotation.z = Math.sin((tSec + timeOffset) * 2.2) * 0.3
+      ant.rotation.z = memoizedSin((tSec + timeOffset) * 2.2) * 0.3
     }
 
     // Ears twitch
     for (let i = 0; i < ears.length; i++) {
       const ear = ears[i]
       const side = i === 0 ? -1 : 1
-      ear.rotation.z = side * Math.PI * 0.3 + Math.sin((tSec + timeOffset) * 3.0 + i) * 0.15
+      ear.rotation.z = side * QUARTER_PI + memoizedSin((tSec + timeOffset) * 3.0 + i) * 0.15
     }
 
     // Horns subtle movement (breathing)
     for (const horn of horns) {
-      horn.rotation.y = Math.sin((tSec + timeOffset) * 0.5) * 0.05
+      horn.rotation.y = memoizedSin((tSec + timeOffset) * 0.5) * 0.05
     }
 
     // Spines subtle sway
     for (let i = 0; i < spines.length; i++) {
       const spine = spines[i]
-      spine.rotation.x += Math.sin((tSec + timeOffset) * 1.5 + i * 0.5) * 0.02
+      spine.rotation.x += memoizedSin((tSec + timeOffset) * 1.5 + i * 0.5) * 0.02
     }
 
     // Fur tufts gentle wave
     for (const tuft of furTufts) {
-      tuft.rotation.y = Math.sin((tSec + timeOffset) * 1.8) * 0.1
+      tuft.rotation.y = memoizedSin((tSec + timeOffset) * 1.8) * 0.1
     }
 
     // Scales shimmer (subtle scale change)
     for (let i = 0; i < scales.length; i++) {
       const scale = scales[i]
-      const shimmer = 1.0 + Math.sin((tSec + timeOffset) * 2.0 + i * 0.3) * 0.05
+      const shimmer = 1.0 + memoizedSin((tSec + timeOffset) * 2.0 + i * 0.3) * 0.05
       scale.scale.setScalar(shimmer)
     }
 
     // Limbs idle sway
     for (let i = 0; i < limbs.length; i++) {
       const limb = limbs[i]
-      limb.rotation.x = Math.sin((tSec + timeOffset) * 1.3 + i) * 0.3
-      limb.rotation.y = Math.cos((tSec + timeOffset) * 1.1 + i * 0.5) * 0.2
+      limb.rotation.x = memoizedSin((tSec + timeOffset) * 1.3 + i) * 0.3
+      limb.rotation.y = memoizedCos((tSec + timeOffset) * 1.1 + i * 0.5) * 0.2
     }
 
     // Eyes blink (scale pupils)
