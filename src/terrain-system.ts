@@ -656,22 +656,14 @@ export class TerrainSystem {
       { name: 'west', axis: 'x', value: -edgeDistance, perpAxis: 'z' },
     ]
 
-private noise2D(x: number, y: number, rand: () => number): number {
-  // Simple 2D noise implementation
-  const ix = Math.floor(x)
-  const iy = Math.floor(y)
-  const fx = x - ix
-  const fy = y - iy
+    sides.forEach((side) => {
+      for (let i = 0; i < mountainsPerSide; i++) {
+        const t = (i + 0.5) / mountainsPerSide
+        const perpPos = (t - 0.5) * this.mapSize * 2
+        const x = side.axis === 'x' ? side.value : perpPos
+        const z = side.axis === 'z' ? side.value : perpPos
 
-  // Generate pseudo-random values at grid corners
-  const a = this.hash2D(ix, iy)
-  const b = this.hash2D(ix + 1, iy)
-  const c = this.hash2D(ix, iy + 1)
-  const d = this.hash2D(ix + 1, iy + 1)
-
-  // Smooth interpolation
-  const u = fx * fx * (3 - 2 * fx)
-  const v = fy * fy * (3 - 2 * fy)
+        const height = 50 + Math.random() * 80
         const width = 40 + Math.random() * 50
         const segments = 4 + Math.floor(Math.random() * 2) // 4-5 sides for low poly
         const geometry = new THREE.ConeGeometry(width, height, segments)

@@ -12,6 +12,7 @@ export class UIManager {
   private galleryEl: HTMLDivElement
   private galleryContentEl: HTMLDivElement
   private toggleGalleryBtn: HTMLButtonElement
+  private toggleMultiplayerBtn: HTMLButtonElement
   private toastEl: HTMLDivElement
   private lastScoreEl: HTMLSpanElement
   private filmCountEl: HTMLSpanElement
@@ -36,6 +37,7 @@ export class UIManager {
     this.galleryEl = document.getElementById('gallery') as HTMLDivElement
     this.galleryContentEl = document.querySelector('.gallery-content') as HTMLDivElement
     this.toggleGalleryBtn = document.getElementById('toggleGallery') as HTMLButtonElement
+    this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toastEl = document.getElementById('toast') as HTMLDivElement
     this.lastScoreEl = document.getElementById('lastScore') as HTMLSpanElement
     this.filmCountEl = document.getElementById('filmCount') as HTMLSpanElement
@@ -68,6 +70,10 @@ export class UIManager {
     this.toggleGalleryBtn?.addEventListener('click', () => {
       this.audioCallbacks.onClick?.()
       this.toggleGallery()
+    })
+    this.toggleMultiplayerBtn?.addEventListener('click', () => {
+      this.audioCallbacks.onClick?.()
+      this.toggleMultiplayer()
     })
     this.toggleSettingsBtn?.addEventListener('click', () => {
       this.audioCallbacks.onClick?.()
@@ -130,6 +136,9 @@ export class UIManager {
       if (e.key.toLowerCase() === 'g') {
         this.toggleGallery()
       }
+      if (e.key.toLowerCase() === 'm') {
+        this.toggleMultiplayer()
+      }
       // Changed from 'S' to 'Escape' to avoid conflict with WASD movement
       if (e.key === 'Escape') {
         e.preventDefault()
@@ -150,6 +159,7 @@ export class UIManager {
   public onShaderToggle?: (enabled: boolean) => void
   public onShaderPresetLoad?: (preset: ShaderConfig) => void
   public onAutoPerformanceToggle?: (enabled: boolean) => void
+  public onToggleMultiplayer?: () => void
 
   public toggleGallery() {
     this.galleryEl.classList.toggle('hidden')
@@ -163,6 +173,10 @@ export class UIManager {
 
   public toggleSettings() {
     this.settingsPanel.classList.toggle('hidden')
+  }
+
+  public toggleMultiplayer() {
+    this.onToggleMultiplayer?.()
   }
 
   public showCreatureInfo(name: string, distance: number, rarity: number) {

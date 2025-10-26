@@ -14,6 +14,8 @@ import {
 import { GAME_CONFIG } from './constants'
 import { type ShaderConfig } from './shaders/ShaderManager'
 import { INSCRYPTION_SHADER_DEFAULTS } from './shaders/InscryptionShaderConfig'
+import { WebRTCMultiplayer } from './multiplayer/WebRTCMultiplayer'
+import { DEFAULT_CONFIG, type GameState, type GameEvent } from './multiplayer/types'
 
 
 export class Game {
@@ -24,6 +26,7 @@ export class Game {
   private audioManager: AudioManager
   private videoRecorder: VideoRecorder
   private debugPanel: DebugPanel
+  private multiplayer: WebRTCMultiplayer | null = null
   private creatures: CreatureInstance[] = []
   private experimentCreature: CreatureInstance | null = null
   private isRunning = false
@@ -58,6 +61,7 @@ export class Game {
     this.uiManager.onClearGallery = () => this.clearGallery()
     this.uiManager.onRestartRide = () => this.restartRide()
     this.uiManager.onDayNightToggle = (mode) => this.sceneManager.setDayNightMode(mode)
+    this.uiManager.onToggleMultiplayer = () => this.toggleMultiplayerUI()
     
     // Setup shader debug UI callbacks
     this.uiManager.onShaderConfigChange = (config) => this.updateShaderConfig(config)
@@ -98,6 +102,10 @@ export class Game {
     // Initialize debug panel
     this.debugPanel = new DebugPanel()
 
+    // Initialize multiplayer system
+    this.multiplayer = new WebRTCMultiplayer(this.sceneManager.scene, DEFAULT_CONFIG)
+    this.setupMultiplayerCallbacks()
+
     // Generate creatures
     this.spawnCreatures()
 
@@ -114,6 +122,39 @@ export class Game {
     setTimeout(() => {
       loadingEl?.classList.add('hidden')
     }, GAME_CONFIG.LOADING_SCREEN_DELAY_MS)
+  }
+
+  private setupMultiplayerCallbacks() {
+    if (!this.multiplayer) return
+
+    this.multiplayer.onConnected = () => {
+      console.log('Connected to peer!')
+      this.uiManager.showToast('🌐 Connected to friend!')
+      this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
+    }
+
+    this.multiplayer.onDisconnected = () => {
+      console.log('Disconnected from peer')
+      this.uiManager.showToast('🌐 Disconnected from friend')
+      this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
+    }
+
+    this.multiplayer.onPeerStateUpdate = (state: GameState) => {
+      // Avatar updates are handled internally by WebRTCMultiplayer
+      // This callback is for any additional game logic if needed
+    }
+
+    this.multiplayer.onGameEvent = (event: GameEvent) => {
+      if (event.type === 'photo') {
+        this.uiManager.showToast('📸 Friend took a photo!')
+        this.audioManager.playSoundEffect('camera_shutter', GAME_CONFIG.AUDIO_PHOTO_SCORE)
+      }
+    }
+
+    this.multiplayer.onError = (error: Error) => {
+      console.error('Multiplayer error:', error)
+      this.uiManager.showToast(`❌ Multiplayer error: ${error.message}`)
+    }
   }
 
   private spawnCreatures() {
@@ -365,6 +406,14 @@ export class Game {
       )
       console.log(`Photo of ${result.creatureName}:`, breakdown)
     }
+
+    // Send photo event to peer if connected
+    if (this.multiplayer && this.multiplayer.isConnected()) {
+      this.multiplayer.sendEvent({
+        type: 'photo',
+        timestamp: performance.now(),
+      })
+    }
   }
 
   private restartRide() {
@@ -539,6 +588,24 @@ export class Game {
     this.sceneManager.update(now / 1000) // Update park animations
     this.updateRecordingIndicator() // Update recording timer
 
+    // Update multiplayer
+    if (this.multiplayer && this.multiplayer.isConnected()) {
+      this.multiplayer.update(dt)
+
+      // Send current game state to peer
+      const cameraPos = this.cameraController.camera.position
+      const cameraRot = this.cameraController.camera.rotation
+      const cameraMode = this.cameraController.getMode()
+      const state: GameState = {
+        position: { x: cameraPos.x, y: cameraPos.y, z: cameraPos.z },
+        rotation: { x: cameraRot.x, y: cameraRot.y, z: cameraRot.z },
+        cameraMode: cameraMode === 'freeroam' ? 'free' : 'ride',
+        rideProgress: this.cameraController.getRideProgress(),
+        timestamp: now,
+      }
+      this.multiplayer.sendGameState(state)
+    }
+
     // Update debug panel
     this.debugPanel.update(dt, this.sceneManager.renderer, this.cameraController.camera, {
       creatures: this.creatures.length,
@@ -565,6 +632,11 @@ export class Game {
   public stop() {
     this.isRunning = false
     this.audioManager.stopAllAmbientSounds()
+    
+    // Clean up multiplayer resources
+    if (this.multiplayer) {
+      this.multiplayer.dispose()
+    }
   }
 
   private startAmbientAudio() {
@@ -600,6 +672,11 @@ export class Game {
   public clearGallery() {
     this.uiManager.clearGallery()
     this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
+  }
+
+  private toggleMultiplayerUI() {
+    if (!this.multiplayer) return
+    this.multiplayer.toggleUI()
   }
 
   // Setup shader system callbacks
