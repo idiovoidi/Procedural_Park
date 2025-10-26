@@ -148,25 +148,8 @@ export class UIManager {
       this.audioCallbacks.onClick?.()
     })
 
-    window.addEventListener('keydown', (e) => {
-      if (e.key.toLowerCase() === 'g') {
-        this.toggleGallery()
-      }
-      if (e.key.toLowerCase() === 'm') {
-        this.toggleMultiplayer()
-      }
-      if (e.key.toLowerCase() === 'h') {
-        this.toggleShortcuts()
-      }
-      // Changed from 'S' to 'Escape' to avoid conflict with WASD movement
-      if (e.key === 'Escape') {
-        e.preventDefault()
-        this.toggleSettings()
-      }
-      if (e.key.toLowerCase() === 'n') {
-        dayNightToggleBtn?.click()
-      }
-    })
+    // Note: Keyboard shortcuts are now handled by InputManager
+    // UI elements still respond to clicks
   }
 
   // Callback functions that can be set by the game

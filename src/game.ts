@@ -16,6 +16,7 @@ import { type ShaderConfig } from './shaders/ShaderManager'
 import { INSCRYPTION_SHADER_DEFAULTS } from './shaders/InscryptionShaderConfig'
 import { WebRTCMultiplayer } from './multiplayer/WebRTCMultiplayer'
 import { DEFAULT_CONFIG, type GameState, type GameEvent } from './multiplayer/types'
+import { InputManager } from './input-manager'
 
 export class Game {
   private sceneManager: SceneManager
@@ -25,6 +26,7 @@ export class Game {
   private audioManager: AudioManager
   private videoRecorder: VideoRecorder
   private debugPanel: DebugPanel
+  private inputManager: InputManager
   private multiplayer: WebRTCMultiplayer | null = null
   private creatures: CreatureInstance[] = []
   private experimentCreature: CreatureInstance | null = null
@@ -44,9 +46,12 @@ export class Game {
     // Initialize shader configuration with Inscryption-style defaults
     this.shaderConfig = { ...INSCRYPTION_SHADER_DEFAULTS }
 
+    // Initialize input manager first
+    this.inputManager = new InputManager()
+
     // Initialize all systems
     this.sceneManager = new SceneManager(container)
-    this.cameraController = new CameraController(this.sceneManager.curve)
+    this.cameraController = new CameraController(this.sceneManager.curve, this.inputManager)
     this.uiManager = new UIManager()
     this.photoSystem = new PhotoSystem()
     this.audioManager = new AudioManager(this.cameraController.camera)
@@ -112,7 +117,7 @@ export class Game {
     // Create experiment creature in lab
     this.spawnExperimentCreature()
 
-    // Setup input handlers
+    // Setup input handlers via input manager
     this.setupInputHandlers()
 
     // Start ambient sounds
@@ -196,79 +201,37 @@ export class Game {
   }
 
   private setupInputHandlers() {
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        e.preventDefault()
-        this.jump()
-      }
-      if (e.key.toLowerCase() === 'r') {
-        this.restartRide()
-      }
-
-      // Speed controls
-      if (e.key === 'ArrowUp' || e.key === '+' || e.key === '=') {
-        e.preventDefault()
-        this.increaseSpeed()
-      }
-      if (e.key === 'ArrowDown' || e.key === '-' || e.key === '_') {
-        e.preventDefault()
-        this.decreaseSpeed()
-      }
-
-      // Pause/Resume
-      if (e.key.toLowerCase() === 'p' || e.key === 'Pause') {
-        e.preventDefault()
-        this.togglePause()
-      }
-
-      // Toggle camera mode (moved to C key)
-      if (e.key.toLowerCase() === 'c') {
-        e.preventDefault()
-        this.toggleCameraMode()
-      }
-
-      // Take photo (moved to F key)
-      if (e.key.toLowerCase() === 'f') {
-        e.preventDefault()
-        this.takePhoto()
-      }
-
-      // Video recording
-      if (e.key === ';') {
-        e.preventDefault()
-        this.toggleVideoRecording()
-      }
-
-      // Randomize experiment creature
-      if (e.key.toLowerCase() === 'x') {
-        e.preventDefault()
-        this.randomizeExperimentCreature()
-      }
-
-      // Toggle shader on/off
-      if (e.key.toLowerCase() === 's') {
-        e.preventDefault()
-        this.toggleShader()
-      }
-
-      // Shader parameter adjustments (development controls)
-      if (e.key === '[') {
-        e.preventDefault()
-        this.adjustShaderParameter('luminanceThreshold', -0.05)
-      }
-      if (e.key === ']') {
-        e.preventDefault()
-        this.adjustShaderParameter('luminanceThreshold', 0.05)
-      }
-      if (e.key === '{') {
-        e.preventDefault()
-        this.adjustShaderParameter('intensity', -0.1)
-      }
-      if (e.key === '}') {
-        e.preventDefault()
-        this.adjustShaderParameter('intensity', 0.1)
-      }
+    // Camera actions
+    this.inputManager.on('camera.toggleMode', () => this.toggleCameraMode())
+    this.inputManager.on('camera.jump', () => this.jump())
+    
+    // Game actions
+    this.inputManager.on('game.takePhoto', () => this.takePhoto())
+    this.inputManager.on('game.restartRide', () => this.restartRide())
+    this.inputManager.on('game.pause', () => this.togglePause())
+    this.inputManager.on('game.speedUp', () => this.increaseSpeed())
+    this.inputManager.on('game.speedDown', () => this.decreaseSpeed())
+    this.inputManager.on('game.randomizeCreature', () => this.randomizeExperimentCreature())
+    
+    // UI actions
+    this.inputManager.on('ui.toggleGallery', () => this.uiManager.toggleGallery())
+    this.inputManager.on('ui.toggleSettings', () => this.uiManager.toggleSettings())
+    this.inputManager.on('ui.toggleShortcuts', () => this.uiManager.toggleShortcuts())
+    this.inputManager.on('ui.toggleMultiplayer', () => this.toggleMultiplayerUI())
+    this.inputManager.on('ui.toggleDayNight', () => {
+      const btn = document.getElementById('dayNightToggle') as HTMLButtonElement
+      if (btn) btn.click()
     })
+    
+    // Shader actions
+    this.inputManager.on('shader.toggle', () => this.toggleShader())
+    this.inputManager.on('shader.adjustThresholdDown', () => this.adjustShaderParameter('luminanceThreshold', -0.05))
+    this.inputManager.on('shader.adjustThresholdUp', () => this.adjustShaderParameter('luminanceThreshold', 0.05))
+    this.inputManager.on('shader.adjustIntensityDown', () => this.adjustShaderParameter('intensity', -0.1))
+    this.inputManager.on('shader.adjustIntensityUp', () => this.adjustShaderParameter('intensity', 0.1))
+    
+    // Video actions
+    this.inputManager.on('video.toggleRecording', () => this.toggleVideoRecording())
   }
 
   private jump() {
@@ -429,7 +392,7 @@ export class Game {
 
   private restartRide() {
     // Reset camera position
-    this.cameraController = new CameraController(this.sceneManager.curve)
+    this.cameraController = new CameraController(this.sceneManager.curve, this.inputManager)
     this.cameraController.setupMouseControls(this.sceneManager.getCanvas())
 
     // Respawn creatures in new positions
@@ -592,6 +555,9 @@ export class Game {
     this.lastTime = now
     const dt = dtMs / 1000
 
+    // Update input manager (clears pressed/released states)
+    this.inputManager.update()
+
     // Update all systems
     this.cameraController.update(dt)
     this.updateCreatures(dt)
@@ -655,6 +621,9 @@ export class Game {
     if (this.multiplayer) {
       this.multiplayer.dispose()
     }
+    
+    // Clean up input manager
+    this.inputManager.dispose()
   }
 
   private startAmbientAudio() {

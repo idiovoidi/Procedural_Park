@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { getPooledVector3, releaseVector3, HALF_PI, memoizedSin, memoizedCos } from './utils'
+import type { InputManager } from './input-manager'
 
 export type CameraMode = 'ride' | 'freeroam'
 
@@ -35,12 +36,23 @@ export class CameraController {
   private jumpSpeed = 8.0
   private gravity = 20.0
   private groundHeight = 1.6
+  
+  private inputManager: InputManager | null = null
 
-  constructor(curve: THREE.CatmullRomCurve3) {
+  constructor(curve: THREE.CatmullRomCurve3, inputManager?: InputManager) {
     this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 600)
     this.camera.position.set(0, 1.6, 5)
     this.curve = curve
+    
+    if (inputManager) {
+      this.setInputManager(inputManager)
+    }
+    
     this.setupEventListeners()
+  }
+  
+  public setInputManager(inputManager: InputManager) {
+    this.inputManager = inputManager
   }
 
   private setupEventListeners() {
@@ -48,39 +60,14 @@ export class CameraController {
       this.camera.aspect = window.innerWidth / window.innerHeight
       this.camera.updateProjectionMatrix()
     })
-
-    window.addEventListener('keydown', (e) => {
-      // Arrow keys for ride mode camera control
-      if (this.mode === 'ride') {
-        if (e.key === 'ArrowLeft') this.yawTarget -= 0.05
-        if (e.key === 'ArrowRight') this.yawTarget += 0.05
-        if (e.key === 'ArrowUp') this.pitchTarget = Math.min(this.pitchTarget + 0.04, 0.6)
-        if (e.key === 'ArrowDown') this.pitchTarget = Math.max(this.pitchTarget - 0.04, -0.6)
-        if (e.key.toLowerCase() === 'r') this.rideT = 0
-      }
-
-      // WASD for free roam movement
-      if (this.mode === 'freeroam') {
-        if (e.key.toLowerCase() === 'w') this.moveForward = true
-        if (e.key.toLowerCase() === 's') this.moveBackward = true
-        if (e.key.toLowerCase() === 'a') this.moveLeft = true
-        if (e.key.toLowerCase() === 'd') this.moveRight = true
-        if (e.key === 'Shift') this.isSprinting = true
-      }
-    })
-
-    window.addEventListener('keyup', (e) => {
-      if (this.mode === 'freeroam') {
-        if (e.key.toLowerCase() === 'w') this.moveForward = false
-        if (e.key.toLowerCase() === 's') this.moveBackward = false
-        if (e.key.toLowerCase() === 'a') this.moveLeft = false
-        if (e.key.toLowerCase() === 'd') this.moveRight = false
-        if (e.key === 'Shift') this.isSprinting = false
-      }
-    })
   }
 
   public setupMouseControls(canvas: HTMLCanvasElement) {
+    // Set canvas in input manager for pointer lock
+    if (this.inputManager) {
+      this.inputManager.setCanvas(canvas)
+    }
+    
     // Ride mode: drag to look
     canvas.addEventListener('mousedown', (e) => {
       if (this.mode === 'ride') {
@@ -108,37 +95,52 @@ export class CameraController {
         this.yawTarget += dx * 0.0025
         this.pitchTarget = Math.max(-0.6, Math.min(0.6, this.pitchTarget + dy * 0.002))
       }
-
-      // Free roam mode: pointer lock movement
-      if (this.mode === 'freeroam' && document.pointerLockElement === canvas) {
-        const dx = e.movementX || 0
-        const dy = e.movementY || 0
-        this.yawTarget -= dx * 0.002 // Negative for correct left/right
-        this.pitchTarget = Math.max(-HALF_PI + 0.1, Math.min(HALF_PI - 0.1, this.pitchTarget - dy * 0.002)) // Negative for correct up/down
-      }
     })
 
     // Click to enter pointer lock in free roam mode
     canvas.addEventListener('click', () => {
-      if (this.mode === 'freeroam' && document.pointerLockElement !== canvas) {
-        canvas.requestPointerLock()
-      }
-    })
-
-    // Handle pointer lock change
-    document.addEventListener('pointerlockchange', () => {
-      if (document.pointerLockElement !== canvas && this.mode === 'freeroam') {
-        // Pointer lock was released
-        console.log('Pointer lock released. Click canvas to re-enable first-person controls.')
+      if (this.mode === 'freeroam' && this.inputManager && !this.inputManager.isPointerLocked()) {
+        this.inputManager.requestPointerLock()
       }
     })
   }
 
   public update(dtSeconds: number) {
+    // Update movement state from input manager
+    if (this.inputManager) {
+      this.updateFromInputManager()
+    }
+    
     if (this.mode === 'ride') {
       this.updateRideMode(dtSeconds)
     } else {
       this.updateFreeRoamMode(dtSeconds)
+    }
+  }
+  
+  private updateFromInputManager() {
+    if (!this.inputManager) return
+    
+    // Update movement keys
+    this.moveForward = this.inputManager.isKeyDown('w')
+    this.moveBackward = this.inputManager.isKeyDown('s')
+    this.moveLeft = this.inputManager.isKeyDown('a')
+    this.moveRight = this.inputManager.isKeyDown('d')
+    this.isSprinting = this.inputManager.isKeyDown('Shift')
+    
+    // Update look direction from mouse delta (in freeroam with pointer lock)
+    if (this.mode === 'freeroam' && this.inputManager.isPointerLocked()) {
+      const delta = this.inputManager.getMouseDelta()
+      this.yawTarget -= delta.x * 0.002
+      this.pitchTarget = Math.max(-HALF_PI + 0.1, Math.min(HALF_PI - 0.1, this.pitchTarget - delta.y * 0.002))
+    }
+    
+    // Update look direction from arrow keys (in ride mode)
+    if (this.mode === 'ride') {
+      if (this.inputManager.isKeyDown('ArrowLeft')) this.yawTarget -= 0.05 * (1/60)
+      if (this.inputManager.isKeyDown('ArrowRight')) this.yawTarget += 0.05 * (1/60)
+      if (this.inputManager.isKeyDown('ArrowUp')) this.pitchTarget = Math.min(this.pitchTarget + 0.04 * (1/60), 0.6)
+      if (this.inputManager.isKeyDown('ArrowDown')) this.pitchTarget = Math.max(this.pitchTarget - 0.04 * (1/60), -0.6)
     }
   }
 

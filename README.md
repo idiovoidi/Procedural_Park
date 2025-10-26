@@ -76,6 +76,7 @@ src/
 │   └── WebRTCMultiplayer.ts  # Main multiplayer coordinator
 ├── shaders/             # Custom GLSL shaders
 ├── types/               # TypeScript type definitions
+├── input-manager.ts     # Centralized input handling
 ├── game.ts              # Main game logic
 ├── scene.ts             # Scene management
 ├── camera.ts            # Camera controller
@@ -97,6 +98,7 @@ src/
 ## Documentation
 
 - [Multiplayer User Guide](docs/multiplayer-guide.md) - How to connect and play with friends
+- [Input Manager](docs/input-manager.md) - Centralized input handling system
 - [Troubleshooting](docs/troubleshooting.md) - Common issues and solutions
 - [Architecture](docs/architecture.md) - Technical architecture and design decisions
 
