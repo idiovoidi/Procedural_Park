@@ -1,6 +1,10 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  // Base path for GitHub Pages deployment
+  // Change to '/Procedural_Park/' if deploying to GitHub Pages
+  // Leave as '/' for Vercel, Netlify, or custom domain
+  base: '/',
   define: {
     global: 'globalThis',
     'process.env': {},
