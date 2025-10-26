@@ -113,6 +113,11 @@ export class Game {
     // Initialize debug panel
     this.debugPanel = new DebugPanel()
 
+    // Initialize state machine debug panel in development
+    if (import.meta.env.DEV) {
+      this.initializeStateDebugPanel()
+    }
+
     // Initialize multiplayer system
     this.multiplayer = new WebRTCMultiplayer(this.sceneManager.scene, DEFAULT_CONFIG)
     this.setupMultiplayerCallbacks()
@@ -153,6 +158,50 @@ export class Game {
       // Restore ambient sounds
       this.audioManager.setAmbientVolume(1)
     }
+  }
+
+  private initializeStateDebugPanel(): void {
+    // Create a simple debug panel for state machine
+    const panel = document.createElement('div')
+    panel.id = 'state-debug-panel'
+    panel.style.cssText = `
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.85);
+      color: #4ade80;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 11px;
+      z-index: 10000;
+      min-width: 220px;
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    `
+    document.body.appendChild(panel)
+
+    // Update panel every 100ms
+    setInterval(() => {
+      const status = this.stateManager.getStatus()
+      const config = this.stateManager.getCurrentConfig()
+      
+      panel.innerHTML = `
+        <div style="margin-bottom: 8px; color: #60a5fa; font-weight: bold;">🎮 State Machine</div>
+        <div><strong>State:</strong> ${status.current}</div>
+        <div><strong>Previous:</strong> ${status.previous || 'none'}</div>
+        <div><strong>Time:</strong> ${(status.timeInState / 1000).toFixed(1)}s</div>
+        <div style="margin-top: 8px; color: #fbbf24;">Config:</div>
+        <div style="margin-left: 10px; font-size: 10px;">
+          <div>Loop: ${config.pauseGameLoop ? '⏸ Paused' : '▶ Running'}</div>
+          <div>Audio: ${config.pauseAudio ? '🔇 Muted' : '🔊 Playing'}</div>
+          <div>Camera: ${config.allowCameraMovement ? '✓' : '✗'}</div>
+          <div>Photos: ${config.allowPhotoCapture ? '✓' : '✗'}</div>
+        </div>
+        <div style="margin-top: 8px; color: #a78bfa; font-size: 10px;">
+          Transitions: ${status.historyCount}
+        </div>
+      `
+    }, 100)
   }
 
   private setupMultiplayerCallbacks() {
@@ -293,8 +342,16 @@ export class Game {
   }
 
   private togglePause() {
-    const isPaused = this.cameraController.togglePause()
-    this.uiManager.showToast(isPaused ? '⏸ Paused' : '▶ Resumed')
+    const currentState = this.stateManager.getState()
+    
+    if (currentState === 'playing') {
+      this.stateManager.setState('paused')
+      this.uiManager.showToast('⏸ Paused')
+    } else if (currentState === 'paused') {
+      this.stateManager.setState('playing')
+      this.uiManager.showToast('▶ Resumed')
+    }
+    
     this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
   }
 
@@ -581,20 +638,29 @@ export class Game {
   }
 
   private gameLoop = (now = performance.now()) => {
-    if (!this.isRunning) return
-
     const dtMs = Math.min(GAME_CONFIG.MAX_FRAME_TIME_MS, now - this.lastTime)
     this.lastTime = now
     const dt = dtMs / 1000
 
-    // Update all systems
-    this.cameraController.update(dt)
-    this.updateCreatures(dt)
-    this.updateMiniMap()
-    this.sceneManager.update(now / 1000) // Update park animations
-    this.updateRecordingIndicator() // Update recording timer
+    // Always update state machine
+    this.stateManager.update(dt)
 
-    // Update multiplayer
+    // Conditionally update game systems based on state
+    if (!this.stateManager.shouldPauseGameLoop()) {
+      // Update camera only if movement is allowed
+      if (this.stateManager.isCameraMovementAllowed()) {
+        this.cameraController.update(dt)
+      }
+      
+      this.updateCreatures(dt)
+      this.updateMiniMap()
+      this.sceneManager.update(now / 1000) // Update park animations
+    }
+
+    // Always update recording indicator
+    this.updateRecordingIndicator()
+
+    // Update multiplayer (even when paused for connection state)
     if (this.multiplayer && this.multiplayer.isConnected()) {
       this.multiplayer.update(dt)
 
@@ -626,9 +692,7 @@ export class Game {
       rideProgress: this.cameraController.getRideProgress(),
     })
 
-    // Shader status updates removed for simplicity
-
-    // Render with deltaTime for shader animations
+    // Always render (for pause menu, etc.)
     this.sceneManager.render(this.cameraController.camera, dt)
 
     // Update input manager at END of frame (clears pressed/released states)
@@ -638,15 +702,14 @@ export class Game {
   }
 
   public start() {
-    if (this.isRunning) return
-
-    this.isRunning = true
+    // Start game loop (state is already set to 'playing' after loading)
     this.lastTime = performance.now()
     this.gameLoop()
   }
 
   public stop() {
-    this.isRunning = false
+    // Transition to menu state
+    this.stateManager.setState('menu', true)
     this.audioManager.stopAllAmbientSounds()
 
     // Clean up multiplayer resources
@@ -680,7 +743,12 @@ export class Game {
       totalScore: this.uiManager.getTotalScore(),
       creatureCount: this.creatures.length,
       rideProgress: this.cameraController.getRideProgress(),
+      gameState: this.stateManager.getState(),
     }
+  }
+
+  public getStateManager(): GameStateManager {
+    return this.stateManager
   }
 
   private setRideSpeed(speed: number) {

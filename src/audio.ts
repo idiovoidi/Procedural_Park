@@ -413,4 +413,13 @@ export class AudioManager {
       await this.audioContext.resume()
     }
   }
+
+  public setAmbientVolume(volumeMultiplier: number) {
+    // Set volume for all ambient sounds (0 = mute, 1 = normal)
+    for (const sound of this.ambientSources.values()) {
+      if (sound.isPlaying) {
+        sound.setVolume(this.settings.ambientVolume * volumeMultiplier * this.settings.masterVolume)
+      }
+    }
+  }
 }

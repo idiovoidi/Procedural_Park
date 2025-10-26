@@ -43,3 +43,16 @@ export interface StateMachineStatus {
   historyCount: number
   config?: GameStateConfig
 }
+
+// Re-export subsystem state types
+export type {
+  GameSubsystemState,
+  CameraState,
+  UIState,
+  CreaturesState,
+  CreatureState,
+  MultiplayerState,
+  PhotoSystemState,
+  AudioSystemState,
+  StateChangeEvent,
+} from '../subsystem-states'

@@ -12,6 +12,7 @@ game.start()
 
 // Expose game instance to window for debugging
 ;(window as any).game = game
+;(window as any).stateManager = game.getStateManager()
 
 // Hot Module Replacement
 if (import.meta.hot) {
