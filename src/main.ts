@@ -1,7 +1,7 @@
 // Import polyfills FIRST before anything else
 import './polyfills'
 import './style.css'
-import { Game } from './game'
+import { Game } from './game/Game'
 
 // Initialize the game
 const app = document.getElementById('app') as HTMLDivElement

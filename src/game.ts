@@ -223,7 +223,7 @@ export class Game {
       const flowManager = this.stateManager.getFlowStateManager()
       const status = flowManager.getStatus()
       const config = flowManager.getCurrentConfig()
-      
+
       panel.innerHTML = `
         <div style="margin-bottom: 8px; color: #60a5fa; font-weight: bold;">🎮 State Machine</div>
         <div><strong>State:</strong> ${status.current}</div>
@@ -250,7 +250,7 @@ export class Game {
       console.log('Connected to peer!')
       this.uiManager.showToast('🌐 Connected to friend!')
       this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
-      
+
       // Update multiplayer state
       this.stateManager.updateMultiplayerState({
         isConnected: true,
@@ -262,7 +262,7 @@ export class Game {
       console.log('Disconnected from peer')
       this.uiManager.showToast('🌐 Disconnected from friend')
       this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
-      
+
       // Update multiplayer state
       this.stateManager.updateMultiplayerState({
         isConnected: false,
@@ -292,7 +292,7 @@ export class Game {
     this.multiplayer.onError = (error: Error) => {
       console.error('Multiplayer error:', error)
       this.uiManager.showToast(`❌ Multiplayer error: ${error.message}`)
-      
+
       // Update multiplayer state
       this.stateManager.updateMultiplayerState({
         connectionStatus: 'error',
@@ -305,12 +305,12 @@ export class Game {
 
     // Create lightweight sync packet
     const packet = this.syncHelpers.multiplayer.createSyncPacket()
-    
+
     // Convert to old format for compatibility
     const cameraPos = packet.camera.position
     const cameraRot = packet.camera.rotation
     const cameraMode = this.cameraController.getMode()
-    
+
     const state: GameState = {
       position: cameraPos,
       rotation: { x: cameraRot.pitch, y: cameraRot.yaw, z: 0 },
@@ -318,7 +318,7 @@ export class Game {
       rideProgress: this.cameraController.getRideProgress(),
       timestamp: packet.timestamp,
     }
-    
+
     this.multiplayer.sendGameState(state)
   }
 
@@ -364,7 +364,7 @@ export class Game {
     // Camera actions
     this.inputManager.on('camera.toggleMode', () => this.toggleCameraMode())
     this.inputManager.on('camera.jump', () => this.jump())
-    
+
     // Game actions
     this.inputManager.on('game.takePhoto', () => this.takePhoto())
     this.inputManager.on('game.restartRide', () => this.restartRide())
@@ -372,7 +372,7 @@ export class Game {
     this.inputManager.on('game.speedUp', () => this.increaseSpeed())
     this.inputManager.on('game.speedDown', () => this.decreaseSpeed())
     this.inputManager.on('game.randomizeCreature', () => this.randomizeExperimentCreature())
-    
+
     // UI actions
     this.inputManager.on('ui.toggleGallery', () => this.uiManager.toggleGallery())
     this.inputManager.on('ui.toggleSettings', () => this.uiManager.toggleSettings())
@@ -382,14 +382,22 @@ export class Game {
       const btn = document.getElementById('dayNightToggle') as HTMLButtonElement
       if (btn) btn.click()
     })
-    
+
     // Shader actions
     this.inputManager.on('shader.toggle', () => this.toggleShader())
-    this.inputManager.on('shader.adjustThresholdDown', () => this.adjustShaderParameter('luminanceThreshold', -0.05))
-    this.inputManager.on('shader.adjustThresholdUp', () => this.adjustShaderParameter('luminanceThreshold', 0.05))
-    this.inputManager.on('shader.adjustIntensityDown', () => this.adjustShaderParameter('intensity', -0.1))
-    this.inputManager.on('shader.adjustIntensityUp', () => this.adjustShaderParameter('intensity', 0.1))
-    
+    this.inputManager.on('shader.adjustThresholdDown', () =>
+      this.adjustShaderParameter('luminanceThreshold', -0.05)
+    )
+    this.inputManager.on('shader.adjustThresholdUp', () =>
+      this.adjustShaderParameter('luminanceThreshold', 0.05)
+    )
+    this.inputManager.on('shader.adjustIntensityDown', () =>
+      this.adjustShaderParameter('intensity', -0.1)
+    )
+    this.inputManager.on('shader.adjustIntensityUp', () =>
+      this.adjustShaderParameter('intensity', 0.1)
+    )
+
     // Video actions
     this.inputManager.on('video.toggleRecording', () => this.toggleVideoRecording())
   }
@@ -428,7 +436,7 @@ export class Game {
 
   private togglePause() {
     const currentState = this.stateManager.getFlowState()
-    
+
     if (currentState === 'playing') {
       this.stateManager.setFlowState('paused')
       this.uiManager.showToast('⏸ Paused')
@@ -436,7 +444,7 @@ export class Game {
       this.stateManager.setFlowState('playing')
       this.uiManager.showToast('▶ Resumed')
     }
-    
+
     this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
   }
 
@@ -744,7 +752,7 @@ export class Game {
       if (this.stateManager.isCameraMovementAllowed()) {
         this.cameraController.update(dt)
       }
-      
+
       this.updateCreatures(dt)
       this.updateMiniMap()
       this.sceneManager.update(now / 1000) // Update park animations
@@ -799,7 +807,7 @@ export class Game {
     if (this.multiplayer) {
       this.multiplayer.dispose()
     }
-    
+
     // Clean up input manager
     this.inputManager.dispose()
   }
