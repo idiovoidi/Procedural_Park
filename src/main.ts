@@ -1,4 +1,13 @@
 import './style.css'
+import { Buffer } from 'buffer'
+import process from 'process'
+
+// Polyfills for WebRTC libraries
+if (typeof window !== 'undefined') {
+  ;(window as any).Buffer = Buffer
+  ;(window as any).process = process
+}
+
 import { Game } from './game'
 
 // Initialize the game

@@ -3,10 +3,13 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   define: {
     global: 'globalThis',
+    'process.env': {},
   },
   resolve: {
     alias: {
       '@': '/src',
+      buffer: 'buffer',
+      process: 'process/browser',
     },
   },
   server: {
@@ -58,8 +61,16 @@ export default defineConfig({
       'three/examples/jsm/postprocessing/EffectComposer.js',
       'three/examples/jsm/postprocessing/RenderPass.js',
       'three/examples/jsm/postprocessing/ShaderPass.js',
+      'simple-peer',
+      'buffer',
+      'process/browser',
     ],
     exclude: ['@types/three'], // Exclude type definitions from bundle
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+    },
   },
   // Enable experimental features for better performance
   esbuild: {
