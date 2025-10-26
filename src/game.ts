@@ -17,7 +17,6 @@ import { INSCRYPTION_SHADER_DEFAULTS } from './shaders/InscryptionShaderConfig'
 import { WebRTCMultiplayer } from './multiplayer/WebRTCMultiplayer'
 import { DEFAULT_CONFIG, type GameState, type GameEvent } from './multiplayer/types'
 
-
 export class Game {
   private sceneManager: SceneManager
   private cameraController: CameraController
@@ -62,16 +61,17 @@ export class Game {
     this.uiManager.onRestartRide = () => this.restartRide()
     this.uiManager.onDayNightToggle = (mode) => this.sceneManager.setDayNightMode(mode)
     this.uiManager.onToggleMultiplayer = () => this.toggleMultiplayerUI()
-    
+
     // Setup shader debug UI callbacks
     this.uiManager.onShaderConfigChange = (config) => this.updateShaderConfig(config)
     this.uiManager.onShaderToggle = (enabled) => this.setShaderEnabled(enabled)
     this.uiManager.onShaderPresetLoad = (preset) => this.updateShaderConfig(preset)
-    this.uiManager.onAutoPerformanceToggle = (enabled) => this.setShaderAutoPerformanceAdjustment(enabled)
-    
+    this.uiManager.onAutoPerformanceToggle = (enabled) =>
+      this.setShaderAutoPerformanceAdjustment(enabled)
+
     // Initialize shader debug UI
     this.uiManager.initializeShaderDebugUI(this.shaderConfig)
-    
+
     // Disable auto-performance adjustment for testing
     this.setShaderAutoPerformanceAdjustment(false)
     this.uiManager.setShaderAutoPerformanceEnabled(false)
@@ -199,7 +199,7 @@ export class Game {
     window.addEventListener('keydown', (e) => {
       if (e.code === 'Space') {
         e.preventDefault()
-        this.takePhoto()
+        this.jump()
       }
       if (e.key.toLowerCase() === 'r') {
         this.restartRide()
@@ -221,10 +221,16 @@ export class Game {
         this.togglePause()
       }
 
-      // Toggle camera mode
-      if (e.key.toLowerCase() === 'v') {
+      // Toggle camera mode (moved to C key)
+      if (e.key.toLowerCase() === 'c') {
         e.preventDefault()
         this.toggleCameraMode()
+      }
+
+      // Take photo (moved to F key)
+      if (e.key.toLowerCase() === 'f') {
+        e.preventDefault()
+        this.takePhoto()
       }
 
       // Video recording
@@ -263,6 +269,11 @@ export class Game {
         this.adjustShaderParameter('intensity', 0.1)
       }
     })
+  }
+
+  private jump() {
+    this.cameraController.jump()
+    this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
   }
 
   private toggleCameraMode() {
@@ -632,7 +643,7 @@ export class Game {
   public stop() {
     this.isRunning = false
     this.audioManager.stopAllAmbientSounds()
-    
+
     // Clean up multiplayer resources
     if (this.multiplayer) {
       this.multiplayer.dispose()
@@ -689,8 +700,10 @@ export class Game {
   private toggleShader() {
     this.shaderConfig.enabled = !this.shaderConfig.enabled
     this.sceneManager.setShaderEnabled(this.shaderConfig.enabled)
-    
-    const statusText = this.shaderConfig.enabled ? '🎨 Inscryption Shader ON' : '🎨 Inscryption Shader OFF'
+
+    const statusText = this.shaderConfig.enabled
+      ? '🎨 Inscryption Shader ON'
+      : '🎨 Inscryption Shader OFF'
     this.uiManager.showToast(statusText)
     this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
   }
@@ -720,7 +733,7 @@ export class Game {
     this.shaderConfig[parameter] = newValue
     this.sceneManager.updateShaderConfig({ [parameter]: newValue })
     this.uiManager.updateShaderDebugUI(this.shaderConfig)
-    
+
     this.uiManager.showToast(`${parameter}: ${newValue.toFixed(2)}`)
     this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
   }
@@ -762,7 +775,7 @@ export class Game {
   } {
     return {
       isOptimized: false, // Simplified for now
-      compatibility: null // Simplified for now
+      compatibility: null, // Simplified for now
     }
   }
 }

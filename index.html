@@ -19,6 +19,7 @@
           <button id="dayNightToggle" title="Toggle Day/Night (N)">🌙 Night Mode</button>
           <button id="toggleMultiplayer" title="Multiplayer (M)">🌐</button>
           <button id="toggleSettings" title="Settings (ESC)">⚙️</button>
+          <button id="toggleShortcuts" title="Keyboard Shortcuts (H)">⌨️</button>
           <button id="toggleGallery" title="Toggle Gallery (G)">📷</button>
           <button id="restartRide" title="Restart Ride (R)">🔄</button>
         </div>
@@ -64,12 +65,133 @@
         </div>
       </div>
 
+      <div id="shortcuts-panel" class="hidden">
+        <div class="panel-header">
+          <h3>⌨️ Keyboard Shortcuts</h3>
+          <button class="close-btn">&times;</button>
+        </div>
+        <div class="panel-content shortcuts-content">
+          <div class="shortcuts-section">
+            <h4>🎮 Movement & Camera</h4>
+            <div class="shortcut-item">
+              <kbd>W A S D</kbd>
+              <span>Move (Free Roam Mode)</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>Space</kbd>
+              <span>Jump (Free Roam Mode)</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>C</kbd>
+              <span>Toggle Camera Mode (Ride/Free Roam)</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>Mouse Drag</kbd>
+              <span>Look Around (Ride Mode)</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>Mouse Move</kbd>
+              <span>Look Around (Free Roam - Click to Lock)</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>Arrow Keys</kbd>
+              <span>Look Around (Ride Mode)</span>
+            </div>
+          </div>
+
+          <div class="shortcuts-section">
+            <h4>📸 Photo & Recording</h4>
+            <div class="shortcut-item">
+              <kbd>F</kbd>
+              <span>Take Photo</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>;</kbd>
+              <span>Start/Stop Video Recording</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>G</kbd>
+              <span>Toggle Photo Gallery</span>
+            </div>
+          </div>
+
+          <div class="shortcuts-section">
+            <h4>🎢 Ride Controls</h4>
+            <div class="shortcut-item">
+              <kbd>P</kbd>
+              <span>Pause/Resume Ride</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>R</kbd>
+              <span>Restart Ride</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>↑ / +</kbd>
+              <span>Increase Speed</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>↓ / -</kbd>
+              <span>Decrease Speed</span>
+            </div>
+          </div>
+
+          <div class="shortcuts-section">
+            <h4>🎨 Visual & Effects</h4>
+            <div class="shortcut-item">
+              <kbd>N</kbd>
+              <span>Toggle Day/Night Mode</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>S</kbd>
+              <span>Toggle Inscryption Shader</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>[ ]</kbd>
+              <span>Adjust Shader Luminance</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>{ }</kbd>
+              <span>Adjust Shader Intensity</span>
+            </div>
+          </div>
+
+          <div class="shortcuts-section">
+            <h4>🎛️ Menu & UI</h4>
+            <div class="shortcut-item">
+              <kbd>H</kbd>
+              <span>Toggle This Help Menu</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>ESC</kbd>
+              <span>Toggle Settings</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>M</kbd>
+              <span>Toggle Multiplayer</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>F3</kbd>
+              <span>Toggle Debug Panel</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>F4</kbd>
+              <span>Toggle Shader Debug</span>
+            </div>
+          </div>
+
+          <div class="shortcuts-section">
+            <h4>🧬 Experimental</h4>
+            <div class="shortcut-item">
+              <kbd>X</kbd>
+              <span>Randomize Lab Creature</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="help">
         <div>
-          🎮 Drag: Look (Ride) | Click: FPS Look (Free Roam) | 📸 Space: Photo | 🎬 ; : Record Video
-          | 🚶 V: Toggle Mode | WASD: Move | ⏸️ P: Pause | ⬆️ ↑/+: Speed Up | ⬇️ ↓/-: Slow Down | 📷
-          G: Gallery | 🌐 M: Multiplayer | ⚙️ ESC: Settings | 🔄 R: Restart | 🧬 X: Randomize Lab Creature | 🐛 F3:
-          Debug | 🎨 F4: Shader Debug | F5: Toggle Shader
+          Press <kbd>H</kbd> for keyboard shortcuts | 📸 <kbd>F</kbd>: Photo | 🚶 <kbd>C</kbd>: Camera Mode | ⌨️ <kbd>H</kbd>: Help
         </div>
       </div>
 

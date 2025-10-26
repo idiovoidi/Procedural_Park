@@ -20,6 +20,8 @@ export class UIManager {
   private settingsPanel: HTMLDivElement
   private toggleSettingsBtn: HTMLButtonElement
   private restartRideBtn: HTMLButtonElement
+  private shortcutsPanel: HTMLDivElement
+  private toggleShortcutsBtn: HTMLButtonElement
   private creatureInfoEl: HTMLDivElement
   private loadingEl: HTMLDivElement
   private miniMapCanvas: HTMLCanvasElement
@@ -45,6 +47,8 @@ export class UIManager {
     this.settingsPanel = document.getElementById('settings-panel') as HTMLDivElement
     this.toggleSettingsBtn = document.getElementById('toggleSettings') as HTMLButtonElement
     this.restartRideBtn = document.getElementById('restartRide') as HTMLButtonElement
+    this.shortcutsPanel = document.getElementById('shortcuts-panel') as HTMLDivElement
+    this.toggleShortcutsBtn = document.getElementById('toggleShortcuts') as HTMLButtonElement
     this.creatureInfoEl = document.getElementById('creature-info') as HTMLDivElement
     this.loadingEl = document.getElementById('loading') as HTMLDivElement
     this.miniMapCanvas = document.getElementById('mini-map-canvas') as HTMLCanvasElement
@@ -79,6 +83,10 @@ export class UIManager {
       this.audioCallbacks.onClick?.()
       this.toggleSettings()
     })
+    this.toggleShortcutsBtn?.addEventListener('click', () => {
+      this.audioCallbacks.onClick?.()
+      this.toggleShortcuts()
+    })
 
     // Gallery close button
     this.galleryEl.querySelector('.close-btn')?.addEventListener('click', () => {
@@ -90,6 +98,12 @@ export class UIManager {
     this.settingsPanel.querySelector('.close-btn')?.addEventListener('click', () => {
       this.audioCallbacks.onClick?.()
       this.toggleSettings()
+    })
+
+    // Shortcuts panel close button
+    this.shortcutsPanel.querySelector('.close-btn')?.addEventListener('click', () => {
+      this.audioCallbacks.onClick?.()
+      this.toggleShortcuts()
     })
 
     // Settings controls
@@ -139,6 +153,9 @@ export class UIManager {
       if (e.key.toLowerCase() === 'm') {
         this.toggleMultiplayer()
       }
+      if (e.key.toLowerCase() === 'h') {
+        this.toggleShortcuts()
+      }
       // Changed from 'S' to 'Escape' to avoid conflict with WASD movement
       if (e.key === 'Escape') {
         e.preventDefault()
@@ -173,6 +190,10 @@ export class UIManager {
 
   public toggleSettings() {
     this.settingsPanel.classList.toggle('hidden')
+  }
+
+  public toggleShortcuts() {
+    this.shortcutsPanel.classList.toggle('hidden')
   }
 
   public toggleMultiplayer() {

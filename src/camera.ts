@@ -26,6 +26,13 @@ export class CameraController {
   private moveRight = false
   private moveSpeed = 5.0
   private freeRoamPosition = new THREE.Vector3(0, 1.6, 5)
+  
+  // Jump controls
+  private isJumping = false
+  private jumpVelocity = 0
+  private jumpSpeed = 8.0
+  private gravity = 20.0
+  private groundHeight = 1.6
 
   constructor(curve: THREE.CatmullRomCurve3) {
     this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 600)
@@ -182,6 +189,19 @@ export class CameraController {
       this.freeRoamPosition.add(velocity)
     }
 
+    // Apply jump physics
+    if (this.isJumping) {
+      this.jumpVelocity -= this.gravity * dtSeconds
+      this.freeRoamPosition.y += this.jumpVelocity * dtSeconds
+
+      // Check if landed
+      if (this.freeRoamPosition.y <= this.groundHeight) {
+        this.freeRoamPosition.y = this.groundHeight
+        this.isJumping = false
+        this.jumpVelocity = 0
+      }
+    }
+
     // Update camera position and look direction
     this.camera.position.copy(this.freeRoamPosition)
 
@@ -250,5 +270,13 @@ export class CameraController {
   public toggleMode(): CameraMode {
     this.setMode(this.mode === 'ride' ? 'freeroam' : 'ride')
     return this.mode
+  }
+
+  public jump() {
+    // Only allow jumping in free roam mode and when on ground
+    if (this.mode === 'freeroam' && !this.isJumping) {
+      this.isJumping = true
+      this.jumpVelocity = this.jumpSpeed
+    }
   }
 }
