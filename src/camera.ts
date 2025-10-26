@@ -17,8 +17,6 @@ export class CameraController {
   private yawTarget = 0
   private pitchTarget = 0
   private isDragging = false
-  private lastX = 0
-  private lastY = 0
 
   // Free roam controls
   private moveForward = false
@@ -72,8 +70,6 @@ export class CameraController {
     canvas.addEventListener('mousedown', (e) => {
       if (this.mode === 'ride') {
         this.isDragging = true
-        this.lastX = e.clientX
-        this.lastY = e.clientY
       }
     })
 
@@ -83,18 +79,6 @@ export class CameraController {
 
     canvas.addEventListener('mouseleave', () => {
       this.isDragging = false
-    })
-
-    canvas.addEventListener('mousemove', (e) => {
-      // Ride mode: drag to look
-      if (this.mode === 'ride' && this.isDragging) {
-        const dx = e.clientX - this.lastX
-        const dy = e.clientY - this.lastY
-        this.lastX = e.clientX
-        this.lastY = e.clientY
-        this.yawTarget += dx * 0.0025
-        this.pitchTarget = Math.max(-0.6, Math.min(0.6, this.pitchTarget + dy * 0.002))
-      }
     })
 
     // Click to enter pointer lock in free roam mode
@@ -133,6 +117,13 @@ export class CameraController {
       const delta = this.inputManager.getMouseDelta()
       this.yawTarget -= delta.x * 0.002
       this.pitchTarget = Math.max(-HALF_PI + 0.1, Math.min(HALF_PI - 0.1, this.pitchTarget - delta.y * 0.002))
+    }
+    
+    // Update look direction from mouse drag (in ride mode when dragging)
+    if (this.mode === 'ride' && this.isDragging) {
+      const delta = this.inputManager.getMouseDelta()
+      this.yawTarget += delta.x * 0.0025
+      this.pitchTarget = Math.max(-0.6, Math.min(0.6, this.pitchTarget + delta.y * 0.002))
     }
     
     // Update look direction from arrow keys (in ride mode)

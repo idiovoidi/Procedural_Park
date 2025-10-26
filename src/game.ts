@@ -555,9 +555,6 @@ export class Game {
     this.lastTime = now
     const dt = dtMs / 1000
 
-    // Update input manager (clears pressed/released states)
-    this.inputManager.update()
-
     // Update all systems
     this.cameraController.update(dt)
     this.updateCreatures(dt)
@@ -601,6 +598,9 @@ export class Game {
 
     // Render with deltaTime for shader animations
     this.sceneManager.render(this.cameraController.camera, dt)
+
+    // Update input manager at END of frame (clears pressed/released states)
+    this.inputManager.update()
 
     requestAnimationFrame(this.gameLoop)
   }

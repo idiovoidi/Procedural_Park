@@ -14,9 +14,16 @@ Added a centralized Input Manager system to resolve input handling issues and im
 
 ### Modified Files
 - `src/game.ts` - Now uses InputManager for all input
-- `src/camera.ts` - Queries InputManager for movement/look
+- `src/camera.ts` - Queries InputManager for movement/look, mouse drag handled via InputManager
 - `src/ui.ts` - Removed keyboard event listeners (now handled by InputManager)
 - `README.md` - Added InputManager to documentation
+
+### Implementation Notes
+- Mouse drag controls in ride mode now use InputManager's mouse delta tracking
+- Pointer lock for freeroam mode managed by InputManager
+- All mouse movement tracking centralized in InputManager for consistency
+- Key normalization: Single letter keys normalized to lowercase to handle Shift+W being reported as 'W'
+- Input update timing: Moved to end of frame to ensure mouse delta is available during camera update
 
 ## Key Features
 
@@ -137,7 +144,9 @@ Minimal overhead:
 
 All existing functionality tested and working:
 - ✅ Camera movement (WASD)
-- ✅ Camera look (mouse/arrows)
+- ✅ Camera look (mouse drag in ride mode)
+- ✅ Camera look (mouse in freeroam with pointer lock)
+- ✅ Camera look (arrow keys)
 - ✅ Photo taking (F)
 - ✅ UI toggles (G, Escape, H, M)
 - ✅ Game controls (R, P, +/-)
