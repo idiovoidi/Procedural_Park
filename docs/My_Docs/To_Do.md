@@ -10,26 +10,15 @@ This is a performance nightmare.
 
 6. Procedural Generation Without Caching Your terrain and creature generation is fully procedural but doesn't cache results. Every time you restart, you regenerate everything from scratch. The terrain system creates 64x64 heightmaps and biome maps, plus 150+ environmental features, all thrown away on restart.
 
-7. Shader System Complexity You have a full shader management system with debug UI, performance monitoring, and auto-adjustment - but it's tightly coupled to the scene manager. The shader config is passed around everywhere, and there's no clear separation between shader logic and rendering logic.
+7. Multiplayer Bolted On The multiplayer system was clearly added after the fact. It has to reach into game internals to extract state, and the game has to know about multiplayer to send events. There's no abstraction layer - just direct coupling.
 
-8. Input Handling Scattered Everywhere Input handling is split between:
-
-Game class (keyboard shortcuts)
-Camera controller (WASD, mouse)
-UI manager (button clicks)
-Individual UI components
-There's no centralized input system, making it hard to handle conflicts (like 'S' key for both shader toggle and backward movement).
-
-9. Multiplayer Bolted On The multiplayer system was clearly added after the fact. It has to reach into game internals to extract state, and the game has to know about multiplayer to send events. There's no abstraction layer - just direct coupling.
-
-10. No Entity Component System Creatures are monolithic objects with all behavior baked in. You can't easily add/remove features, share behaviors, or compose new creature types. Everything is hardcoded in the massive buildCreature function.
+8. No Entity Component System Creatures are monolithic objects with all behavior baked in. You can't easily add/remove features, share behaviors, or compose new creature types. Everything is hardcoded in the massive buildCreature function.
 
 Recommended Refactoring
 You should consider:
 
 Event bus for decoupled communication
 Entity-Component-System for creatures
-State machine for game states
 Object pooling for creatures and particles
 Spatial partitioning (octree/quadtree) for creatures
 Resource manager for proper disposal

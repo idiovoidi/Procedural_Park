@@ -193,6 +193,10 @@ export class SceneManager {
     return this.renderer.domElement
   }
 
+  public getShaderManager(): ShaderManager {
+    return this.shaderManager
+  }
+
   public capturePhoto(): string {
     return this.renderer.domElement.toDataURL('image/jpeg', 0.85)
   }

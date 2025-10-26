@@ -234,9 +234,8 @@ export class Game {
    * Toggle shader
    */
   private toggleShader(): void {
-    this.systems.shaderConfig.enabled = !this.systems.shaderConfig.enabled
-    this.systems.scene.updateShaderConfig(this.systems.shaderConfig)
-    this.systems.ui.showToast(this.systems.shaderConfig.enabled ? '🎨 Shader ON' : '🎨 Shader OFF')
+    const enabled = this.systems.shaders.toggle()
+    this.systems.ui.showToast(enabled ? '🎨 Shader ON' : '🎨 Shader OFF')
   }
 
   /**

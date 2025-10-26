@@ -14,11 +14,10 @@ import { InputManager } from '../input-manager'
 import { IntegratedStateManager } from '../state-integration'
 import { createStateSyncHelpers } from '../state-sync-helpers'
 import { GAME_CONFIG } from '../constants'
-import { INSCRYPTION_SHADER_DEFAULTS } from '../shaders/InscryptionShaderConfig'
-import type { ShaderConfig } from '../shaders/ShaderManager'
 import type { GameStateType } from '../state-machine'
 import { CreatureManager } from './CreatureManager'
 import { MultiplayerManager } from './MultiplayerManager'
+import { ShaderService } from './ShaderService'
 
 export interface GameSystems {
   scene: SceneManager
@@ -33,7 +32,7 @@ export interface GameSystems {
   syncHelpers: ReturnType<typeof createStateSyncHelpers>
   creatures: CreatureManager
   multiplayer: MultiplayerManager
-  shaderConfig: ShaderConfig
+  shaders: ShaderService
 }
 
 export class SystemsCoordinator {
@@ -54,8 +53,8 @@ export class SystemsCoordinator {
     // Preload shader resources
     this.preloadShaderResources()
 
-    // Initialize shader configuration
-    const shaderConfig = { ...INSCRYPTION_SHADER_DEFAULTS }
+    // Initialize shader service
+    const shaderService = new ShaderService()
 
     // Initialize input manager
     const inputManager = new InputManager()
@@ -72,8 +71,9 @@ export class SystemsCoordinator {
     // Setup camera mouse controls
     cameraController.setupMouseControls(sceneManager.getCanvas())
 
-    // Apply shader configuration
-    sceneManager.updateShaderConfig(shaderConfig)
+    // Connect shader service to scene manager
+    shaderService.setShaderManager(sceneManager.getShaderManager())
+    sceneManager.updateShaderConfig(shaderService.getConfig())
 
     // Initialize sync helpers
     const syncHelpers = createStateSyncHelpers(
@@ -120,7 +120,7 @@ export class SystemsCoordinator {
       syncHelpers,
       creatures: creatureManager,
       multiplayer: multiplayerManager,
-      shaderConfig,
+      shaders: shaderService,
     }
 
     // Setup system callbacks
@@ -133,7 +133,7 @@ export class SystemsCoordinator {
    * Setup callbacks between systems
    */
   private setupSystemCallbacks(): void {
-    const { ui, photo, audio, scene, state, shaderConfig } = this.systems
+    const { ui, photo, audio, shaders } = this.systems
 
     // Photo system callbacks
     photo.setCallbacks({
@@ -155,18 +155,21 @@ export class SystemsCoordinator {
     // onRideSpeedChange, onClearGallery, onRestartRide, onDayNightToggle, onToggleMultiplayer
 
     // UI shader callbacks
-    ui.onShaderConfigChange = (config) => scene.updateShaderConfig(config)
+    ui.onShaderConfigChange = (config) => shaders.updateConfig(config)
     ui.onShaderToggle = (enabled) => {
-      shaderConfig.enabled = enabled
-      scene.updateShaderConfig(shaderConfig)
+      if (enabled) {
+        shaders.enable()
+      } else {
+        shaders.disable()
+      }
     }
-    ui.onShaderPresetLoad = (preset) => scene.updateShaderConfig(preset)
+    ui.onShaderPresetLoad = (preset) => shaders.loadPreset(preset)
     ui.onAutoPerformanceToggle = (enabled) => {
-      // TODO: Implement auto-performance adjustment
+      shaders.setAutoPerformanceAdjustment(enabled)
     }
 
     // Initialize shader debug UI
-    ui.initializeShaderDebugUI(shaderConfig)
+    ui.initializeShaderDebugUI(shaders.getConfig())
     ui.setShaderAutoPerformanceEnabled(false)
 
     // Setup state change handlers
