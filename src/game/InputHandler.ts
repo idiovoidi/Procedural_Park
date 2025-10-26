@@ -14,6 +14,7 @@ import type { SceneManager } from '../scene'
 export interface InputHandlerCallbacks {
   onTakePhoto: () => void
   onToggleCamera: () => void
+  onJump: () => void
   onRestartRide: () => void
   onTogglePause: () => void
   onToggleRecording: () => void
@@ -61,6 +62,7 @@ export class InputHandler {
   private setupInputBindings(): void {
     // Camera actions
     this.inputManager.on('camera.toggleMode', () => this.callbacks.onToggleCamera())
+    this.inputManager.on('camera.jump', () => this.callbacks.onJump())
 
     // Game actions
     this.inputManager.on('game.takePhoto', () => this.callbacks.onTakePhoto())

@@ -114,6 +114,7 @@ export class Game {
       onToggleSettings: () => this.systems.ui.toggleSettings(),
       onToggleShortcuts: () => this.systems.ui.toggleShortcuts(),
       onToggleDebug: () => this.systems.debug.toggle(),
+      onJump: () => this.systems.camera.jump(),
     }
 
     this.inputHandler = new InputHandler(

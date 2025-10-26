@@ -1,5 +1,3 @@
-1. Massive Monolithic Game Class Your Game class is doing way too much - it's managing scene, camera, UI, audio, video recording, multiplayer, creatures, photo system, shaders, and input handling all in one place. This is a classic violation of the Single Responsibility Principle. It's over 700 lines and has 20+ private methods. This makes testing, debugging, and extending features extremely difficult.
-
 4. Inefficient Creature System Every creature runs its own update loop with full behavior logic, even when off-screen or far away. With 50+ creatures, you're doing:
 
 50+ distance calculations per frame
