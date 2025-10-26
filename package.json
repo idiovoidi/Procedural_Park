@@ -23,7 +23,10 @@
     "vite": "^7.1.0"
   },
   "dependencies": {
+    "@types/simple-peer": "^9.11.9",
+    "colyseus.js": "^0.16.22",
     "postprocessing": "^6.37.8",
+    "simple-peer": "^9.11.1",
     "three": "^0.179.1"
   }
 }
