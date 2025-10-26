@@ -68,6 +68,7 @@ export default defineConfig({
       'simple-peer',
       'buffer',
       'process/browser',
+      'events',
     ],
     exclude: ['@types/three'], // Exclude type definitions from bundle
     esbuildOptions: {

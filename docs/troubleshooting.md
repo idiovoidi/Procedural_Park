@@ -186,27 +186,35 @@ This guide covers common issues with the multiplayer system and how to resolve t
 
 ### GitHub Pages Deployment
 
-**Symptoms**: Multiplayer doesn't work when deployed to GitHub Pages.
+**Symptoms**: Multiplayer doesn't work when deployed to GitHub Pages, or you see errors like "Cannot read properties of undefined (reading 'call')".
 
 **Possible Causes**:
+- Missing or incomplete browser polyfills for Node.js modules
 - HTTPS requirement for WebRTC
 - Incorrect build configuration
 - Missing dependencies
 
 **Solutions**:
 
-1. **Ensure HTTPS**
+1. **Ensure Polyfills are Loaded** (MOST COMMON ISSUE)
+   - The `simple-peer` library requires `process`, `Buffer`, and `events` polyfills
+   - These should be imported FIRST in `src/main.ts` via `import './polyfills'`
+   - The polyfills file sets up `process.nextTick`, `Buffer`, and `EventEmitter` globally
+   - If you see "Cannot read properties of undefined" errors, check that polyfills are loaded
+
+2. **Ensure HTTPS**
    - GitHub Pages uses HTTPS by default
    - Custom domains must have HTTPS enabled
    - WebRTC requires secure context (HTTPS)
 
-2. **Check Build**
+3. **Check Build**
    - Verify all multiplayer files are included in build
    - Check browser console for errors
    - Test locally with `npm run preview` first
+   - Look for polyfill initialization message in console
 
-3. **Verify Dependencies**
-   - Ensure `simple-peer` is in dependencies (not devDependencies)
+4. **Verify Dependencies**
+   - Ensure `simple-peer`, `buffer`, `process`, and `events` are in dependencies (not devDependencies)
    - Check that all imports are correct
    - Rebuild and redeploy
 

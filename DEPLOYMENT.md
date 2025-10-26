@@ -126,6 +126,8 @@ Visit `http://localhost:4173` to test the production build.
 - WebRTC requires HTTPS in production (all platforms provide this)
 - Check browser console for WebRTC errors
 - Ensure both users are on supported browsers (Chrome/Edge recommended)
+- **If you see "Cannot read properties of undefined" errors**: Ensure polyfills are properly loaded (see `src/polyfills.ts`)
+- The build includes polyfills for `process`, `Buffer`, and `events` required by `simple-peer`
 - See [Troubleshooting Guide](docs/troubleshooting.md) for more details
 
 ## Performance Optimization
