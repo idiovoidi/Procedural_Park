@@ -17,6 +17,8 @@ import { INSCRYPTION_SHADER_DEFAULTS } from './shaders/InscryptionShaderConfig'
 import { WebRTCMultiplayer } from './multiplayer/WebRTCMultiplayer'
 import { DEFAULT_CONFIG, type GameState, type GameEvent } from './multiplayer/types'
 import { InputManager } from './input-manager'
+import { GameStateManager } from './game-state-manager'
+import type { GameStateType } from './state-machine'
 
 export class Game {
   private sceneManager: SceneManager
@@ -27,15 +29,19 @@ export class Game {
   private videoRecorder: VideoRecorder
   private debugPanel: DebugPanel
   private inputManager: InputManager
+  private stateManager: GameStateManager
   private multiplayer: WebRTCMultiplayer | null = null
   private creatures: CreatureInstance[] = []
   private experimentCreature: CreatureInstance | null = null
-  private isRunning = false
   private lastTime = 0
   private recordingIndicator: HTMLElement | null = null
   private shaderConfig: ShaderConfig
 
   constructor(container: HTMLElement) {
+    // Initialize state manager first (starts in 'loading' state)
+    this.stateManager = new GameStateManager()
+    this.setupStateHandlers()
+
     // Show loading screen
     const loadingEl = document.getElementById('loading')
     loadingEl?.classList.remove('hidden')
@@ -46,7 +52,7 @@ export class Game {
     // Initialize shader configuration with Inscryption-style defaults
     this.shaderConfig = { ...INSCRYPTION_SHADER_DEFAULTS }
 
-    // Initialize input manager first
+    // Initialize input manager
     this.inputManager = new InputManager()
 
     // Initialize all systems
@@ -123,10 +129,30 @@ export class Game {
     // Start ambient sounds
     this.startAmbientAudio()
 
-    // Hide loading screen
+    // Hide loading screen and transition to playing state
     setTimeout(() => {
       loadingEl?.classList.add('hidden')
+      this.stateManager.setState('playing')
     }, GAME_CONFIG.LOADING_SCREEN_DELAY_MS)
+  }
+
+  private setupStateHandlers(): void {
+    // Listen for state changes
+    this.stateManager.onStateChange((newState, prevState) => {
+      console.log(`Game state: ${prevState} → ${newState}`)
+      this.handleStateChange(newState, prevState)
+    })
+  }
+
+  private handleStateChange(newState: GameStateType, prevState: GameStateType | null): void {
+    // Handle audio based on state
+    if (this.stateManager.shouldPauseAudio()) {
+      // Mute ambient sounds but keep them running
+      this.audioManager.setAmbientVolume(0)
+    } else {
+      // Restore ambient sounds
+      this.audioManager.setAmbientVolume(1)
+    }
   }
 
   private setupMultiplayerCallbacks() {
@@ -352,6 +378,12 @@ export class Game {
   }
 
   private takePhoto() {
+    // Check if photos are allowed in current state
+    if (!this.stateManager.isPhotoAllowed()) {
+      this.uiManager.showToast('Cannot take photos right now')
+      return
+    }
+
     // Include experiment creature in photo system
     const allCreatures = this.experimentCreature
       ? [...this.creatures, this.experimentCreature]
