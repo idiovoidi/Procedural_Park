@@ -24,7 +24,9 @@ export class CameraController {
   private moveBackward = false
   private moveLeft = false
   private moveRight = false
+  private isSprinting = false
   private moveSpeed = 5.0
+  private sprintSpeed = 12.0
   private freeRoamPosition = new THREE.Vector3(0, 1.6, 5)
   
   // Jump controls
@@ -63,6 +65,7 @@ export class CameraController {
         if (e.key.toLowerCase() === 's') this.moveBackward = true
         if (e.key.toLowerCase() === 'a') this.moveLeft = true
         if (e.key.toLowerCase() === 'd') this.moveRight = true
+        if (e.key === 'Shift') this.isSprinting = true
       }
     })
 
@@ -72,6 +75,7 @@ export class CameraController {
         if (e.key.toLowerCase() === 's') this.moveBackward = false
         if (e.key.toLowerCase() === 'a') this.moveLeft = false
         if (e.key.toLowerCase() === 'd') this.moveRight = false
+        if (e.key === 'Shift') this.isSprinting = false
       }
     })
   }
@@ -183,9 +187,10 @@ export class CameraController {
     if (this.moveLeft) velocity.sub(right)
     if (this.moveRight) velocity.add(right)
 
-    // Normalize and apply speed
+    // Normalize and apply speed (with sprint multiplier)
     if (velocity.length() > 0) {
-      velocity.normalize().multiplyScalar(this.moveSpeed * dtSeconds)
+      const currentSpeed = this.isSprinting ? this.sprintSpeed : this.moveSpeed
+      velocity.normalize().multiplyScalar(currentSpeed * dtSeconds)
       this.freeRoamPosition.add(velocity)
     }
 
@@ -278,5 +283,9 @@ export class CameraController {
       this.isJumping = true
       this.jumpVelocity = this.jumpSpeed
     }
+  }
+
+  public isSprint(): boolean {
+    return this.isSprinting && this.mode === 'freeroam'
   }
 }

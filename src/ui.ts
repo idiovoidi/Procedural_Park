@@ -27,6 +27,7 @@ export class UIManager {
   private miniMapCanvas: HTMLCanvasElement
   private miniMapCtx: CanvasRenderingContext2D | null
   private playerDot: HTMLDivElement
+  private sprintIndicator: HTMLDivElement
 
   private photoCount = 0
   private totalScore = 0
@@ -54,6 +55,7 @@ export class UIManager {
     this.miniMapCanvas = document.getElementById('mini-map-canvas') as HTMLCanvasElement
     this.miniMapCtx = this.miniMapCanvas?.getContext('2d') || null
     this.playerDot = document.getElementById('player-dot') as HTMLDivElement
+    this.sprintIndicator = document.getElementById('sprint-indicator') as HTMLDivElement
 
     this.setupEventListeners()
     this.updateStats()
@@ -697,6 +699,19 @@ export class UIManager {
   public showShaderStatusIndicator(): void {
     if (this.shaderStatusIndicator) {
       this.shaderStatusIndicator.style.display = 'flex'
+    }
+  }
+
+  // Sprint indicator methods
+  public showSprintIndicator(): void {
+    if (this.sprintIndicator) {
+      this.sprintIndicator.classList.remove('hidden')
+    }
+  }
+
+  public hideSprintIndicator(): void {
+    if (this.sprintIndicator) {
+      this.sprintIndicator.classList.add('hidden')
     }
   }
 }

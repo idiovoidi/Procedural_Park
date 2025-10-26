@@ -617,6 +617,13 @@ export class Game {
       this.multiplayer.sendGameState(state)
     }
 
+    // Update sprint indicator
+    if (this.cameraController.isSprint()) {
+      this.uiManager.showSprintIndicator()
+    } else {
+      this.uiManager.hideSprintIndicator()
+    }
+
     // Update debug panel
     this.debugPanel.update(dt, this.sceneManager.renderer, this.cameraController.camera, {
       creatures: this.creatures.length,
