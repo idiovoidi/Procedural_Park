@@ -74,15 +74,17 @@ export function lerp(start: number, end: number, t: number): number {
 /**
  * Object pool for Three.js objects to reduce garbage collection
  */
-class ObjectPool<T> {
+export class ObjectPool<T> {
   private available: T[] = []
   private inUse: Set<T> = new Set()
   private createFn: () => T
   private resetFn?: (obj: T) => void
+  private maxSize: number
 
-  constructor(createFn: () => T, resetFn?: (obj: T) => void, initialSize = 10) {
+  constructor(createFn: () => T, resetFn?: (obj: T) => void, initialSize = 10, maxSize = 100) {
     this.createFn = createFn
     this.resetFn = resetFn
+    this.maxSize = maxSize
 
     // Pre-populate pool
     for (let i = 0; i < initialSize; i++) {
@@ -108,12 +110,36 @@ class ObjectPool<T> {
       if (this.resetFn) {
         this.resetFn(obj)
       }
-      this.available.push(obj)
+      
+      // Only keep up to maxSize objects in pool
+      if (this.available.length < this.maxSize) {
+        this.available.push(obj)
+      }
     }
+  }
+
+  releaseAll(): void {
+    this.inUse.forEach(obj => {
+      if (this.resetFn) {
+        this.resetFn(obj)
+      }
+      if (this.available.length < this.maxSize) {
+        this.available.push(obj)
+      }
+    })
+    this.inUse.clear()
   }
 
   size(): number {
     return this.available.length + this.inUse.size
+  }
+
+  getInUseCount(): number {
+    return this.inUse.size
+  }
+
+  getAvailableCount(): number {
+    return this.available.length
   }
 
   clear(): void {

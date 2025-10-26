@@ -17,9 +17,19 @@ This is a performance nightmare.
 Recommended Refactoring
 You should consider:
 
-Event bus for decoupled communication
-Entity-Component-System for creatures
-Object pooling for creatures and particles
-Spatial partitioning (octree/quadtree) for creatures
-Resource manager for proper disposal
-Separate rendering from logic (update vs render passes)
+- [ ] Entity-Component-System for creatures
+- [x] Object pooling for creatures and particles
+- [ ] Spatial partitioning (octree/quadtree) for creatures
+- [ ] Resource manager for proper disposal
+- [ ] Separate rendering from logic (update vs render passes)
+
+----
+## Implemented
+
+- [x] Event bus for decoupled communication
+- [x] Object pooling for creatures and particles
+  - Enhanced ObjectPool class with max size limits
+  - CreaturePool for efficient creature lifecycle management
+  - ParticleSystem with 5 particle types (dust, splash, sparkle, leaf, feather)
+  - Complete documentation and examples
+  - See: OBJECT-POOLING-INDEX.md
