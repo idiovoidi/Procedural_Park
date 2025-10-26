@@ -17,7 +17,8 @@ import { INSCRYPTION_SHADER_DEFAULTS } from './shaders/InscryptionShaderConfig'
 import { WebRTCMultiplayer } from './multiplayer/WebRTCMultiplayer'
 import { DEFAULT_CONFIG, type GameState, type GameEvent } from './multiplayer/types'
 import { InputManager } from './input-manager'
-import { GameStateManager } from './game-state-manager'
+import { IntegratedStateManager } from './state-integration'
+import { createStateSyncHelpers } from './state-sync-helpers'
 import type { GameStateType } from './state-machine'
 
 export class Game {
@@ -29,7 +30,8 @@ export class Game {
   private videoRecorder: VideoRecorder
   private debugPanel: DebugPanel
   private inputManager: InputManager
-  private stateManager: GameStateManager
+  private stateManager: IntegratedStateManager
+  private syncHelpers: ReturnType<typeof createStateSyncHelpers> | null = null
   private multiplayer: WebRTCMultiplayer | null = null
   private creatures: CreatureInstance[] = []
   private experimentCreature: CreatureInstance | null = null
@@ -39,7 +41,7 @@ export class Game {
 
   constructor(container: HTMLElement) {
     // Initialize state manager first (starts in 'loading' state)
-    this.stateManager = new GameStateManager()
+    this.stateManager = new IntegratedStateManager()
     this.setupStateHandlers()
 
     // Show loading screen
@@ -134,24 +136,60 @@ export class Game {
     // Start ambient sounds
     this.startAmbientAudio()
 
+    // Initialize sync helpers after all systems are created
+    this.initializeSyncHelpers()
+
     // Hide loading screen and transition to playing state
     setTimeout(() => {
       loadingEl?.classList.add('hidden')
-      this.stateManager.setState('playing')
+      this.stateManager.setFlowState('playing')
     }, GAME_CONFIG.LOADING_SCREEN_DELAY_MS)
   }
 
+  private initializeSyncHelpers(): void {
+    this.syncHelpers = createStateSyncHelpers(
+      this.stateManager.getSubsystemStateManager(),
+      this.cameraController,
+      this.uiManager
+    )
+
+    // Setup auto-sync for camera (every 100ms)
+    this.syncHelpers.camera?.setupAutoSync(100)
+  }
+
   private setupStateHandlers(): void {
-    // Listen for state changes
-    this.stateManager.onStateChange((newState, prevState) => {
+    // Listen for flow state changes
+    this.stateManager.onFlowStateChange((newState, prevState) => {
       console.log(`Game state: ${prevState} → ${newState}`)
       this.handleStateChange(newState, prevState)
+    })
+
+    // Listen for subsystem state changes
+    this.setupSubsystemStateHandlers()
+  }
+
+  private setupSubsystemStateHandlers(): void {
+    // Handle UI state changes
+    this.stateManager.onSubsystemChange('ui', (event) => {
+      // UI updates will be handled by sync helpers
+    })
+
+    // Handle multiplayer state changes
+    this.stateManager.onSubsystemChange('multiplayer', (event) => {
+      const state = event.newState as import('./subsystem-states').MultiplayerState
+      const prevState = event.previousState as import('./subsystem-states').MultiplayerState
+      if (state.isConnected && !prevState.isConnected) {
+        console.log('Multiplayer connected')
+      } else if (!state.isConnected && prevState.isConnected) {
+        console.log('Multiplayer disconnected')
+      }
     })
   }
 
   private handleStateChange(newState: GameStateType, prevState: GameStateType | null): void {
     // Handle audio based on state
-    if (this.stateManager.shouldPauseAudio()) {
+    const config = this.stateManager.getFlowStateManager().getCurrentConfig()
+    if (config.pauseAudio) {
       // Mute ambient sounds but keep them running
       this.audioManager.setAmbientVolume(0)
     } else {
@@ -182,8 +220,9 @@ export class Game {
 
     // Update panel every 100ms
     setInterval(() => {
-      const status = this.stateManager.getStatus()
-      const config = this.stateManager.getCurrentConfig()
+      const flowManager = this.stateManager.getFlowStateManager()
+      const status = flowManager.getStatus()
+      const config = flowManager.getCurrentConfig()
       
       panel.innerHTML = `
         <div style="margin-bottom: 8px; color: #60a5fa; font-weight: bold;">🎮 State Machine</div>
@@ -211,17 +250,36 @@ export class Game {
       console.log('Connected to peer!')
       this.uiManager.showToast('🌐 Connected to friend!')
       this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
+      
+      // Update multiplayer state
+      this.stateManager.updateMultiplayerState({
+        isConnected: true,
+        connectionStatus: 'connected',
+      })
     }
 
     this.multiplayer.onDisconnected = () => {
       console.log('Disconnected from peer')
       this.uiManager.showToast('🌐 Disconnected from friend')
       this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
+      
+      // Update multiplayer state
+      this.stateManager.updateMultiplayerState({
+        isConnected: false,
+        connectionStatus: 'disconnected',
+        peerId: null,
+        peerPosition: null,
+        peerRotation: null,
+      })
     }
 
     this.multiplayer.onPeerStateUpdate = (state: GameState) => {
-      // Avatar updates are handled internally by WebRTCMultiplayer
-      // This callback is for any additional game logic if needed
+      // Update peer position in state
+      this.stateManager.updateMultiplayerState({
+        peerPosition: state.position,
+        peerRotation: { yaw: state.rotation.y, pitch: state.rotation.x },
+        lastSyncTime: state.timestamp,
+      })
     }
 
     this.multiplayer.onGameEvent = (event: GameEvent) => {
@@ -234,7 +292,34 @@ export class Game {
     this.multiplayer.onError = (error: Error) => {
       console.error('Multiplayer error:', error)
       this.uiManager.showToast(`❌ Multiplayer error: ${error.message}`)
+      
+      // Update multiplayer state
+      this.stateManager.updateMultiplayerState({
+        connectionStatus: 'error',
+      })
     }
+  }
+
+  private syncStateToMultiplayer() {
+    if (!this.syncHelpers || !this.multiplayer) return
+
+    // Create lightweight sync packet
+    const packet = this.syncHelpers.multiplayer.createSyncPacket()
+    
+    // Convert to old format for compatibility
+    const cameraPos = packet.camera.position
+    const cameraRot = packet.camera.rotation
+    const cameraMode = this.cameraController.getMode()
+    
+    const state: GameState = {
+      position: cameraPos,
+      rotation: { x: cameraRot.pitch, y: cameraRot.yaw, z: 0 },
+      cameraMode: cameraMode === 'freeroam' ? 'free' : 'ride',
+      rideProgress: this.cameraController.getRideProgress(),
+      timestamp: packet.timestamp,
+    }
+    
+    this.multiplayer.sendGameState(state)
   }
 
   private spawnCreatures() {
@@ -342,13 +427,13 @@ export class Game {
   }
 
   private togglePause() {
-    const currentState = this.stateManager.getState()
+    const currentState = this.stateManager.getFlowState()
     
     if (currentState === 'playing') {
-      this.stateManager.setState('paused')
+      this.stateManager.setFlowState('paused')
       this.uiManager.showToast('⏸ Paused')
     } else if (currentState === 'paused') {
-      this.stateManager.setState('playing')
+      this.stateManager.setFlowState('playing')
       this.uiManager.showToast('▶ Resumed')
     }
     
@@ -460,6 +545,14 @@ export class Game {
 
     // Show score feedback
     this.uiManager.showScoreToast(result.score)
+
+    // Update UI state
+    const currentUI = this.stateManager.getUIState()
+    this.stateManager.updateUIState({
+      photoCount: currentUI.photoCount + 1,
+      totalScore: currentUI.totalScore + result.score,
+      lastScore: result.score,
+    })
 
     // Log detailed score breakdown for debugging
     if (result.creature) {
@@ -664,18 +757,8 @@ export class Game {
     if (this.multiplayer && this.multiplayer.isConnected()) {
       this.multiplayer.update(dt)
 
-      // Send current game state to peer
-      const cameraPos = this.cameraController.camera.position
-      const cameraRot = this.cameraController.camera.rotation
-      const cameraMode = this.cameraController.getMode()
-      const state: GameState = {
-        position: { x: cameraPos.x, y: cameraPos.y, z: cameraPos.z },
-        rotation: { x: cameraRot.x, y: cameraRot.y, z: cameraRot.z },
-        cameraMode: cameraMode === 'freeroam' ? 'free' : 'ride',
-        rideProgress: this.cameraController.getRideProgress(),
-        timestamp: now,
-      }
-      this.multiplayer.sendGameState(state)
+      // Sync state to multiplayer using new system
+      this.syncStateToMultiplayer()
     }
 
     // Update sprint indicator
@@ -709,7 +792,7 @@ export class Game {
 
   public stop() {
     // Transition to menu state
-    this.stateManager.setState('menu', true)
+    this.stateManager.setFlowState('menu', true)
     this.audioManager.stopAllAmbientSounds()
 
     // Clean up multiplayer resources
@@ -743,11 +826,11 @@ export class Game {
       totalScore: this.uiManager.getTotalScore(),
       creatureCount: this.creatures.length,
       rideProgress: this.cameraController.getRideProgress(),
-      gameState: this.stateManager.getState(),
+      gameState: this.stateManager.getFlowState(),
     }
   }
 
-  public getStateManager(): GameStateManager {
+  public getStateManager(): IntegratedStateManager {
     return this.stateManager
   }
 
