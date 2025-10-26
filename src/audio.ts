@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { TAU, randomCentered } from './utils'
 
 export interface AudioSettings {
   masterVolume: number
@@ -95,7 +96,7 @@ export class AudioManager {
       // Gentle beep with frequency sweep
       const freq = 800 + Math.sin(t * 8) * 200
       const envelope = Math.exp(-t * 3) * (1 - Math.exp(-t * 20))
-      data[i] = Math.sin(t * freq * 2 * Math.PI) * envelope * 0.3
+      data[i] = Math.sin(t * freq * TAU) * envelope * 0.3
     }
 
     this.soundBuffers.set('camera_focus', buffer)
@@ -166,7 +167,7 @@ export class AudioManager {
       const freq2 = freq1 * 1.5
       const envelope = Math.exp(-t * 4) * Math.sin(t * 8) * Math.sin(t * 8)
       data[i] =
-        (Math.sin(t * freq1 * 2 * Math.PI) * 0.6 + Math.sin(t * freq2 * 2 * Math.PI) * 0.3) *
+        (Math.sin(t * freq1 * TAU) * 0.6 + Math.sin(t * freq2 * TAU) * 0.3) *
         envelope *
         0.4
     }
@@ -186,8 +187,8 @@ export class AudioManager {
       const t = i / sampleRate
       // Low frequency growl with noise
       const freq = 120 + Math.sin(t * 6) * 40
-      const noise = (Math.random() - 0.5) * 0.3
-      const tone = Math.sin(t * freq * 2 * Math.PI) * 0.7
+      const noise = randomCentered() * 0.3
+      const tone = Math.sin(t * freq * TAU) * 0.7
       const envelope = Math.exp(-t * 2) * (1 - Math.exp(-t * 10))
       data[i] = (tone + noise) * envelope * 0.5
     }
@@ -207,7 +208,7 @@ export class AudioManager {
       const t = i / sampleRate
       // Rapid flutter with noise
       const flutter = Math.sin(t * 40 * Math.PI) * Math.sin(t * 400 * Math.PI)
-      const noise = (Math.random() - 0.5) * 0.4
+      const noise = randomCentered() * 0.4
       const envelope = Math.exp(-t * 6) * (1 - Math.exp(-t * 30))
       data[i] = (flutter * 0.6 + noise * 0.4) * envelope * 0.3
     }
@@ -226,7 +227,7 @@ export class AudioManager {
     for (let i = 0; i < data.length; i++) {
       const t = i / sampleRate
       // Splash with high frequency noise burst
-      const noise = (Math.random() - 0.5) * 2
+      const noise = randomCentered() * 2
       const filtered = noise * Math.exp(-Math.abs(t - 0.1) * 20)
       const bubble = Math.sin(t * 200 * Math.PI) * Math.exp(-t * 8) * 0.3
       data[i] = (filtered * 0.7 + bubble) * 0.4
@@ -256,7 +257,7 @@ export class AudioManager {
     for (let i = 0; i < data.length; i++) {
       const t = i / sampleRate
       // Layered nature sounds
-      const rustling = (Math.random() - 0.5) * Math.sin(t * 0.5) * 0.1
+      const rustling = randomCentered() * Math.sin(t * 0.5) * 0.1
       const insects = Math.sin(t * 800 * Math.PI) * Math.sin(t * 0.3) * 0.05
       const breeze = Math.sin(t * 200 * Math.PI) * Math.sin(t * 0.1) * 0.08
       data[i] = rustling + insects + breeze
@@ -276,7 +277,7 @@ export class AudioManager {
     for (let i = 0; i < data.length; i++) {
       const t = i / sampleRate
       // Wind noise with varying intensity
-      const noise = (Math.random() - 0.5) * 2
+      const noise = randomCentered() * 2
       const filter = Math.sin(t * 0.2) * 0.5 + 0.5
       const lowPass = noise * filter * 0.15
       data[i] = lowPass
@@ -296,7 +297,7 @@ export class AudioManager {
     for (let i = 0; i < data.length; i++) {
       const t = i / sampleRate
       // Water flow with bubbles
-      const flow = (Math.random() - 0.5) * Math.sin(t * 2) * 0.2
+      const flow = randomCentered() * Math.sin(t * 2) * 0.2
       const bubbles = Math.sin(t * 400 * Math.PI) * Math.random() * 0.05
       data[i] = flow + bubbles
     }

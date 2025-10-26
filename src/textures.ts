@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { TAU } from './utils'
 
 export type PatternType =
   | 'solid'
@@ -43,7 +44,7 @@ export function createPatternTexture(
         const y = rand() * 512
         const radius = 10 + rand() * 30
         ctx.beginPath()
-        ctx.arc(x, y, radius, 0, Math.PI * 2)
+        ctx.arc(x, y, radius, 0, TAU)
         ctx.fill()
       }
       break
@@ -101,15 +102,15 @@ export function createPatternTexture(
 
         // Draw ring
         ctx.beginPath()
-        ctx.arc(x, y, radius, 0, Math.PI * 2)
+        ctx.arc(x, y, radius, 0, TAU)
         ctx.stroke()
 
         // Add center spots
         for (let j = 0; j < 3; j++) {
-          const angle = rand() * Math.PI * 2
+          const angle = rand() * TAU
           const dist = rand() * radius * 0.5
           ctx.beginPath()
-          ctx.arc(x + Math.cos(angle) * dist, y + Math.sin(angle) * dist, 3, 0, Math.PI * 2)
+          ctx.arc(x + Math.cos(angle) * dist, y + Math.sin(angle) * dist, 3, 0, TAU)
           ctx.fill()
         }
       }
@@ -132,7 +133,7 @@ export function createPatternTexture(
         // Create irregular blob
         const points = 6 + Math.floor(rand() * 4)
         for (let j = 0; j < points; j++) {
-          const angle = (j / points) * Math.PI * 2
+          const angle = (j / points) * TAU
           const dist = size * (0.7 + rand() * 0.6)
           ctx.lineTo(x + Math.cos(angle) * dist, y + Math.sin(angle) * dist)
         }

@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { TAU } from './utils'
 
 export class ParkStructures {
   private scene: THREE.Scene
@@ -183,8 +184,8 @@ export class ParkStructures {
 
     // Create circular fence
     for (let i = 0; i < segments; i++) {
-      const angle = (i / segments) * Math.PI * 2
-      const nextAngle = ((i + 1) / segments) * Math.PI * 2
+      const angle = (i / segments) * TAU
+      const nextAngle = ((i + 1) / segments) * TAU
 
       const x = Math.cos(angle) * parkRadius
       const z = Math.sin(angle) * parkRadius
@@ -277,7 +278,7 @@ export class ParkStructures {
     plazaGroup.add(base)
 
     // Fountain bowl
-    const bowlGeometry = new THREE.SphereGeometry(2, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2)
+    const bowlGeometry = new THREE.SphereGeometry(2, 16, 16, 0, TAU, 0, Math.PI / 2)
     const bowlMaterial = new THREE.MeshStandardMaterial({
       color: 0x6699cc,
       transparent: true,
@@ -640,7 +641,7 @@ export class ParkStructures {
     labGroup.name = 'ExperimentLab'
 
     // Glass dome structure
-    const domeGeometry = new THREE.SphereGeometry(8, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2)
+    const domeGeometry = new THREE.SphereGeometry(8, 32, 32, 0, TAU, 0, Math.PI / 2)
     const domeMaterial = new THREE.MeshStandardMaterial({
       color: 0x88ccff,
       transparent: true,
@@ -703,7 +704,7 @@ export class ParkStructures {
 
     const pillarCount = 6
     for (let i = 0; i < pillarCount; i++) {
-      const angle = (i / pillarCount) * Math.PI * 2
+      const angle = (i / pillarCount) * TAU
       const pillar = new THREE.Mesh(pillarGeometry, pillarMaterial)
       pillar.position.set(Math.cos(angle) * 7, 4, Math.sin(angle) * 7)
       pillar.castShadow = true

@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { createPatternTexture, type PatternType } from './textures'
+import { TAU, randomCenteredSeeded } from './utils'
 import {
   updateBehaviorState as updateBehaviorStateLogic,
   updateMovement,
@@ -164,7 +165,7 @@ export function generateAnatomy(rand: Random): Anatomy {
   // Pattern and color variations
   const pattern = getArchetypePattern(archetype, rand)
   const patternColor = new THREE.Color().setHSL(
-    (baseHue + 0.5 + (rand() - 0.5) * 0.2) % 1,
+    (baseHue + 0.5 + randomCenteredSeeded(rand) * 0.2) % 1,
     0.7,
     0.4
   )
@@ -540,9 +541,9 @@ function buildTorso(
           cloudMaterial
         )
         sphere.position.set(
-          (rand() - 0.5) * 1.5 * sizeMultiplier,
-          (rand() - 0.5) * 0.8 * sizeMultiplier,
-          (rand() - 0.5) * 1.5 * sizeMultiplier
+          randomCenteredSeeded(rand) * 1.5 * sizeMultiplier,
+          randomCenteredSeeded(rand) * 0.8 * sizeMultiplier,
+          randomCenteredSeeded(rand) * 1.5 * sizeMultiplier
         )
         cloudGroup.add(sphere)
       }
@@ -896,7 +897,7 @@ function buildLimbs(
     }
 
     // Position limbs around body
-    const theta = (i / Math.max(1, anatomy.limbCount)) * Math.PI * 2
+    const theta = (i / Math.max(1, anatomy.limbCount)) * TAU
     const radius = 0.5 * sizeMultiplier
     limbGroup.position.set(
       Math.cos(theta) * radius,
@@ -1421,7 +1422,7 @@ function buildFurTufts(
         new THREE.SphereGeometry(0.08 * sizeMultiplier, 8, 8),
         new THREE.MeshStandardMaterial({ color: palette.base, roughness: 0.9 })
       )
-      tuft.position.set((rand() - 0.5) * 0.1, (rand() - 0.5) * 0.1, (rand() - 0.5) * 0.1)
+      tuft.position.set(randomCenteredSeeded(rand) * 0.1, randomCenteredSeeded(rand) * 0.1, randomCenteredSeeded(rand) * 0.1)
       tuftGroup.add(tuft)
     }
 
@@ -1457,7 +1458,7 @@ function buildScales(
     )
 
     // Random position on body surface
-    const theta = rand() * Math.PI * 2
+    const theta = rand() * TAU
     const phi = rand() * Math.PI
     const radius = 0.5 * sizeMultiplier
 
@@ -1479,7 +1480,7 @@ function buildScales(
 
 function makePalette(baseHue: number, rand: Random): { base: THREE.Color; accent: THREE.Color } {
   const base = new THREE.Color().setHSL(baseHue, 0.6, 0.55)
-  const accent = new THREE.Color().setHSL((baseHue + 0.12 + (rand() - 0.5) * 0.1) % 1, 0.7, 0.6)
+  const accent = new THREE.Color().setHSL((baseHue + 0.12 + randomCenteredSeeded(rand) * 0.1) % 1, 0.7, 0.6)
   return { base, accent }
 }
 
@@ -1578,7 +1579,7 @@ function buildCreature(
   const timeOffset = rand() * 1000
   let behaviorState: BehaviorState = 'idle'
   let behaviorTimer = 0
-  let facingYaw = rand() * Math.PI * 2
+  let facingYaw = rand() * TAU
   let targetYaw = facingYaw
   let poseTimer = 0
 
@@ -1662,7 +1663,7 @@ function buildCreature(
     applyBehaviorEffects(behaviorState, group, tSec)
 
     // Turn body towards target yaw smoothly
-    const yawDelta = ((targetYaw - facingYaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI
+    const yawDelta = ((targetYaw - facingYaw + Math.PI * 3) % TAU) - Math.PI
     facingYaw += Math.max(-1.5 * dt, Math.min(1.5 * dt, yawDelta))
     group.rotation.y = facingYaw
 

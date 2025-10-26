@@ -1,4 +1,6 @@
 import * as THREE from 'three'
+import { clampAndUpdate } from '../utils'
+import { BaseVisualEffect } from './BaseVisualEffect'
 
 export interface ChromaticAberrationConfig {
   offset: number           // Aberration intensity (0.001 - 0.01)
@@ -7,15 +9,16 @@ export interface ChromaticAberrationConfig {
   enabled: boolean        // Enable/disable the effect
 }
 
-export class ChromaticAberrationFilter {
-  private material: THREE.ShaderMaterial
-  private config: ChromaticAberrationConfig
-  private renderTarget: THREE.WebGLRenderTarget | null = null
-  private scene: THREE.Scene
-  private camera: THREE.OrthographicCamera
-  private quad: THREE.Mesh
+export class ChromaticAberrationFilter extends BaseVisualEffect {
+  protected material: THREE.ShaderMaterial
+  protected config: ChromaticAberrationConfig
+  protected renderTarget: THREE.WebGLRenderTarget | null = null
+  protected scene: THREE.Scene
+  protected camera: THREE.OrthographicCamera
+  protected quad: THREE.Mesh
 
   constructor(config: ChromaticAberrationConfig) {
+    super()
     this.config = { ...config }
     
     // Create orthographic camera for fullscreen quad
@@ -210,25 +213,19 @@ export class ChromaticAberrationFilter {
   }
 
   /**
-   * Get the current offset value
-   */
-  public get offset(): number {
-    return this.config.offset
-  }
-
-  /**
    * Set the aberration offset with validation
    */
   public set offset(value: number) {
     // Validate and clamp offset value
-    const clampedValue = Math.max(0.0, Math.min(0.1, value))
-    
-    if (clampedValue !== value) {
-      console.warn(`Chromatic aberration offset clamped from ${value} to ${clampedValue}`)
-    }
-    
-    this.config.offset = clampedValue
-    this.material.uniforms.uOffset.value = clampedValue
+    clampAndUpdate(
+      value,
+      0.0,
+      0.1,
+      this.config,
+      'offset',
+      this.material.uniforms.uOffset,
+      'Chromatic aberration offset'
+    )
   }
 
   /**
@@ -246,12 +243,12 @@ export class ChromaticAberrationFilter {
     if (!Array.isArray(value) || value.length !== 2) {
       throw new Error('Direction must be an array of two numbers [x, y]')
     }
-    
+
     const [x, y] = value
     if (typeof x !== 'number' || typeof y !== 'number') {
       throw new Error('Direction components must be numbers')
     }
-    
+
     // Normalize direction vector if it's not zero
     const length = Math.sqrt(x * x + y * y)
     if (length > 0) {
@@ -259,9 +256,9 @@ export class ChromaticAberrationFilter {
     } else {
       this.config.direction = [1.0, 0.0] // Default to horizontal
     }
-    
+
     this.material.uniforms.uDirection.value.set(
-      this.config.direction[0], 
+      this.config.direction[0],
       this.config.direction[1]
     )
   }
@@ -350,33 +347,9 @@ export class ChromaticAberrationFilter {
 
 
   /**
-   * Clean up resources
+   * Log successful disposal
    */
-  public dispose(): void {
-    try {
-      // Dispose material
-      if (this.material) {
-        this.material.dispose()
-      }
-
-      // Dispose geometry
-      if (this.quad && this.quad.geometry) {
-        this.quad.geometry.dispose()
-      }
-
-      // Dispose render target if we created one
-      if (this.renderTarget) {
-        this.renderTarget.dispose()
-      }
-
-      // Clear scene
-      if (this.scene) {
-        this.scene.clear()
-      }
-
-      console.log('ChromaticAberrationFilter disposed successfully')
-    } catch (error) {
-      console.error('Error during ChromaticAberrationFilter disposal:', error)
-    }
+  protected logDisposalSuccess(): void {
+    console.log('ChromaticAberrationFilter disposed successfully')
   }
 }

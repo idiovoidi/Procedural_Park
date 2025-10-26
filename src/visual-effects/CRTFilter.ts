@@ -1,4 +1,6 @@
 import * as THREE from 'three'
+import { clampAndUpdate } from '../utils'
+import { BaseVisualEffect } from './BaseVisualEffect'
 
 export interface CRTConfig {
   scanlines: {
@@ -30,16 +32,17 @@ export interface CRTConfig {
   enabled: boolean        // Enable/disable the entire effect
 }
 
-export class CRTFilter {
-  private material: THREE.ShaderMaterial
-  private config: CRTConfig
-  private renderTarget: THREE.WebGLRenderTarget | null = null
-  private scene: THREE.Scene
-  private camera: THREE.OrthographicCamera
-  private quad: THREE.Mesh
+export class CRTFilter extends BaseVisualEffect {
+  protected material: THREE.ShaderMaterial
+  protected config: CRTConfig
+  protected renderTarget: THREE.WebGLRenderTarget | null = null
+  protected scene: THREE.Scene
+  protected camera: THREE.OrthographicCamera
+  protected quad: THREE.Mesh
   private time: number = 0
 
   constructor(config: CRTConfig) {
+    super()
     this.config = { ...config }
     
     // Create orthographic camera for fullscreen quad
@@ -372,30 +375,39 @@ export class CRTFilter {
       }
       
       if (value.intensity !== undefined) {
-        const clampedIntensity = Math.max(0.0, Math.min(1.0, value.intensity))
-        if (clampedIntensity !== value.intensity) {
-          console.warn(`Scanline intensity clamped from ${value.intensity} to ${clampedIntensity}`)
-        }
-        this.config.scanlines.intensity = clampedIntensity
-        this.material.uniforms.uScanlineIntensity.value = clampedIntensity
+        clampAndUpdate(
+          value.intensity,
+          0.0,
+          1.0,
+          this.config.scanlines,
+          'intensity',
+          this.material.uniforms.uScanlineIntensity,
+          'Scanline intensity'
+        )
       }
       
       if (value.spacing !== undefined) {
-        const clampedSpacing = Math.max(1.0, Math.min(4.0, value.spacing))
-        if (clampedSpacing !== value.spacing) {
-          console.warn(`Scanline spacing clamped from ${value.spacing} to ${clampedSpacing}`)
-        }
-        this.config.scanlines.spacing = clampedSpacing
-        this.material.uniforms.uScanlineSpacing.value = clampedSpacing
+        clampAndUpdate(
+          value.spacing,
+          1.0,
+          4.0,
+          this.config.scanlines,
+          'spacing',
+          this.material.uniforms.uScanlineSpacing,
+          'Scanline spacing'
+        )
       }
       
       if (value.thickness !== undefined) {
-        const clampedThickness = Math.max(0.1, Math.min(1.0, value.thickness))
-        if (clampedThickness !== value.thickness) {
-          console.warn(`Scanline thickness clamped from ${value.thickness} to ${clampedThickness}`)
-        }
-        this.config.scanlines.thickness = clampedThickness
-        this.material.uniforms.uScanlineThickness.value = clampedThickness
+        clampAndUpdate(
+          value.thickness,
+          0.1,
+          1.0,
+          this.config.scanlines,
+          'thickness',
+          this.material.uniforms.uScanlineThickness,
+          'Scanline thickness'
+        )
       }
       
     } catch (error) {
@@ -427,21 +439,27 @@ export class CRTFilter {
       }
       
       if (value.amount !== undefined) {
-        const clampedAmount = Math.max(0.0, Math.min(0.1, value.amount))
-        if (clampedAmount !== value.amount) {
-          console.warn(`Curvature amount clamped from ${value.amount} to ${clampedAmount}`)
-        }
-        this.config.curvature.amount = clampedAmount
-        this.material.uniforms.uCurvatureAmount.value = clampedAmount
+        clampAndUpdate(
+          value.amount,
+          0.0,
+          0.1,
+          this.config.curvature,
+          'amount',
+          this.material.uniforms.uCurvatureAmount,
+          'Curvature amount'
+        )
       }
       
       if (value.corners !== undefined) {
-        const clampedCorners = Math.max(0.0, Math.min(1.0, value.corners))
-        if (clampedCorners !== value.corners) {
-          console.warn(`Corner darkening clamped from ${value.corners} to ${clampedCorners}`)
-        }
-        this.config.curvature.corners = clampedCorners
-        this.material.uniforms.uCornerDarkening.value = clampedCorners
+        clampAndUpdate(
+          value.corners,
+          0.0,
+          1.0,
+          this.config.curvature,
+          'corners',
+          this.material.uniforms.uCornerDarkening,
+          'Corner darkening'
+        )
       }
       
     } catch (error) {
@@ -472,21 +490,27 @@ export class CRTFilter {
       }
       
       if (value.intensity !== undefined) {
-        const clampedIntensity = Math.max(0.0, Math.min(1.0, value.intensity))
-        if (clampedIntensity !== value.intensity) {
-          console.warn(`Phosphor intensity clamped from ${value.intensity} to ${clampedIntensity}`)
-        }
-        this.config.phosphor.intensity = clampedIntensity
-        this.material.uniforms.uPhosphorIntensity.value = clampedIntensity
+        clampAndUpdate(
+          value.intensity,
+          0.0,
+          1.0,
+          this.config.phosphor,
+          'intensity',
+          this.material.uniforms.uPhosphorIntensity,
+          'Phosphor intensity'
+        )
       }
       
       if (value.persistence !== undefined) {
-        const clampedPersistence = Math.max(0.1, Math.min(2.0, value.persistence))
-        if (clampedPersistence !== value.persistence) {
-          console.warn(`Phosphor persistence clamped from ${value.persistence} to ${clampedPersistence}`)
-        }
-        this.config.phosphor.persistence = clampedPersistence
-        this.material.uniforms.uPhosphorPersistence.value = clampedPersistence
+        clampAndUpdate(
+          value.persistence,
+          0.1,
+          2.0,
+          this.config.phosphor,
+          'persistence',
+          this.material.uniforms.uPhosphorPersistence,
+          'Phosphor persistence'
+        )
       }
       
     } catch (error) {
@@ -517,21 +541,27 @@ export class CRTFilter {
       }
       
       if (value.intensity !== undefined) {
-        const clampedIntensity = Math.max(0.0, Math.min(0.1, value.intensity))
-        if (clampedIntensity !== value.intensity) {
-          console.warn(`Noise intensity clamped from ${value.intensity} to ${clampedIntensity}`)
-        }
-        this.config.noise.intensity = clampedIntensity
-        this.material.uniforms.uNoiseIntensity.value = clampedIntensity
+        clampAndUpdate(
+          value.intensity,
+          0.0,
+          0.1,
+          this.config.noise,
+          'intensity',
+          this.material.uniforms.uNoiseIntensity,
+          'Noise intensity'
+        )
       }
       
       if (value.speed !== undefined) {
-        const clampedSpeed = Math.max(0.1, Math.min(2.0, value.speed))
-        if (clampedSpeed !== value.speed) {
-          console.warn(`Noise speed clamped from ${value.speed} to ${clampedSpeed}`)
-        }
-        this.config.noise.speed = clampedSpeed
-        this.material.uniforms.uNoiseSpeed.value = clampedSpeed
+        clampAndUpdate(
+          value.speed,
+          0.1,
+          2.0,
+          this.config.noise,
+          'speed',
+          this.material.uniforms.uNoiseSpeed,
+          'Noise speed'
+        )
       }
       
     } catch (error) {
@@ -562,21 +592,27 @@ export class CRTFilter {
       }
       
       if (value.intensity !== undefined) {
-        const clampedIntensity = Math.max(0.0, Math.min(0.1, value.intensity))
-        if (clampedIntensity !== value.intensity) {
-          console.warn(`Flicker intensity clamped from ${value.intensity} to ${clampedIntensity}`)
-        }
-        this.config.flicker.intensity = clampedIntensity
-        this.material.uniforms.uFlickerIntensity.value = clampedIntensity
+        clampAndUpdate(
+          value.intensity,
+          0.0,
+          0.1,
+          this.config.flicker,
+          'intensity',
+          this.material.uniforms.uFlickerIntensity,
+          'Flicker intensity'
+        )
       }
       
       if (value.frequency !== undefined) {
-        const clampedFrequency = Math.max(0.1, Math.min(5.0, value.frequency))
-        if (clampedFrequency !== value.frequency) {
-          console.warn(`Flicker frequency clamped from ${value.frequency} to ${clampedFrequency}`)
-        }
-        this.config.flicker.frequency = clampedFrequency
-        this.material.uniforms.uFlickerFrequency.value = clampedFrequency
+        clampAndUpdate(
+          value.frequency,
+          0.1,
+          5.0,
+          this.config.flicker,
+          'frequency',
+          this.material.uniforms.uFlickerFrequency,
+          'Flicker frequency'
+        )
       }
       
     } catch (error) {
@@ -737,33 +773,9 @@ export class CRTFilter {
   }
 
   /**
-   * Clean up resources
+   * Log successful disposal
    */
-  public dispose(): void {
-    try {
-      // Dispose material
-      if (this.material) {
-        this.material.dispose()
-      }
-
-      // Dispose geometry
-      if (this.quad && this.quad.geometry) {
-        this.quad.geometry.dispose()
-      }
-
-      // Dispose render target if we created one
-      if (this.renderTarget) {
-        this.renderTarget.dispose()
-      }
-
-      // Clear scene
-      if (this.scene) {
-        this.scene.clear()
-      }
-
-      console.log('CRTFilter disposed successfully')
-    } catch (error) {
-      console.error('Error during CRTFilter disposal:', error)
-    }
+  protected logDisposalSuccess(): void {
+    console.log('CRTFilter disposed successfully')
   }
 }

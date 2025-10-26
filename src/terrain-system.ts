@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { TAU, randomCenteredSeeded } from './utils'
 
 export type BiomeType =
   | 'forest'
@@ -335,7 +336,7 @@ export class TerrainSystem {
     // Position vegetation at the correct terrain height
     const terrainHeight = this.getHeightAt(x, z)
     mesh.position.set(x, terrainHeight, z)
-    mesh.rotation.y = rand() * Math.PI * 2
+    mesh.rotation.y = rand() * TAU
     mesh.castShadow = true
     mesh.receiveShadow = true
 
@@ -655,17 +656,22 @@ export class TerrainSystem {
       { name: 'west', axis: 'x', value: -edgeDistance, perpAxis: 'z' },
     ]
 
-    sides.forEach((side) => {
-      for (let i = 0; i < mountainsPerSide; i++) {
-        // Spread mountains along each edge
-        const spread = (i / (mountainsPerSide - 1) - 0.5) * this.mapSize * 1.8
-        const offset = (Math.random() - 0.5) * 40 // Random offset for natural look
+private noise2D(x: number, y: number, rand: () => number): number {
+  // Simple 2D noise implementation
+  const ix = Math.floor(x)
+  const iy = Math.floor(y)
+  const fx = x - ix
+  const fy = y - iy
 
-        const x = side.axis === 'x' ? side.value + offset : spread
-        const z = side.axis === 'z' ? side.value + offset : spread
+  // Generate pseudo-random values at grid corners
+  const a = this.hash2D(ix, iy)
+  const b = this.hash2D(ix + 1, iy)
+  const c = this.hash2D(ix, iy + 1)
+  const d = this.hash2D(ix + 1, iy + 1)
 
-        // Create low-poly mountain with varied sizes
-        const height = 50 + Math.random() * 80
+  // Smooth interpolation
+  const u = fx * fx * (3 - 2 * fx)
+  const v = fy * fy * (3 - 2 * fy)
         const width = 40 + Math.random() * 50
         const segments = 4 + Math.floor(Math.random() * 2) // 4-5 sides for low poly
         const geometry = new THREE.ConeGeometry(width, height, segments)
@@ -682,7 +688,7 @@ export class TerrainSystem {
 
         const mountain = new THREE.Mesh(geometry, material)
         mountain.position.set(x, height / 2 - 10, z)
-        mountain.rotation.y = Math.random() * Math.PI * 2
+        mountain.rotation.y = Math.random() * TAU
 
         mountainGroup.add(mountain)
       }
@@ -709,7 +715,7 @@ export class TerrainSystem {
 
       const mountain = new THREE.Mesh(geometry, material)
       mountain.position.set(x, height / 2 - 10, z)
-      mountain.rotation.y = Math.random() * Math.PI * 2
+      mountain.rotation.y = Math.random() * TAU
 
       mountainGroup.add(mountain)
     })

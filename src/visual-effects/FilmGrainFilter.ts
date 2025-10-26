@@ -1,4 +1,6 @@
 import * as THREE from 'three'
+import { clamp } from '../utils'
+import { BaseVisualEffect } from './BaseVisualEffect'
 
 export interface FilmGrainConfig {
   intensity: number       // Grain strength (0.0 - 1.0)
@@ -7,19 +9,20 @@ export interface FilmGrainConfig {
   enabled: boolean       // Enable/disable the effect
 }
 
-export class FilmGrainFilter {
-  private material: THREE.ShaderMaterial
-  private config: FilmGrainConfig
-  private renderTarget: THREE.WebGLRenderTarget | null = null
-  private scene: THREE.Scene
-  private camera: THREE.OrthographicCamera
-  private quad: THREE.Mesh
+export class FilmGrainFilter extends BaseVisualEffect {
+  protected material: THREE.ShaderMaterial
+  protected config: FilmGrainConfig
+  protected renderTarget: THREE.WebGLRenderTarget | null = null
+  protected scene: THREE.Scene
+  protected camera: THREE.OrthographicCamera
+  protected quad: THREE.Mesh
   private time: number = 0
   private targetIntensity: number
   private currentIntensity: number
   private _intensityTransitionSpeed: number = 5.0 // Transitions per second
 
   constructor(config: FilmGrainConfig) {
+    super()
     this.config = { ...config }
     
     // Initialize intensity values for smooth transitions
@@ -239,35 +242,27 @@ export class FilmGrainFilter {
   }
 
   /**
-   * Set the grain intensity with validation and smooth transitions
-   */
-  public set intensity(value: number) {
-    // Validate and clamp intensity value
-    const clampedValue = Math.max(0.0, Math.min(1.0, value))
-    
-    if (clampedValue !== value) {
-      console.warn(`Film grain intensity clamped from ${value} to ${clampedValue}`)
-    }
-    
-    this.config.intensity = clampedValue
-    this.targetIntensity = clampedValue
-  }
-
-  /**
    * Set intensity immediately without smooth transition
    */
   public setIntensityImmediate(value: number): void {
     // Validate and clamp intensity value
-    const clampedValue = Math.max(0.0, Math.min(1.0, value))
-    
-    if (clampedValue !== value) {
-      console.warn(`Film grain intensity clamped from ${value} to ${clampedValue}`)
-    }
-    
+    const clampedValue = clamp(value, 0.0, 1.0, 'Film grain intensity')
+
     this.config.intensity = clampedValue
     this.targetIntensity = clampedValue
     this.currentIntensity = clampedValue
     this.material.uniforms.uIntensity.value = clampedValue
+  }
+
+  /**
+   * Set the grain intensity with validation and smooth transitions
+   */
+  public set intensity(value: number) {
+    // Validate and clamp intensity value
+    const clampedValue = clamp(value, 0.0, 1.0, 'Film grain intensity')
+
+    this.config.intensity = clampedValue
+    this.targetIntensity = clampedValue
   }
 
   /**
@@ -445,33 +440,9 @@ export class FilmGrainFilter {
   }
 
   /**
-   * Clean up resources
+   * Log successful disposal
    */
-  public dispose(): void {
-    try {
-      // Dispose material
-      if (this.material) {
-        this.material.dispose()
-      }
-
-      // Dispose geometry
-      if (this.quad && this.quad.geometry) {
-        this.quad.geometry.dispose()
-      }
-
-      // Dispose render target if we created one
-      if (this.renderTarget) {
-        this.renderTarget.dispose()
-      }
-
-      // Clear scene
-      if (this.scene) {
-        this.scene.clear()
-      }
-
-      console.log('FilmGrainFilter disposed successfully')
-    } catch (error) {
-      console.error('Error during FilmGrainFilter disposal:', error)
-    }
+  protected logDisposalSuccess(): void {
+    console.log('FilmGrainFilter disposed successfully')
   }
 }

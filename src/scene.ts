@@ -3,6 +3,7 @@ import { TerrainSystem } from './terrain-system'
 import { EnvironmentInteractions } from './environment-interactions'
 import { ParkStructures } from './park-structures'
 import { ShaderManager, type ShaderConfig } from './shaders/ShaderManager'
+import { TAU } from './utils'
 
 export class SceneManager {
   public scene: THREE.Scene
@@ -128,7 +129,7 @@ export class SceneManager {
     // Create a more varied, randomized path
     for (let i = 0; i < numPoints; i++) {
       const t = i / numPoints
-      const angle = t * Math.PI * 2
+      const angle = t * TAU
 
       // Base circular path with random variations - larger radius for longer ride
       const baseRadius = 40 + Math.sin(seed + angle * 3) * 15

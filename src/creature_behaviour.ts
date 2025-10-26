@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import type { Anatomy, BehaviorState, CreatureInstance, Random } from './creatures'
+import { TAU } from './utils'
 
 export interface BehaviorContext {
   group: THREE.Group
@@ -192,7 +193,7 @@ function handleIdleWandering(
     behaviorState.state = 'wandering'
 
     // Pick a random direction to wander
-    const wanderAngle = rand() * Math.PI * 2
+    const wanderAngle = rand() * TAU
     const wanderDistance = 3 + rand() * 8
     const wanderDirection = new THREE.Vector3(
       Math.cos(wanderAngle),
