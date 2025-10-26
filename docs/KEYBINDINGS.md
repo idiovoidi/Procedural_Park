@@ -1,12 +1,12 @@
 # AI Snap - Key Bindings
 
 ## Camera Controls
-- **W** - Move forward
-- **S** - Move backward
-- **A** - Move left
-- **D** - Move right
-- **Shift** - Sprint
-- **Space** - Jump
+- **W** - Move forward (Free Roam only)
+- **S** - Move backward (Free Roam only)
+- **A** - Move left (Free Roam only)
+- **D** - Move right (Free Roam only)
+- **Shift** - Sprint (Free Roam only)
+- **Space** - Jump (Free Roam only)
 - **C** - Toggle camera mode (Ride/Free Roam)
 - **Arrow Keys** - Look around
 
