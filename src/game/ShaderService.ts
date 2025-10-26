@@ -10,12 +10,20 @@ import { INSCRYPTION_SHADER_DEFAULTS } from '../shaders/InscryptionShaderConfig'
 export class ShaderService {
   private config: ShaderConfig
   private shaderManager: ShaderManager | null = null
+  private onConfigChangeCallback: ((config: ShaderConfig) => void) | null = null
 
   constructor(initialConfig?: Partial<ShaderConfig>) {
     this.config = {
       ...INSCRYPTION_SHADER_DEFAULTS,
       ...initialConfig,
     }
+  }
+
+  /**
+   * Set callback for config changes (for UI updates)
+   */
+  public onConfigChange(callback: (config: ShaderConfig) => void): void {
+    this.onConfigChangeCallback = callback
   }
 
   /**
@@ -45,6 +53,11 @@ export class ShaderService {
     if (this.shaderManager) {
       this.shaderManager.updateConfig(this.config)
     }
+
+    // Notify UI of config change
+    if (this.onConfigChangeCallback) {
+      this.onConfigChangeCallback(this.config)
+    }
   }
 
   /**
@@ -55,6 +68,11 @@ export class ShaderService {
     
     if (this.shaderManager) {
       this.shaderManager.setEnabled(this.config.enabled)
+    }
+
+    // Notify UI of config change
+    if (this.onConfigChangeCallback) {
+      this.onConfigChangeCallback(this.config)
     }
     
     return this.config.enabled
@@ -69,6 +87,11 @@ export class ShaderService {
     if (this.shaderManager) {
       this.shaderManager.setEnabled(true)
     }
+
+    // Notify UI of config change
+    if (this.onConfigChangeCallback) {
+      this.onConfigChangeCallback(this.config)
+    }
   }
 
   /**
@@ -79,6 +102,11 @@ export class ShaderService {
     
     if (this.shaderManager) {
       this.shaderManager.setEnabled(false)
+    }
+
+    // Notify UI of config change
+    if (this.onConfigChangeCallback) {
+      this.onConfigChangeCallback(this.config)
     }
   }
 
@@ -98,6 +126,11 @@ export class ShaderService {
     if (this.shaderManager) {
       this.shaderManager.updateConfig(this.config)
     }
+
+    // Notify UI of config change
+    if (this.onConfigChangeCallback) {
+      this.onConfigChangeCallback(this.config)
+    }
   }
 
   /**
@@ -108,6 +141,11 @@ export class ShaderService {
     
     if (this.shaderManager) {
       this.shaderManager.updateConfig(this.config)
+    }
+
+    // Notify UI of config change
+    if (this.onConfigChangeCallback) {
+      this.onConfigChangeCallback(this.config)
     }
   }
 
@@ -167,6 +205,11 @@ export class ShaderService {
     if (this.shaderManager) {
       this.shaderManager.updateConfig({ luminanceThreshold: this.config.luminanceThreshold })
     }
+
+    // Notify UI of config change
+    if (this.onConfigChangeCallback) {
+      this.onConfigChangeCallback(this.config)
+    }
   }
 
   /**
@@ -177,6 +220,11 @@ export class ShaderService {
     
     if (this.shaderManager) {
       this.shaderManager.updateConfig({ intensity: this.config.intensity })
+    }
+
+    // Notify UI of config change
+    if (this.onConfigChangeCallback) {
+      this.onConfigChangeCallback(this.config)
     }
   }
 

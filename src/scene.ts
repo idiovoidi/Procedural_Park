@@ -16,6 +16,7 @@ export class SceneManager {
   private ambientLight: THREE.AmbientLight
   public sky: THREE.Mesh | null = null
   private shaderManager: ShaderManager
+  private onShaderManagerRecreated: ((manager: ShaderManager) => void) | null = null
 
 
   constructor(container: HTMLElement) {
@@ -197,6 +198,10 @@ export class SceneManager {
     return this.shaderManager
   }
 
+  public onShaderManagerRecreate(callback: (manager: ShaderManager) => void): void {
+    this.onShaderManagerRecreated = callback
+  }
+
   public capturePhoto(): string {
     return this.renderer.domElement.toDataURL('image/jpeg', 0.85)
   }
@@ -248,6 +253,11 @@ export class SceneManager {
     this.shaderManager = new ShaderManager(this.renderer, this.scene, camera, this.createShaderCallbacks())
     this.shaderManager.updateConfig(currentConfig)
     this.shaderManager.setAutoPerformanceAdjustment(autoPerformanceEnabled)
+
+    // Notify callback if shader manager was recreated
+    if (this.onShaderManagerRecreated) {
+      this.onShaderManagerRecreated(this.shaderManager)
+    }
   }
 
   // Handle window resize with proper aspect ratio and pixel density management

@@ -75,6 +75,11 @@ export class SystemsCoordinator {
     shaderService.setShaderManager(sceneManager.getShaderManager())
     sceneManager.updateShaderConfig(shaderService.getConfig())
 
+    // Reconnect shader service when shader manager is recreated (e.g., camera change)
+    sceneManager.onShaderManagerRecreate((manager) => {
+      shaderService.setShaderManager(manager)
+    })
+
     // Initialize sync helpers
     const syncHelpers = createStateSyncHelpers(
       stateManager.getSubsystemStateManager(),
@@ -171,6 +176,11 @@ export class SystemsCoordinator {
     // Initialize shader debug UI
     ui.initializeShaderDebugUI(shaders.getConfig())
     ui.setShaderAutoPerformanceEnabled(false)
+
+    // Setup shader config change callback to update UI
+    shaders.onConfigChange((config) => {
+      ui.updateShaderDebugUI(config)
+    })
 
     // Setup state change handlers
     this.setupStateHandlers()
