@@ -27,7 +27,7 @@ export class ShaderManager {
   private contextRestoredHandler?: (event: Event) => void
   private performanceMonitor: ShaderPerformanceMonitor
   private callbacks: ShaderManagerCallbacks
-  private autoPerformanceAdjustment: boolean = true
+  private autoPerformanceAdjustment: boolean = false
 
   constructor(
     renderer: THREE.WebGLRenderer, 
@@ -63,7 +63,8 @@ export class ShaderManager {
     try {
       this.initializePostProcessing()
       this.setupWebGLContextHandlers()
-      this.performanceMonitor.startMonitoring()
+      // Don't start monitoring by default - auto-adjustment is disabled
+      // this.performanceMonitor.startMonitoring()
       
       // Force update all uniforms to ensure they're properly initialized
       console.log('Initializing shader uniforms with config:', this.config)
