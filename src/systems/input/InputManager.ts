@@ -12,6 +12,16 @@ export class InputManager {
   private canvas: HTMLCanvasElement | null = null
   private lastMousePosition = { x: 0, y: 0 }
 
+  // Store bound event handlers for proper cleanup
+  private boundHandlers = {
+    keyDown: this.handleKeyDown.bind(this),
+    keyUp: this.handleKeyUp.bind(this),
+    mouseDown: this.handleMouseDown.bind(this),
+    mouseUp: this.handleMouseUp.bind(this),
+    mouseMove: this.handleMouseMove.bind(this),
+    pointerLockChange: this.handlePointerLockChange.bind(this),
+  }
+
   constructor() {
     this.state = {
       keysDown: new Set(),
@@ -147,16 +157,16 @@ export class InputManager {
 
   private setupEventListeners() {
     // Keyboard events
-    window.addEventListener('keydown', this.handleKeyDown.bind(this))
-    window.addEventListener('keyup', this.handleKeyUp.bind(this))
+    window.addEventListener('keydown', this.boundHandlers.keyDown)
+    window.addEventListener('keyup', this.boundHandlers.keyUp)
 
     // Mouse events
-    window.addEventListener('mousedown', this.handleMouseDown.bind(this))
-    window.addEventListener('mouseup', this.handleMouseUp.bind(this))
-    window.addEventListener('mousemove', this.handleMouseMove.bind(this))
+    window.addEventListener('mousedown', this.boundHandlers.mouseDown)
+    window.addEventListener('mouseup', this.boundHandlers.mouseUp)
+    window.addEventListener('mousemove', this.boundHandlers.mouseMove)
 
     // Pointer lock events
-    document.addEventListener('pointerlockchange', this.handlePointerLockChange.bind(this))
+    document.addEventListener('pointerlockchange', this.boundHandlers.pointerLockChange)
   }
 
   private handleKeyDown(event: KeyboardEvent) {
@@ -378,12 +388,12 @@ export class InputManager {
 
   // Cleanup
   public dispose() {
-    window.removeEventListener('keydown', this.handleKeyDown.bind(this))
-    window.removeEventListener('keyup', this.handleKeyUp.bind(this))
-    window.removeEventListener('mousedown', this.handleMouseDown.bind(this))
-    window.removeEventListener('mouseup', this.handleMouseUp.bind(this))
-    window.removeEventListener('mousemove', this.handleMouseMove.bind(this))
-    document.removeEventListener('pointerlockchange', this.handlePointerLockChange.bind(this))
+    window.removeEventListener('keydown', this.boundHandlers.keyDown)
+    window.removeEventListener('keyup', this.boundHandlers.keyUp)
+    window.removeEventListener('mousedown', this.boundHandlers.mouseDown)
+    window.removeEventListener('mouseup', this.boundHandlers.mouseUp)
+    window.removeEventListener('mousemove', this.boundHandlers.mouseMove)
+    document.removeEventListener('pointerlockchange', this.boundHandlers.pointerLockChange)
 
     this.callbacks.clear()
     this.bindings = []
