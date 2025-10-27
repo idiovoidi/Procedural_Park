@@ -11,7 +11,7 @@ TypeScript: 5.8.3 → 5.9.3
 Three.js: 0.179.1 → 0.180.0
 ESLint packages: 8.45.0 → 8.46.2
 
-7. Path Alias Mismatch Your tsconfig.json defines path aliases (@core/_, @systems/_, etc.) but these need to be mirrored in vite.config.ts for runtime resolution. I see they're defined in vite config, but this dual maintenance can lead to drift.
+
 
 8. Async Initialization Without Error Handling The Game class has an async initialize() method that's called in the constructor, but errors aren't caught. If initialization fails, the game will be in a broken state with no user feedback.
 
