@@ -133,7 +133,6 @@
 
 - [x] 11. Move scene management to `rendering/scene/`
 
-
 - [x] 11.1 Refactor scene.ts
   - Move `SceneManager` class to `rendering/scene/SceneManager.ts`
   - Move `environment-interactions.ts` to `rendering/scene/environment-interactions.ts`
@@ -147,54 +146,32 @@
 
 - [x] 12. Move shader system to `rendering/shaders/`
 
-
-
-
 - [x] 12.1 Move shader files
-
-
   - Move `shaders/ShaderManager.ts` to `rendering/shaders/ShaderManager.ts`
   - Move `shaders/InscryptionShader.ts` to `rendering/shaders/InscryptionShader.ts`
   - Move other shader files to `rendering/shaders/`
   - Create `types.ts` for shader types
   - _Requirements: 1.1, 1.3, 4.1_
 
-
-
 - [ ] 12.2 Create barrel export and update imports
   - Create `rendering/shaders/index.ts` with public API
   - Update all imports to use `@rendering/shaders`
   - _Requirements: 2.1, 2.2, 5.3_
 
-
-
 - [-] 13. Move visual effects to `rendering/visual-effects/`
-
-
-
 
 - [ ] 13.1 Move visual effects files
   - Move `visual-effects/` directory to `rendering/visual-effects/`
 
-
   - Ensure all files are properly organized
-
 
   - _Requirements: 1.1, 1.3, 4.1_
 
-
-
 - [x] 13.2 Create barrel export and update imports
-
-
   - Create `rendering/visual-effects/index.ts` with public API
   - Update all imports to use `@rendering/visual-effects`
 
-
-
   - _Requirements: 2.1, 2.2, 5.3_
-
-
 
 - [ ] 14. Move textures to `rendering/textures/`
 
@@ -202,18 +179,13 @@
   - Move `textures.ts` to `rendering/textures/texture-generator.ts`
   - _Requirements: 1.1, 1.3, 4.1_
 
-
-
 - [ ] 14.2 Create barrel export and update imports
   - Create `rendering/textures/index.ts` with public API
   - Update all imports to use `@rendering/textures`
 
-
   - _Requirements: 2.1, 2.2, 5.3_
 
 - [ ] 15. Move UI system to `ui/`
-
-
 
 - [ ] 15.1 Refactor ui.ts into components
   - Create `ui/managers/UIManager.ts` for main UI manager
@@ -238,9 +210,7 @@
 
 - [x] 16. Move multiplayer system to `multiplayer/`
 
-
 - [x] 16.1 Reorganize multiplayer directory
-
   - Move `multiplayer/WebRTCPeer.ts` to `multiplayer/webrtc/WebRTCPeer.ts`
   - Move `multiplayer/ConnectionUI.ts` to `multiplayer/webrtc/ConnectionUI.ts`
   - Move `multiplayer/StateSync.ts` to `multiplayer/state-sync/StateSync.ts`
@@ -249,39 +219,22 @@
   - _Requirements: 1.1, 1.3, 4.1_
 
 - [x] 16.2 Create barrel exports and update imports
-
-
   - Create `multiplayer/webrtc/index.ts` with public API
   - Create `multiplayer/state-sync/index.ts` with public API
   - Create `multiplayer/peer-avatar/index.ts` with public API
   - Update all imports to use `@multiplayer/*`
   - _Requirements: 2.1, 2.2, 5.3_
 
-
-
-
-
-
 - [ ] 17. Organize game orchestration layer
 
 - [x] 17.1 Keep game directory organized
-
-
-
-
-
-
   - Ensure `Game.ts`, `GameLoop.ts`, `SystemsCoordinator.ts`, `InputHandler.ts` remain in `game/`
   - Move `CreatureManager.ts`, `MultiplayerManager.ts`, `ShaderService.ts` to `game/managers/`
   - _Requirements: 1.1, 1.4, 4.1_
 
-
-
 - [ ] 17.2 Update game imports
   - Update all imports in game files to use new path aliases
   - _Requirements: 5.3_
-
-
 
 - [x] 18. Update documentation
 
@@ -304,32 +257,21 @@
   - _Requirements: 7.1, 7.4_
 
 - [x] 18.4 Create module documentation
-
-
   - Create `docs/modules/` directory
   - Add documentation for each major module
   - _Requirements: 7.2, 7.3_
 
-
-
-
 - [x] 19. Verify and test
 
-
-
 - [x] 19.1 Build verification
-
   - Run `npm run build` to ensure no build errors
   - Verify bundle size is reasonable
   - Check for any circular dependency warnings
   - _Requirements: 3.1, 3.4, 6.2_
 
-
-
 - [ ] 19.2 Type checking
   - Run `npm run type-check` to ensure no type errors
   - Fix any type issues that arise from restructuring
-
 
   - _Requirements: 6.2_
 
@@ -339,10 +281,8 @@
   - Test creature spawning and behavior
   - Test multiplayer connection
 
-
   - Test shader effects
   - Test all UI panels and controls
-
 
   - _Requirements: 6.1, 6.4_
 
@@ -352,7 +292,7 @@
   - Verify bundle size hasn't increased significantly
   - _Requirements: 6.1, 6.4_
 
-- [ ] 20. Final cleanup
+- [x] 20. Final cleanup
 
   - Remove any old unused files
   - Ensure all imports use path aliases (no relative imports to other modules)

@@ -3,7 +3,7 @@
  * Run this in the browser console to test functionality
  */
 
-import { EventBus } from '../event-bus'
+import { EventBus } from '@game/EventBus'
 
 export function runEventBusTests(): void {
   console.log('🧪 Running Event Bus Tests...\n')

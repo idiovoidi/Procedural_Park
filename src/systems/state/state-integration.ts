@@ -4,7 +4,7 @@
  * Provides unified state management interface
  */
 
-import { GameStateManager } from '../../game-state-manager'
+import { GameStateManager } from '@game/GameStateManager'
 import type { GameStateType } from './state-machine'
 import { SubsystemStateManager } from './subsystem-state-manager'
 import type { GameSubsystemState } from './subsystem-states'

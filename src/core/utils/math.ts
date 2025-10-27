@@ -1,4 +1,4 @@
-import { TAU } from '../constants'
+import { TAU } from '@core/constants'
 
 /**
  * Clamp a value between min and max, with optional logging

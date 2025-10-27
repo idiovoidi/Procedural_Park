@@ -113,7 +113,7 @@ export class WebRTCProvider implements IMultiplayerProvider {
       return;
     }
 
-    this.webrtcPeer.processSignal(answerData);
+    this.webrtcPeer.signal(answerData);
   }
 
   /**

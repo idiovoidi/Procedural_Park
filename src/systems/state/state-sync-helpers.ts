@@ -4,7 +4,7 @@
  */
 
 import type { CameraController } from '@systems/camera'
-import type { UIManager } from '../../ui'
+import type { UIManager } from '@ui/managers'
 import type { SubsystemStateManager } from './subsystem-state-manager'
 import type { CameraState, UIState, CreatureState } from './subsystem-states'
 import * as THREE from 'three'

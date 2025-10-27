@@ -4,7 +4,7 @@
  * This file demonstrates how to integrate the EventBus into existing systems
  */
 
-import { EventBus } from '../event-bus'
+import { EventBus } from '@game/EventBus'
 
 // ============================================================================
 // Example 1: Photo System Integration

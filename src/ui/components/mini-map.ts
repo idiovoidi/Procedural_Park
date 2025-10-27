@@ -69,7 +69,7 @@ export class MiniMap {
     if (!this.miniMapCtx) return
 
     // Draw biome patches (simplified)
-    for (let [position, biome] of biomes) {
+    for (const [position, biome] of biomes) {
       const [x, z] = position.split(',').map(Number)
       const screenX = ((x - bounds.minX) / (bounds.maxX - bounds.minX)) * mapSize
       const screenZ = ((z - bounds.minZ) / (bounds.maxZ - bounds.minZ)) * mapSize

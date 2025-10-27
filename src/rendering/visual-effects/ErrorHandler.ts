@@ -263,7 +263,7 @@ export class ErrorHandler {
   ): THREE.ShaderMaterial | null {
     try {
       // Remove complex operations that might cause compilation issues
-      let simplifiedFragment = fragmentShader
+      const simplifiedFragment = fragmentShader
         .replace(/sin\s*\(/g, '0.5 * (') // Replace sin with constant
         .replace(/cos\s*\(/g, '0.5 * (') // Replace cos with constant
         .replace(/pow\s*\([^,]+,\s*[^)]+\)/g, '1.0') // Replace pow with constant
