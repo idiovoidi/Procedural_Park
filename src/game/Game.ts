@@ -30,11 +30,11 @@ export class Game {
     this.container = container
     this.initPromise = this.initialize()
 
-    // Expose game instance for debugging in development
-    if (import.meta.env.DEV) {
-      ;(window as any).game = this
-      console.log('Game instance exposed as window.game')
-    }
+    // Always expose game instance for debugging
+    ;(window as any).game = this
+    console.log('🎮 AI Snap Game initialized')
+    console.log('Environment:', import.meta.env.DEV ? 'Development' : 'Production')
+    console.log('Game instance available as window.game')
   }
 
   /**

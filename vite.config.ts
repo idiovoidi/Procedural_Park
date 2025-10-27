@@ -57,7 +57,8 @@ export default defineConfig({
       // Tree shaking optimization
       treeshake: {
         preset: 'recommended',
-        manualPureFunctions: ['console.log', 'console.warn'],
+        // Only mark console as pure functions in production
+        manualPureFunctions: process.env.NODE_ENV === 'production' ? ['console.log', 'console.warn'] : [],
       },
     },
     // Enable code splitting
@@ -86,8 +87,8 @@ export default defineConfig({
   },
   // Enable experimental features for better performance
   esbuild: {
-    // Remove console logs in production build
-    drop: ['console', 'debugger'],
+    // Remove console logs in production build only
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     legalComments: 'none',
   },
 })

@@ -28,19 +28,17 @@ export class CreatureCardExporter {
     this.cardRenderer.setSize(this.cardWidth, this.cardHeight)
     this.cardRenderer.setClearColor(0x000000, 0)
 
-    // Debug: Temporarily show canvas (remove in production)
-    if (import.meta.env.DEV) {
-      const canvas = this.cardRenderer.domElement
-      canvas.style.position = 'fixed'
-      canvas.style.top = '10px'
-      canvas.style.right = '10px'
-      canvas.style.zIndex = '10000'
-      canvas.style.border = '2px solid red'
-      canvas.style.display = 'none' // Hidden by default
-      canvas.id = 'creature-card-debug-canvas'
-      document.body.appendChild(canvas)
-      console.log('Debug canvas added to DOM (hidden)')
-    }
+    // Debug canvas - always enabled for testing
+    const canvas = this.cardRenderer.domElement
+    canvas.style.position = 'fixed'
+    canvas.style.top = '10px'
+    canvas.style.right = '10px'
+    canvas.style.zIndex = '10000'
+    canvas.style.border = '2px solid red'
+    canvas.style.display = 'none' // Hidden by default
+    canvas.id = 'creature-card-debug-canvas'
+    document.body.appendChild(canvas)
+    console.log('Debug canvas added to DOM (hidden)')
 
     // Setup card scene
     this.cardScene = new THREE.Scene()
@@ -138,24 +136,22 @@ export class CreatureCardExporter {
     const enhancedCanvas = this.createEnhancedCard(canvas, creatureName, creature.rarity)
     console.log(`Enhanced canvas size: ${enhancedCanvas.width}x${enhancedCanvas.height}`)
     
-    // Debug: Show enhanced canvas
-    if (import.meta.env.DEV) {
-      const debugCanvas = document.getElementById('creature-card-debug-canvas') as HTMLCanvasElement
-      if (debugCanvas) {
-        const debugCtx = debugCanvas.getContext('2d')
-        if (debugCtx) {
-          // Resize debug canvas to match enhanced size
-          debugCanvas.width = enhancedCanvas.width
-          debugCanvas.height = enhancedCanvas.height
-          debugCtx.drawImage(enhancedCanvas, 0, 0)
-          debugCanvas.style.display = 'block'
-          setTimeout(() => {
-            debugCanvas.style.display = 'none'
-            // Reset size
-            debugCanvas.width = this.cardWidth
-            debugCanvas.height = this.cardHeight
-          }, 3000) // Show for 3 seconds
-        }
+    // Debug: Show enhanced canvas (always enabled)
+    const debugCanvas = document.getElementById('creature-card-debug-canvas') as HTMLCanvasElement
+    if (debugCanvas) {
+      const debugCtx = debugCanvas.getContext('2d')
+      if (debugCtx) {
+        // Resize debug canvas to match enhanced size
+        debugCanvas.width = enhancedCanvas.width
+        debugCanvas.height = enhancedCanvas.height
+        debugCtx.drawImage(enhancedCanvas, 0, 0)
+        debugCanvas.style.display = 'block'
+        setTimeout(() => {
+          debugCanvas.style.display = 'none'
+          // Reset size
+          debugCanvas.width = this.cardWidth
+          debugCanvas.height = this.cardHeight
+        }, 3000) // Show for 3 seconds
       }
     }
     

@@ -30,10 +30,8 @@ export class CreatureCollection {
     this.loadFromLocalStorage()
     this.render()
     
-    // Add test creature in dev mode
-    if (import.meta.env.DEV) {
-      this.addTestCreature()
-    }
+    // Add test creature (always for debugging)
+    this.addTestCreature()
   }
 
   public setAudioCallbacks(callbacks: UICallbacks) {
@@ -41,15 +39,25 @@ export class CreatureCollection {
   }
 
   private setupEventListeners() {
-    this.toggleCollectionBtn?.addEventListener('click', () => {
-      this.audioCallbacks.onClick?.()
-      this.toggle()
-    })
+    if (this.toggleCollectionBtn) {
+      console.log('✅ Setting up collection button listener')
+      this.toggleCollectionBtn.addEventListener('click', () => {
+        console.log('🖱️ Collection button clicked!')
+        this.audioCallbacks.onClick?.()
+        this.toggle()
+      })
+    } else {
+      console.error('❌ toggleCollectionBtn not found!')
+    }
 
-    this.collectionPanel?.querySelector('.close-btn')?.addEventListener('click', () => {
-      this.audioCallbacks.onClick?.()
-      this.toggle()
-    })
+    const closeBtn = this.collectionPanel?.querySelector('.close-btn')
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        console.log('🖱️ Close button clicked!')
+        this.audioCallbacks.onClick?.()
+        this.toggle()
+      })
+    }
   }
 
   public toggle() {
