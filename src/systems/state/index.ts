@@ -47,3 +47,28 @@ export {
   MultiplayerStateSync,
   createStateSyncHelpers,
 } from './state-sync-helpers'
+
+// World State Management
+export { WorldStateManager } from './WorldStateManager'
+export type {
+  WorldState,
+  SaveSlotMetadata,
+  PlayerProgress,
+  SerializedCreature,
+  SerializedPhoto,
+  SerializedCameraState,
+  WorldSettings,
+} from './world-state-types'
+export {
+  serializeCreature,
+  serializeCameraState,
+  deserializeCameraState,
+  createSerializedPhoto,
+  updateProgressWithPhoto,
+  serializeProgress,
+  deserializeProgress,
+  createWorldStateSnapshot,
+  getRarityTier,
+  formatPlayTime,
+  formatSaveDate,
+} from './world-state-serializer'

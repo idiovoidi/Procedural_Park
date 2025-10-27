@@ -7,6 +7,7 @@ import { Settings } from '../components/settings'
 import { Shortcuts } from '../components/shortcuts'
 import { MiniMap } from '../components/mini-map'
 import { Toast } from '../components/toast'
+import { SaveLoadMenu } from '../components/save-load-menu'
 
 export class UIManager {
   private gallery: Gallery
@@ -14,8 +15,10 @@ export class UIManager {
   private toast: Toast
   private shortcuts: Shortcuts
   private miniMap: MiniMap
+  private saveLoadMenu: SaveLoadMenu
   private toggleMultiplayerBtn: HTMLButtonElement
   private restartRideBtn: HTMLButtonElement
+  private toggleSaveLoadBtn: HTMLButtonElement
   private audioCallbacks: UICallbacks = {}
   private shaderDebugUI: ShaderDebugUI | null = null
   private shaderStatusIndicator: HTMLDivElement | null = null
@@ -26,9 +29,11 @@ export class UIManager {
     this.toast = new Toast()
     this.shortcuts = new Shortcuts()
     this.miniMap = new MiniMap()
+    this.saveLoadMenu = new SaveLoadMenu()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.restartRideBtn = document.getElementById('restartRide') as HTMLButtonElement
+    this.toggleSaveLoadBtn = document.getElementById('toggleSaveLoad') as HTMLButtonElement
 
     this.setupEventListeners()
     this.createShaderStatusIndicator()
@@ -45,6 +50,12 @@ export class UIManager {
     this.toggleMultiplayerBtn?.addEventListener('click', () => {
       this.audioCallbacks.onClick?.()
       this.toggleMultiplayer()
+    })
+
+    // Setup save/load button
+    this.toggleSaveLoadBtn?.addEventListener('click', () => {
+      this.audioCallbacks.onClick?.()
+      this.onToggleSaveLoad?.()
     })
 
     // Setup restart button
@@ -74,6 +85,7 @@ export class UIManager {
   public onShaderPresetLoad?: (preset: ShaderConfig) => void
   public onAutoPerformanceToggle?: (enabled: boolean) => void
   public onToggleMultiplayer?: () => void
+  public onToggleSaveLoad?: () => void
 
   // Gallery methods
   public toggleGallery() {
@@ -103,6 +115,15 @@ export class UIManager {
   // Multiplayer methods
   public toggleMultiplayer() {
     this.onToggleMultiplayer?.()
+  }
+
+  // Save/Load methods
+  public toggleSaveLoadMenu() {
+    this.saveLoadMenu.toggle()
+  }
+
+  public getSaveLoadMenu(): SaveLoadMenu {
+    return this.saveLoadMenu
   }
 
   // Toast methods
