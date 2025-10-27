@@ -27,6 +27,7 @@ export type InputAction =
   | 'ui.toggleSettings'
   | 'ui.toggleShortcuts'
   | 'ui.toggleMultiplayer'
+  | 'ui.togglePlayerStats'
   | 'ui.toggleDayNight'
   // Shader actions
   | 'shader.toggle'

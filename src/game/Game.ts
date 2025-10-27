@@ -132,6 +132,7 @@ export class Game {
       onToggleMultiplayer: () => this.systems.ui.toggleMultiplayer(),
       onToggleSettings: () => this.systems.ui.toggleSettings(),
       onToggleShortcuts: () => this.systems.ui.toggleShortcuts(),
+      onTogglePlayerStats: () => this.togglePlayerStats(),
       onToggleDebug: () => this.systems.debug.toggle(),
       onJump: () => this.systems.camera.jump(),
     }
@@ -183,11 +184,15 @@ export class Game {
     // Show score feedback
     ui.showScoreToast(result.score)
 
-    // Update UI state
+    // Update UI state and track discoveries
     const currentUI = state.getUIState()
+    const newPhotoCount = currentUI.photoCount + 1
+    const newTotalScore = currentUI.totalScore + result.score
+    const newBestScore = Math.max(currentUI.lastScore, result.score)
+    
     state.updateUIState({
-      photoCount: currentUI.photoCount + 1,
-      totalScore: currentUI.totalScore + result.score,
+      photoCount: newPhotoCount,
+      totalScore: newTotalScore,
       lastScore: result.score,
     })
 
@@ -263,6 +268,73 @@ export class Game {
   private toggleShader(): void {
     const enabled = this.systems.shaders.toggle()
     this.systems.ui.showToast(enabled ? '🎨 Shader ON' : '🎨 Shader OFF')
+  }
+
+  /**
+   * Toggle player stats
+   */
+  private togglePlayerStats(): void {
+    this.systems.ui.togglePlayerStats()
+    
+    // Update stats when opening
+    const progress = this.getPlayerProgress()
+    this.systems.ui.updatePlayerStats(progress)
+    
+    // Update inventory with sample items (photos as collectibles)
+    const inventoryItems: import('@ui/components').InventoryItem[] = [
+      {
+        id: 'camera',
+        name: 'Camera',
+        icon: '📷',
+        description: 'Your trusty camera for capturing wildlife',
+        quantity: 1,
+        rarity: 'legendary',
+      },
+      {
+        id: 'photos',
+        name: 'Photos',
+        icon: '🖼️',
+        description: 'Photos you have taken',
+        quantity: progress.photoCount,
+        rarity: 'common',
+      },
+    ]
+    
+    // Add rarity-based collectibles
+    if (progress.rarityTiers.legendary > 0) {
+      inventoryItems.push({
+        id: 'legendary_badge',
+        name: 'Legendary',
+        icon: '👑',
+        description: 'Photographed a legendary creature',
+        quantity: progress.rarityTiers.legendary,
+        rarity: 'legendary',
+      })
+    }
+    
+    if (progress.rarityTiers.epic > 0) {
+      inventoryItems.push({
+        id: 'epic_badge',
+        name: 'Epic',
+        icon: '💎',
+        description: 'Photographed an epic creature',
+        quantity: progress.rarityTiers.epic,
+        rarity: 'epic',
+      })
+    }
+    
+    if (progress.rarityTiers.rare > 0) {
+      inventoryItems.push({
+        id: 'rare_badge',
+        name: 'Rare',
+        icon: '💠',
+        description: 'Photographed a rare creature',
+        quantity: progress.rarityTiers.rare,
+        rarity: 'rare',
+      })
+    }
+    
+    this.systems.ui.setInventory(inventoryItems)
   }
 
   /**

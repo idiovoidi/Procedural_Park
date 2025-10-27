@@ -96,6 +96,12 @@ export class InputManager {
       contexts: ['game', 'ui'],
       priority: 3,
     })
+    this.addBinding({
+      action: 'ui.togglePlayerStats',
+      key: 'i',
+      contexts: ['game', 'ui'],
+      priority: 3,
+    })
     this.addBinding({ action: 'ui.toggleDayNight', key: 'n', contexts: ['game'], priority: 2 })
 
     // Shader actions

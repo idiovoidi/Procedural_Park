@@ -24,6 +24,7 @@ export interface InputHandlerCallbacks {
   onToggleMultiplayer: () => void
   onToggleSettings: () => void
   onToggleShortcuts: () => void
+  onTogglePlayerStats: () => void
   onToggleDebug: () => void
 }
 
@@ -80,6 +81,7 @@ export class InputHandler {
     this.inputManager.on('ui.toggleMultiplayer', () => this.callbacks.onToggleMultiplayer())
     this.inputManager.on('ui.toggleSettings', () => this.callbacks.onToggleSettings())
     this.inputManager.on('ui.toggleShortcuts', () => this.callbacks.onToggleShortcuts())
+    this.inputManager.on('ui.togglePlayerStats', () => this.callbacks.onTogglePlayerStats())
   }
 
   /**
