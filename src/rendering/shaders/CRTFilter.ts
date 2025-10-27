@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { clampAndUpdate } from '@core/utils'
-import { BaseVisualEffect } from './BaseVisualEffect'
+import { BaseVisualEffect } from '../visual-effects/BaseVisualEffect'
 
 export interface CRTConfig {
   scanlines: {

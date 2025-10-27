@@ -13,6 +13,11 @@ export {
   validateShaderConfig 
 } from './InscryptionShaderConfig'
 
+// Export shader filters
+export { ChromaticAberrationFilter, type ChromaticAberrationConfig } from './ChromaticAberrationFilter'
+export { FilmGrainFilter, type FilmGrainConfig } from './FilmGrainFilter'
+export { CRTFilter, type CRTConfig } from './CRTFilter'
+
 // Export types
 export type {
   ShaderConfig,
