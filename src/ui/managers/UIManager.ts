@@ -10,6 +10,8 @@ import { Toast } from '../components/toast'
 import { SaveLoadMenu } from '../components/save-load-menu'
 import { PlayerStats, type InventoryItem } from '../components/player-stats'
 import { CreatureCollection, type CapturedCreature } from '../components/creature-collection'
+import { FoodInventory } from '../components/food-inventory'
+import type { FoodItem } from '@systems/food'
 
 export class UIManager {
   private gallery: Gallery
@@ -20,7 +22,9 @@ export class UIManager {
   private saveLoadMenu: SaveLoadMenu
   private playerStats: PlayerStats
   private creatureCollection: CreatureCollection
+  private foodInventory: FoodInventory
   private toggleMultiplayerBtn: HTMLButtonElement
+  private toggleFoodInventoryBtn: HTMLButtonElement
   private restartRideBtn: HTMLButtonElement
   private toggleSaveLoadBtn: HTMLButtonElement
   private togglePlayerStatsBtn: HTMLButtonElement
@@ -38,8 +42,12 @@ export class UIManager {
     this.saveLoadMenu = new SaveLoadMenu()
     this.playerStats = new PlayerStats()
     this.creatureCollection = new CreatureCollection()
+    this.foodInventory = new FoodInventory()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
+    this.toggleFoodInventoryBtn = document.getElementById(
+      'toggleFoodInventory'
+    ) as HTMLButtonElement
     this.restartRideBtn = document.getElementById('restartRide') as HTMLButtonElement
     this.toggleSaveLoadBtn = document.getElementById('toggleSaveLoad') as HTMLButtonElement
     this.togglePlayerStatsBtn = document.getElementById('togglePlayerStats') as HTMLButtonElement
@@ -63,6 +71,7 @@ export class UIManager {
     this.saveLoadMenu.setAudioCallbacks(callbacks)
     this.playerStats.setAudioCallbacks(callbacks)
     this.creatureCollection.setAudioCallbacks(callbacks)
+    this.foodInventory.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
@@ -96,6 +105,14 @@ export class UIManager {
       this.toggleCollectionBtn.addEventListener('click', () => {
         this.audioCallbacks.onClick?.()
         this.toggleCollection()
+      })
+    }
+
+    // Setup food inventory button
+    if (this.toggleFoodInventoryBtn) {
+      this.toggleFoodInventoryBtn.addEventListener('click', () => {
+        this.audioCallbacks.onClick?.()
+        this.toggleFoodInventory()
       })
     }
 
@@ -190,6 +207,27 @@ export class UIManager {
 
   public getCreatureCollection(): CreatureCollection {
     return this.creatureCollection
+  }
+
+  // Food Inventory methods
+  public toggleFoodInventory() {
+    this.foodInventory.toggle()
+  }
+
+  public updateFoodInventory(items: FoodItem[]) {
+    this.foodInventory.updateInventory(items)
+  }
+
+  public setSelectedFood(foodId: string | null) {
+    this.foodInventory.setSelectedFood(foodId)
+  }
+
+  public setOnFoodSelect(callback: (foodId: string) => void) {
+    this.foodInventory.setOnFoodSelect(callback)
+  }
+
+  public getFoodInventory(): FoodInventory {
+    return this.foodInventory
   }
 
   // Save/Load methods

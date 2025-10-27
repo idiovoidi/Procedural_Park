@@ -135,6 +135,10 @@ export class InputManager {
 
     // Video actions
     this.addBinding({ action: 'video.toggleRecording', key: ';', contexts: ['game'], priority: 2 })
+
+    // Food actions
+    this.addBinding({ action: 'food.toggleInventory', key: 'b', contexts: ['game'], priority: 2 })
+    this.addBinding({ action: 'food.feedCreature', key: 'q', contexts: ['game'], priority: 2 })
   }
 
   private setupEventListeners() {

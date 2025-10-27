@@ -28,6 +28,9 @@ export interface InputHandlerCallbacks {
   onToggleShortcuts: () => void
   onTogglePlayerStats: () => void
   onToggleDebug: () => void
+  onToggleFoodInventory: () => void
+  onFeedCreature: () => void
+  onRandomizeCreature: () => void
 }
 
 export class InputHandler {
@@ -72,6 +75,7 @@ export class InputHandler {
     this.inputManager.on('game.exportCreatureCard', () => this.callbacks.onExportCreatureCard())
     this.inputManager.on('game.restartRide', () => this.callbacks.onRestartRide())
     this.inputManager.on('game.pause', () => this.callbacks.onTogglePause())
+    this.inputManager.on('game.randomizeCreature', () => this.callbacks.onRandomizeCreature())
 
     // Video actions
     this.inputManager.on('video.toggleRecording', () => this.callbacks.onToggleRecording())
@@ -86,6 +90,10 @@ export class InputHandler {
     this.inputManager.on('ui.toggleSettings', () => this.callbacks.onToggleSettings())
     this.inputManager.on('ui.toggleShortcuts', () => this.callbacks.onToggleShortcuts())
     this.inputManager.on('ui.togglePlayerStats', () => this.callbacks.onTogglePlayerStats())
+
+    // Food actions
+    this.inputManager.on('food.toggleInventory', () => this.callbacks.onToggleFoodInventory())
+    this.inputManager.on('food.feedCreature', () => this.callbacks.onFeedCreature())
   }
 
   /**

@@ -14,6 +14,7 @@ import { InputManager } from '@systems/input'
 import { IntegratedStateManager, createStateSyncHelpers, type GameStateType } from '@systems/state'
 import { GAME_CONFIG } from '@core/constants'
 import { CreatureManager, MultiplayerManager, ShaderService } from '@game/managers'
+import { FoodManager } from '@systems/food'
 
 export interface GameSystems {
   scene: SceneManager
@@ -29,6 +30,7 @@ export interface GameSystems {
   creatures: CreatureManager
   multiplayer: MultiplayerManager
   shaders: ShaderService
+  food: FoodManager
 }
 
 export class SystemsCoordinator {
@@ -107,6 +109,9 @@ export class SystemsCoordinator {
       cameraController
     )
 
+    // Initialize food manager
+    const foodManager = new FoodManager()
+
     // Store all systems
     this.systems = {
       scene: sceneManager,
@@ -122,6 +127,7 @@ export class SystemsCoordinator {
       creatures: creatureManager,
       multiplayer: multiplayerManager,
       shaders: shaderService,
+      food: foodManager,
     }
 
     // Setup system callbacks

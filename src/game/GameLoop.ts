@@ -56,7 +56,7 @@ export class GameLoop {
    * Update all systems
    */
   private update(dt: number, now: number): void {
-    const { state, camera, creatures, scene, multiplayer, ui, debug, input } = this.systems
+    const { state, camera, creatures, scene, multiplayer, ui, debug, input, food } = this.systems
 
     // Always update state machine
     state.update(dt)
@@ -70,6 +70,9 @@ export class GameLoop {
 
       // Update creatures
       creatures.update(dt, now / 1000)
+
+      // Update food system (cooldowns)
+      food.update()
 
       // Update mini map
       this.updateMiniMap()

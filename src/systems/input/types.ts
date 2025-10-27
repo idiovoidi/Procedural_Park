@@ -39,6 +39,9 @@ export type InputAction =
   | 'shader.adjustIntensityDown'
   // Video actions
   | 'video.toggleRecording'
+  // Food actions
+  | 'food.toggleInventory'
+  | 'food.feedCreature'
 
 export type InputContext = 'game' | 'ui' | 'menu'
 

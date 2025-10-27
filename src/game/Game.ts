@@ -79,6 +79,9 @@ export class Game {
     // Initialize world state manager
     this.initializeWorldState()
 
+    // Initialize food system
+    this.initializeFoodSystem()
+
     // Hide loading screen and transition to playing state
     setTimeout(() => {
       loadingEl?.classList.add('hidden')
@@ -137,6 +140,9 @@ export class Game {
       onTogglePlayerStats: () => this.togglePlayerStats(),
       onToggleDebug: () => this.systems.debug.toggle(),
       onJump: () => this.systems.camera.jump(),
+      onToggleFoodInventory: () => this.toggleFoodInventory(),
+      onFeedCreature: () => this.feedCreature(),
+      onRandomizeCreature: () => this.randomizeCreature(),
     }
 
     this.inputHandler = new InputHandler(
@@ -271,6 +277,19 @@ export class Game {
   }
 
   /**
+   * Randomize creatures
+   */
+  private randomizeCreature(): void {
+    // Respawn creatures with new random seed
+    this.systems.creatures.respawnCreatures()
+
+    // Update lab sign
+    this.updateLabSign()
+
+    this.systems.ui.showToast('🎲 Creatures randomized')
+  }
+
+  /**
    * Toggle pause
    */
   private togglePause(): void {
@@ -339,6 +358,19 @@ export class Game {
         rarity: 'common',
       },
     ]
+    
+    // Add food items to inventory
+    const foodItems = this.systems.food.getInventory()
+    foodItems.forEach((food) => {
+      inventoryItems.push({
+        id: food.id,
+        name: food.name,
+        icon: food.icon,
+        description: food.description,
+        quantity: food.quantity,
+        rarity: food.rarity,
+      })
+    })
     
     // Add rarity-based collectibles
     if (progress.rarityTiers.legendary > 0) {
@@ -496,6 +528,111 @@ export class Game {
         mode: this.systems.camera.getMode(),
         position: this.systems.camera.camera.position,
       },
+    }
+  }
+
+  /**
+   * Initialize food system
+   */
+  private initializeFoodSystem(): void {
+    const { ui, food } = this.systems
+
+    // Update UI with initial inventory
+    ui.updateFoodInventory(food.getInventory())
+
+    // Setup food selection callback
+    ui.setOnFoodSelect((foodId) => {
+      if (foodId) {
+        food.selectFood(foodId)
+        ui.showToast(`Selected ${food.getSelectedFood()?.name}`)
+      } else {
+        food.deselectFood()
+        ui.showToast('Food deselected')
+      }
+    })
+  }
+
+  /**
+   * Toggle food inventory
+   */
+  private toggleFoodInventory(): void {
+    this.systems.ui.toggleFoodInventory()
+    this.systems.ui.updateFoodInventory(this.systems.food.getInventory())
+  }
+
+  /**
+   * Feed nearest creature
+   */
+  private feedCreature(): void {
+    const { food, creatures, camera, photo, ui } = this.systems
+
+    const selectedFood = food.getSelectedFood()
+    if (!selectedFood) {
+      ui.showToast('❌ No food selected! Press B to open food inventory')
+      return
+    }
+
+    if (selectedFood.quantity === 0) {
+      ui.showToast('❌ Out of ' + selectedFood.name)
+      return
+    }
+
+    // Find nearest creature
+    const allCreatures = creatures.getAllCreatures()
+    let nearestCreature = null
+    let nearestDistance = Infinity
+
+    for (const creature of allCreatures) {
+      const distance = camera.camera.position.distanceTo(creature.group.position)
+      if (distance < nearestDistance && distance < 15) {
+        nearestDistance = distance
+        nearestCreature = creature
+      }
+    }
+
+    if (!nearestCreature) {
+      ui.showToast('❌ No creature nearby (get within 15m)')
+      return
+    }
+
+    // Check cooldown
+    if (!food.canFeedCreature(nearestCreature)) {
+      const cooldown = food.getFeedingCooldown(nearestCreature)
+      ui.showToast(`⏳ Wait ${cooldown}s before feeding again`)
+      return
+    }
+
+    // Feed the creature
+    const result = food.feedCreature(nearestCreature, camera.camera, (c) =>
+      photo.generateCreatureName(c)
+    )
+
+    if (result) {
+      // Show feedback based on reaction
+      const reactionEmojis = {
+        loved: '😍',
+        liked: '😊',
+        neutral: '😐',
+        disliked: '😕',
+      }
+
+      const emoji = reactionEmojis[result.creatureReaction]
+      const message = `${emoji} ${result.creatureName} ${result.creatureReaction} the ${result.foodUsed.name}!`
+
+      if (result.bonusApplied) {
+        ui.showToast(`${message} (Posing!)`)
+      } else {
+        ui.showToast(message)
+      }
+
+      // Update inventory UI
+      ui.updateFoodInventory(food.getInventory())
+      ui.setSelectedFood(food.getSelectedFood()?.id || null)
+
+      // Play sound effect
+      if (result.creatureReaction === 'loved' || result.creatureReaction === 'liked') {
+        // TODO: Add feeding sound effect
+      }
     }
   }
 
