@@ -8,6 +8,7 @@ import { Shortcuts } from '../components/shortcuts'
 import { MiniMap } from '../components/mini-map'
 import { Toast } from '../components/toast'
 import { SaveLoadMenu } from '../components/save-load-menu'
+import { PlayerStats, type InventoryItem } from '../components/player-stats'
 
 export class UIManager {
   private gallery: Gallery
@@ -16,9 +17,11 @@ export class UIManager {
   private shortcuts: Shortcuts
   private miniMap: MiniMap
   private saveLoadMenu: SaveLoadMenu
+  private playerStats: PlayerStats
   private toggleMultiplayerBtn: HTMLButtonElement
   private restartRideBtn: HTMLButtonElement
   private toggleSaveLoadBtn: HTMLButtonElement
+  private togglePlayerStatsBtn: HTMLButtonElement
   private audioCallbacks: UICallbacks = {}
   private shaderDebugUI: ShaderDebugUI | null = null
   private shaderStatusIndicator: HTMLDivElement | null = null
@@ -30,10 +33,12 @@ export class UIManager {
     this.shortcuts = new Shortcuts()
     this.miniMap = new MiniMap()
     this.saveLoadMenu = new SaveLoadMenu()
+    this.playerStats = new PlayerStats()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.restartRideBtn = document.getElementById('restartRide') as HTMLButtonElement
     this.toggleSaveLoadBtn = document.getElementById('toggleSaveLoad') as HTMLButtonElement
+    this.togglePlayerStatsBtn = document.getElementById('togglePlayerStats') as HTMLButtonElement
 
     if (!this.toggleSaveLoadBtn) {
       console.error('toggleSaveLoad button not found in DOM!')
@@ -51,6 +56,7 @@ export class UIManager {
     this.settings.setAudioCallbacks(callbacks)
     this.shortcuts.setAudioCallbacks(callbacks)
     this.saveLoadMenu.setAudioCallbacks(callbacks)
+    this.playerStats.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
@@ -69,6 +75,14 @@ export class UIManager {
       })
     } else {
       console.error('Cannot add listener: toggleSaveLoadBtn is null')
+    }
+
+    // Setup player stats button
+    if (this.togglePlayerStatsBtn) {
+      this.togglePlayerStatsBtn.addEventListener('click', () => {
+        this.audioCallbacks.onClick?.()
+        this.togglePlayerStats()
+      })
     }
 
     // Setup restart button
@@ -129,6 +143,23 @@ export class UIManager {
   // Multiplayer methods
   public toggleMultiplayer() {
     this.onToggleMultiplayer?.()
+  }
+
+  // Player Stats methods
+  public togglePlayerStats() {
+    this.playerStats.toggle()
+  }
+
+  public updatePlayerStats(progress: import('@systems/state').PlayerProgress) {
+    this.playerStats.updateStats(progress)
+  }
+
+  public setInventory(items: InventoryItem[]) {
+    this.playerStats.setInventory(items)
+  }
+
+  public addInventoryItem(item: InventoryItem) {
+    this.playerStats.addInventoryItem(item)
   }
 
   // Save/Load methods

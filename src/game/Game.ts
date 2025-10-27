@@ -29,6 +29,12 @@ export class Game {
   constructor(container: HTMLElement) {
     this.container = container
     this.initPromise = this.initialize()
+
+    // Expose game instance for debugging in development
+    if (import.meta.env.DEV) {
+      ;(window as any).game = this
+      console.log('Game instance exposed as window.game')
+    }
   }
 
   /**
