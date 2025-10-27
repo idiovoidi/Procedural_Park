@@ -3,13 +3,7 @@
  * Handles all keyboard, mouse, and pointer input with priority system
  */
 
-import type {
-  InputAction,
-  InputContext,
-  InputBinding,
-  InputState,
-  InputCallback,
-} from './types'
+import type { InputAction, InputContext, InputBinding, InputState, InputCallback } from './types'
 
 export class InputManager {
   private state: InputState
@@ -67,8 +61,13 @@ export class InputManager {
     })
 
     // Game actions
-    this.addBinding({ action: 'game.takePhoto', key: 'f', contexts: ['game'], priority: 2 })
-    this.addBinding({ action: 'game.exportCreatureCard', key: 'e', contexts: ['game'], priority: 2 })
+    this.addBinding({ action: 'game.takePhoto', key: 't', contexts: ['game'], priority: 2 })
+    this.addBinding({
+      action: 'game.exportCreatureCard',
+      key: 'e',
+      contexts: ['game'],
+      priority: 2,
+    })
     this.addBinding({ action: 'game.restartRide', key: 'r', contexts: ['game'], priority: 2 })
     this.addBinding({ action: 'game.pause', key: 'p', contexts: ['game'], priority: 2 })
     this.addBinding({ action: 'game.speedUp', key: '+', contexts: ['game'], priority: 2 })
@@ -79,7 +78,12 @@ export class InputManager {
 
     // UI actions
     this.addBinding({ action: 'ui.toggleGallery', key: 'g', contexts: ['game', 'ui'], priority: 3 })
-    this.addBinding({ action: 'ui.toggleCollection', key: 'k', contexts: ['game', 'ui'], priority: 3 })
+    this.addBinding({
+      action: 'ui.toggleCollection',
+      key: 'k',
+      contexts: ['game', 'ui'],
+      priority: 3,
+    })
     this.addBinding({
       action: 'ui.toggleSettings',
       key: 'Escape',
@@ -138,7 +142,7 @@ export class InputManager {
 
     // Food actions
     this.addBinding({ action: 'food.toggleInventory', key: 'b', contexts: ['game'], priority: 2 })
-    this.addBinding({ action: 'food.feedCreature', key: 'q', contexts: ['game'], priority: 2 })
+    this.addBinding({ action: 'food.feedCreature', key: 'f', contexts: ['game'], priority: 2 })
   }
 
   private setupEventListeners() {
