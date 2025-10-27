@@ -12,6 +12,8 @@ import { PlayerStats, type InventoryItem } from '../components/player-stats'
 import { CreatureCollection, type CapturedCreature } from '../components/creature-collection'
 import { FoodInventory } from '../components/food-inventory'
 import type { FoodItem } from '@systems/food'
+import { CurrencyDisplay } from '../components/currency-display'
+import { FoodStore } from '../components/food-store'
 
 export class UIManager {
   private gallery: Gallery
@@ -23,6 +25,8 @@ export class UIManager {
   private playerStats: PlayerStats
   private creatureCollection: CreatureCollection
   private foodInventory: FoodInventory
+  private currencyDisplay: CurrencyDisplay
+  private foodStore: FoodStore
   private toggleMultiplayerBtn: HTMLButtonElement
   private toggleFoodInventoryBtn: HTMLButtonElement
   private restartRideBtn: HTMLButtonElement
@@ -43,6 +47,8 @@ export class UIManager {
     this.playerStats = new PlayerStats()
     this.creatureCollection = new CreatureCollection()
     this.foodInventory = new FoodInventory()
+    this.currencyDisplay = new CurrencyDisplay()
+    this.foodStore = new FoodStore()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleFoodInventoryBtn = document.getElementById(
@@ -72,6 +78,7 @@ export class UIManager {
     this.playerStats.setAudioCallbacks(callbacks)
     this.creatureCollection.setAudioCallbacks(callbacks)
     this.foodInventory.setAudioCallbacks(callbacks)
+    this.foodStore.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
@@ -508,5 +515,47 @@ export class UIManager {
     if (this.shaderStatusIndicator) {
       this.shaderStatusIndicator.style.display = 'flex'
     }
+  }
+
+  /**
+   * Update currency display
+   */
+  public updateCurrency(amount: number): void {
+    this.currencyDisplay.updateBalance(amount)
+  }
+
+  /**
+   * Get currency display component
+   */
+  public getCurrencyDisplay(): CurrencyDisplay {
+    return this.currencyDisplay
+  }
+
+  /**
+   * Get food store component
+   */
+  public getFoodStore(): FoodStore {
+    return this.foodStore
+  }
+
+  /**
+   * Toggle food store
+   */
+  public toggleFoodStore(): void {
+    this.foodStore.toggle()
+  }
+
+  /**
+   * Open food store
+   */
+  public openFoodStore(): void {
+    this.foodStore.open()
+  }
+
+  /**
+   * Close food store
+   */
+  public closeFoodStore(): void {
+    this.foodStore.close()
   }
 }

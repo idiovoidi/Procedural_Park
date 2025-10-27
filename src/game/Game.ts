@@ -169,6 +169,7 @@ export class Game {
       onToggleFoodInventory: () => this.toggleFoodInventory(),
       onFeedCreature: () => this.feedCreature(),
       onRandomizeCreature: () => this.randomizeCreature(),
+      onToggleFoodStore: () => this.toggleFoodStore(),
     }
 
     this.inputHandler = new InputHandler(
@@ -186,7 +187,7 @@ export class Game {
    * Take a photo
    */
   private takePhoto(): void {
-    const { state, photo, scene, ui, creatures, multiplayer } = this.systems
+    const { state, photo, scene, ui, creatures, multiplayer, currency } = this.systems
 
     // Check if photos are allowed
     if (!state.isPhotoAllowed()) {
@@ -213,6 +214,13 @@ export class Game {
       score: result.score,
       creatureName: result.creatureName,
       timestamp: Date.now(),
+    })
+
+    // Calculate and award currency
+    import('@systems/currency/currency-rewards').then(({ calculatePhotoReward }) => {
+      const reward = calculatePhotoReward(result.score)
+      currency.addMoney(reward, `Photo of ${result.creatureName} (${result.score} pts)`)
+      ui.showToast(`+${reward} 🪙`)
     })
 
     // Show score feedback
@@ -561,7 +569,7 @@ export class Game {
    * Initialize food system
    */
   private initializeFoodSystem(): void {
-    const { ui, food } = this.systems
+    const { ui, food, currency } = this.systems
 
     // Update UI with initial inventory
     ui.updateFoodInventory(food.getInventory())
@@ -576,6 +584,60 @@ export class Game {
         ui.showToast('Food deselected')
       }
     })
+
+    // Initialize currency display
+    ui.updateCurrency(currency.getBalance())
+
+    // Setup currency balance change callback
+    currency.onBalanceChange((balance) => {
+      ui.updateCurrency(balance)
+      ui.getFoodStore().updateBalance(balance)
+    })
+
+    // Setup store
+    this.initializeStore()
+  }
+
+  /**
+   * Initialize store system
+   */
+  private initializeStore(): void {
+    const { ui, food, currency } = this.systems
+
+    // Load store items
+    import('@systems/food/store-data').then(({ STORE_ITEMS }) => {
+      ui.getFoodStore().loadItems(STORE_ITEMS)
+      ui.getFoodStore().updateBalance(currency.getBalance())
+    })
+
+    // Setup purchase callback
+    ui.getFoodStore().setOnPurchase((itemId, price) => {
+      const result = currency.purchase(price, itemId)
+
+      if (result.success) {
+        food.addFood(itemId, 1)
+        ui.showToast(result.message)
+        ui.updateFoodInventory(food.getInventory())
+        return true
+      } else {
+        ui.showToast(result.message)
+        return false
+      }
+    })
+  }
+
+  /**
+   * Check proximity to food store and show prompt
+   */
+  private checkStoreProximity(): void {
+    const { camera, scene, ui } = this.systems
+    const storePosition = scene.parkStructures.getFoodStorePosition()
+    const distance = camera.camera.position.distanceTo(storePosition)
+
+    // Show prompt when within 10 units of store
+    if (distance < 10 && !ui.getFoodStore().isStoreOpen()) {
+      // Could add a UI prompt here
+    }
   }
 
   /**
@@ -587,10 +649,17 @@ export class Game {
   }
 
   /**
+   * Toggle food store
+   */
+  private toggleFoodStore(): void {
+    this.systems.ui.toggleFoodStore()
+  }
+
+  /**
    * Feed nearest creature
    */
   private feedCreature(): void {
-    const { food, creatures, camera, photo, ui } = this.systems
+    const { food, creatures, camera, photo, ui, currency } = this.systems
 
     const selectedFood = food.getSelectedFood()
     if (!selectedFood) {
@@ -650,6 +719,16 @@ export class Game {
       } else {
         ui.showToast(message)
       }
+
+      // Award currency for feeding
+      import('@systems/currency/currency-rewards').then(({ CURRENCY_REWARDS }) => {
+        let reward = CURRENCY_REWARDS.FEED_CREATURE
+        if (result.creatureReaction === 'loved') {
+          reward += CURRENCY_REWARDS.CREATURE_LOVED_FOOD
+        }
+        currency.addMoney(reward, `Fed ${result.creatureName}`)
+        ui.showToast(`+${reward} 🪙`)
+      })
 
       // Update inventory UI
       ui.updateFoodInventory(food.getInventory())

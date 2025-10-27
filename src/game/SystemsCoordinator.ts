@@ -15,6 +15,7 @@ import { IntegratedStateManager, createStateSyncHelpers, type GameStateType } fr
 import { GAME_CONFIG } from '@core/constants'
 import { CreatureManager, MultiplayerManager, ShaderService } from '@game/managers'
 import { FoodManager } from '@systems/food'
+import { CurrencyManager } from '@systems/currency'
 
 export interface GameSystems {
   scene: SceneManager
@@ -31,6 +32,7 @@ export interface GameSystems {
   multiplayer: MultiplayerManager
   shaders: ShaderService
   food: FoodManager
+  currency: CurrencyManager
 }
 
 export class SystemsCoordinator {
@@ -112,6 +114,9 @@ export class SystemsCoordinator {
     // Initialize food manager
     const foodManager = new FoodManager()
 
+    // Initialize currency manager
+    const currencyManager = new CurrencyManager(100)
+
     // Store all systems
     this.systems = {
       scene: sceneManager,
@@ -128,6 +133,7 @@ export class SystemsCoordinator {
       multiplayer: multiplayerManager,
       shaders: shaderService,
       food: foodManager,
+      currency: currencyManager,
     }
 
     // Setup system callbacks

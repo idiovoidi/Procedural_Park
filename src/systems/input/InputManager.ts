@@ -153,6 +153,7 @@ export class InputManager {
     // Food actions
     this.addBinding({ action: 'food.toggleInventory', key: 'b', contexts: ['game'], priority: 2 })
     this.addBinding({ action: 'food.feedCreature', key: 'f', contexts: ['game'], priority: 2 })
+    this.addBinding({ action: 'food.toggleStore', key: 'o', contexts: ['game'], priority: 2 })
   }
 
   private setupEventListeners() {
