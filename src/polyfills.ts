@@ -5,6 +5,7 @@
 
 import { Buffer } from 'buffer'
 import process from 'process'
+// @ts-ignore - EventEmitter is a Node.js module
 import { EventEmitter } from 'events'
 
 // Set up global polyfills for browser environment

@@ -21,9 +21,19 @@ export class CreatureCollection {
     this.toggleCollectionBtn = document.getElementById('toggleCollection') as HTMLButtonElement
     this.collectionGrid = document.getElementById('collection-grid') as HTMLDivElement
 
+    console.log('🎨 CreatureCollection initialized')
+    console.log('Panel:', this.collectionPanel ? 'Found' : 'NOT FOUND')
+    console.log('Button:', this.toggleCollectionBtn ? 'Found' : 'NOT FOUND')
+    console.log('Grid:', this.collectionGrid ? 'Found' : 'NOT FOUND')
+
     this.setupEventListeners()
     this.loadFromLocalStorage()
     this.render()
+    
+    // Add test creature in dev mode
+    if (import.meta.env.DEV) {
+      this.addTestCreature()
+    }
   }
 
   public setAudioCallbacks(callbacks: UICallbacks) {
@@ -43,14 +53,26 @@ export class CreatureCollection {
   }
 
   public toggle() {
+    console.log('🔄 Toggling collection panel')
+    console.log('Panel element:', this.collectionPanel)
+    console.log('Current classes:', this.collectionPanel?.className)
     this.collectionPanel?.classList.toggle('hidden')
+    console.log('After toggle:', this.collectionPanel?.className)
+    console.log('Collection size:', this.capturedCreatures.length)
   }
 
   public addCreature(metadata: CreatureCardMetadata, thumbnail: string): boolean {
+    console.log('🎨 CreatureCollection.addCreature called:', metadata.creatureName)
+    console.log('📊 Current collection size:', this.capturedCreatures.length)
+    console.log('🖼️ Thumbnail length:', thumbnail.length)
+    
     // Check if already captured
-    const exists = this.capturedCreatures.some(c => c.id === this.getCreatureId(metadata))
+    const creatureId = this.getCreatureId(metadata)
+    console.log('🆔 Creature ID:', creatureId)
+    
+    const exists = this.capturedCreatures.some(c => c.id === creatureId)
     if (exists) {
-      console.log('Creature already in collection')
+      console.log('⚠️ Creature already in collection')
       return false
     }
 
@@ -58,20 +80,24 @@ export class CreatureCollection {
     if (this.capturedCreatures.length >= this.maxCreatures) {
       const removed = this.capturedCreatures.shift()
       if (removed) {
+        console.log('🗑️ Removing oldest creature:', removed.metadata.creatureName)
         this.removeFromLocalStorage(removed.id)
       }
     }
 
     const captured: CapturedCreature = {
-      id: this.getCreatureId(metadata),
+      id: creatureId,
       metadata,
       thumbnail,
       captureTime: Date.now()
     }
 
     this.capturedCreatures.push(captured)
+    console.log('💾 Saving to localStorage...')
     this.saveToLocalStorage(captured)
+    console.log('🎨 Rendering collection...')
     this.render()
+    console.log('✅ Creature added successfully! New size:', this.capturedCreatures.length)
     return true
   }
 
@@ -119,8 +145,11 @@ export class CreatureCollection {
         <p class="creature-size">${creature.metadata.anatomy.size}</p>
       </div>
       <div class="creature-actions">
-        <button class="export-btn" data-id="${creature.id}">
+        <button class="export-btn" data-id="${creature.id}" data-format="png">
           💾 Export PNG
+        </button>
+        <button class="export-btn" data-id="${creature.id}" data-format="jpg">
+          💾 Export JPG
         </button>
         <button class="remove-btn" data-id="${creature.id}">
           🗑️ Remove
@@ -129,12 +158,15 @@ export class CreatureCollection {
     `
 
     // Add event listeners
-    const exportBtn = card.querySelector('.export-btn') as HTMLButtonElement
+    const exportBtns = card.querySelectorAll('.export-btn') as NodeListOf<HTMLButtonElement>
     const removeBtn = card.querySelector('.remove-btn') as HTMLButtonElement
 
-    exportBtn?.addEventListener('click', () => {
-      this.audioCallbacks.onClick?.()
-      this.exportCreature(creature)
+    exportBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        this.audioCallbacks.onClick?.()
+        const format = btn.dataset.format as 'png' | 'jpg'
+        this.exportCreature(creature, format)
+      })
     })
 
     removeBtn?.addEventListener('click', () => {
@@ -161,40 +193,64 @@ export class CreatureCollection {
     return '⚪ Common'
   }
 
-  private exportCreature(creature: CapturedCreature) {
-    console.log('Exporting creature:', creature.metadata.creatureName)
+  private exportCreature(creature: CapturedCreature, format: 'png' | 'jpg' = 'png') {
+    console.log('Exporting creature:', creature.metadata.creatureName, 'as', format)
 
     try {
-      // Convert base64 to blob
-      const arr = creature.thumbnail.split(',')
-      const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png'
-      const bstr = atob(arr[1])
-      let n = bstr.length
-      const u8arr = new Uint8Array(n)
+      // Create a temporary canvas to convert format if needed
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = img.width
+        canvas.height = img.height
+        const ctx = canvas.getContext('2d')!
 
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n)
+        // For JPG, add white background
+        if (format === 'jpg') {
+          ctx.fillStyle = '#ffffff'
+          ctx.fillRect(0, 0, canvas.width, canvas.height)
+        }
+
+        ctx.drawImage(img, 0, 0)
+
+        // Convert to desired format
+        const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png'
+        const quality = format === 'jpg' ? 0.95 : undefined
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              console.error('Failed to create blob')
+              return
+            }
+
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            const filename = `creature-card-${creature.metadata.creatureName.replace(/\s+/g, '-')}.${format}`
+            link.href = url
+            link.download = filename
+            link.style.display = 'none'
+
+            document.body.appendChild(link)
+            link.click()
+
+            setTimeout(() => {
+              document.body.removeChild(link)
+              URL.revokeObjectURL(url)
+            }, 100)
+
+            console.log(`Exported: ${filename}`)
+          },
+          mimeType,
+          quality
+        )
       }
 
-      const blob = new Blob([u8arr], { type: mime })
-      const url = URL.createObjectURL(blob)
+      img.onerror = () => {
+        console.error('Failed to load image for export')
+      }
 
-      // Create download link
-      const link = document.createElement('a')
-      const filename = `creature-card-${creature.metadata.creatureName.replace(/\s+/g, '-')}.png`
-      link.href = url
-      link.download = filename
-      link.style.display = 'none'
-
-      document.body.appendChild(link)
-      link.click()
-
-      setTimeout(() => {
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
-      }, 100)
-
-      console.log(`Exported: ${filename}`)
+      img.src = creature.thumbnail
     } catch (error) {
       console.error('Export failed:', error)
     }
@@ -252,5 +308,48 @@ export class CreatureCollection {
 
   public isFull(): boolean {
     return this.capturedCreatures.length >= this.maxCreatures
+  }
+
+  private addTestCreature() {
+    console.log('🧪 Adding test creature...')
+    
+    // Create a simple test image (red square)
+    const canvas = document.createElement('canvas')
+    canvas.width = 200
+    canvas.height = 200
+    const ctx = canvas.getContext('2d')!
+    
+    // Draw a gradient background
+    const gradient = ctx.createLinearGradient(0, 0, 200, 200)
+    gradient.addColorStop(0, '#ff6b6b')
+    gradient.addColorStop(1, '#4ecdc4')
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, 200, 200)
+    
+    // Draw text
+    ctx.fillStyle = '#fff'
+    ctx.font = 'bold 24px Arial'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('TEST', 100, 80)
+    ctx.fillText('CREATURE', 100, 120)
+    
+    const testThumbnail = canvas.toDataURL('image/png')
+    
+    const testMetadata: CreatureCardMetadata = {
+      version: '1.0',
+      creatureName: 'Test Creature',
+      anatomy: {
+        archetype: 'terrestrial',
+        size: 'medium',
+        rarity: 0.75,
+      } as any,
+      rarity: 0.75,
+      seed: 12345,
+      captureDate: new Date().toISOString()
+    }
+    
+    const result = this.addCreature(testMetadata, testThumbnail)
+    console.log('🧪 Test creature added:', result)
   }
 }

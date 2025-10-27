@@ -827,19 +827,22 @@ canvas { display: block; }
 
 .creature-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .creature-actions button {
   flex: 1;
-  padding: 8px;
+  min-width: 80px;
+  padding: 6px 8px;
   border: 1px solid rgba(102, 204, 255, 0.3);
   background: rgba(102, 204, 255, 0.1);
   color: #6cf;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .creature-actions button:hover {

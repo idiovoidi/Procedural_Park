@@ -212,9 +212,11 @@ export class Game {
    * Export creature card
    */
   private async exportCreatureCard(): Promise<void> {
+    console.log('🎯 exportCreatureCard called')
     const { photo, scene, ui, creatures } = this.systems
 
     try {
+      console.log('📸 Calling photo.exportCreatureCard...')
       const result = await photo.exportCreatureCard(
         creatures.getAllCreatures(),
         this.systems.camera.camera,
@@ -222,18 +224,24 @@ export class Game {
         GAME_CONFIG.WORLD_SEED
       )
 
+      console.log('📦 Export result:', result ? 'Success' : 'No creature found')
+
       if (result) {
+        console.log('➕ Adding to collection:', result.metadata.creatureName)
         const added = ui.addCreatureToCollection(result.metadata, result.thumbnail)
+        console.log('Collection add result:', added ? 'Added' : 'Already exists')
+        
         if (added) {
           ui.showToast(`📦 Captured ${result.metadata.creatureName}!`)
         } else {
           ui.showToast(`Already have ${result.metadata.creatureName}`)
         }
       } else {
+        console.warn('⚠️ No creature in view')
         ui.showToast('❌ No creature in view')
       }
     } catch (error) {
-      console.error('Failed to capture creature:', error)
+      console.error('❌ Failed to capture creature:', error)
       ui.showToast('❌ Capture failed')
     }
   }
@@ -465,6 +473,9 @@ export class Game {
    * Get state manager (for console debugging)
    */
   public getStateManager(): IntegratedStateManager {
+    if (!this.systems) {
+      throw new Error('Game not initialized yet. Call game.start() first.')
+    }
     return this.systems.state
   }
 

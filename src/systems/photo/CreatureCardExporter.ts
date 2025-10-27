@@ -133,8 +133,33 @@ export class CreatureCardExporter {
       captureDate: new Date().toISOString(),
     }
 
-    // Get thumbnail data
-    const dataUrl = canvas.toDataURL('image/png')
+    // Create enhanced card with border and text
+    console.log('Creating enhanced card with border and name...')
+    const enhancedCanvas = this.createEnhancedCard(canvas, creatureName, creature.rarity)
+    console.log(`Enhanced canvas size: ${enhancedCanvas.width}x${enhancedCanvas.height}`)
+    
+    // Debug: Show enhanced canvas
+    if (import.meta.env.DEV) {
+      const debugCanvas = document.getElementById('creature-card-debug-canvas') as HTMLCanvasElement
+      if (debugCanvas) {
+        const debugCtx = debugCanvas.getContext('2d')
+        if (debugCtx) {
+          // Resize debug canvas to match enhanced size
+          debugCanvas.width = enhancedCanvas.width
+          debugCanvas.height = enhancedCanvas.height
+          debugCtx.drawImage(enhancedCanvas, 0, 0)
+          debugCanvas.style.display = 'block'
+          setTimeout(() => {
+            debugCanvas.style.display = 'none'
+            // Reset size
+            debugCanvas.width = this.cardWidth
+            debugCanvas.height = this.cardHeight
+          }, 3000) // Show for 3 seconds
+        }
+      }
+    }
+    
+    const dataUrl = enhancedCanvas.toDataURL('image/png')
 
     console.log(`Generated dataURL length: ${dataUrl.length} characters`)
 
@@ -146,11 +171,144 @@ export class CreatureCardExporter {
     const metadataKey = `creature-card-${metadata.creatureName}-${Date.now()}`
     localStorage.setItem(metadataKey, JSON.stringify(metadata))
     console.log(`Stored metadata in localStorage: ${metadataKey}`)
+    console.log(`✅ Creature card created successfully for ${creatureName}`)
 
     // Cleanup
     this.cardScene.remove(creatureClone)
 
     return { metadata, thumbnail: dataUrl }
+  }
+
+  /**
+   * Create enhanced card with border and creature name
+   */
+  private createEnhancedCard(
+    sourceCanvas: HTMLCanvasElement,
+    creatureName: string,
+    rarity: number
+  ): HTMLCanvasElement {
+    // Create new canvas with padding for border and text
+    const padding = 40
+    const textHeight = 60
+    const newWidth = this.cardWidth + padding * 2
+    const newHeight = this.cardHeight + padding * 2 + textHeight
+
+    const enhancedCanvas = document.createElement('canvas')
+    enhancedCanvas.width = newWidth
+    enhancedCanvas.height = newHeight
+    const ctx = enhancedCanvas.getContext('2d')!
+
+    // Background gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, newHeight)
+    gradient.addColorStop(0, '#0a0f19')
+    gradient.addColorStop(1, '#1a1f2e')
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, newWidth, newHeight)
+
+    // Get rarity color
+    const rarityColor = this.getRarityColor(rarity)
+    const rarityGlow = this.getRarityGlow(rarity)
+
+    // Outer glow for legendary creatures
+    if (rarity > 0.8) {
+      ctx.shadowColor = rarityGlow
+      ctx.shadowBlur = 30
+      ctx.strokeStyle = rarityGlow
+      ctx.lineWidth = 4
+      ctx.strokeRect(padding - 10, padding - 10, this.cardWidth + 20, this.cardHeight + 20)
+      ctx.shadowBlur = 0
+    }
+
+    // Border
+    ctx.strokeStyle = rarityColor
+    ctx.lineWidth = 6
+    ctx.strokeRect(padding, padding, this.cardWidth, this.cardHeight)
+
+    // Inner border
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'
+    ctx.lineWidth = 2
+    ctx.strokeRect(padding + 3, padding + 3, this.cardWidth - 6, this.cardHeight - 6)
+
+    // Draw creature image
+    ctx.drawImage(sourceCanvas, padding, padding, this.cardWidth, this.cardHeight)
+
+    // Text background
+    const textY = padding + this.cardHeight + 10
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
+    ctx.fillRect(padding, textY, this.cardWidth, textHeight - 10)
+
+    // Creature name
+    ctx.fillStyle = rarityColor
+    ctx.font = 'bold 28px Arial, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+
+    // Add text shadow for better readability
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
+    ctx.shadowBlur = 4
+    ctx.shadowOffsetX = 2
+    ctx.shadowOffsetY = 2
+
+    ctx.fillText(creatureName, newWidth / 2, textY + (textHeight - 10) / 2)
+
+    // Reset shadow
+    ctx.shadowColor = 'transparent'
+    ctx.shadowBlur = 0
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 0
+
+    // Rarity indicator (small badge in corner)
+    const badgeSize = 50
+    const badgeX = newWidth - padding - badgeSize - 10
+    const badgeY = padding + 10
+
+    ctx.fillStyle = rarityColor
+    ctx.beginPath()
+    ctx.arc(badgeX + badgeSize / 2, badgeY + badgeSize / 2, badgeSize / 2, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Rarity stars
+    ctx.fillStyle = '#fff'
+    ctx.font = 'bold 24px Arial'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    const stars = this.getRarityStars(rarity)
+    ctx.fillText(stars, badgeX + badgeSize / 2, badgeY + badgeSize / 2)
+
+    return enhancedCanvas
+  }
+
+  /**
+   * Get rarity color
+   */
+  private getRarityColor(rarity: number): string {
+    if (rarity > 0.8) return '#ffd700' // Legendary - Gold
+    if (rarity > 0.6) return '#a335ee' // Epic - Purple
+    if (rarity > 0.4) return '#0070dd' // Rare - Blue
+    if (rarity > 0.2) return '#1eff00' // Uncommon - Green
+    return '#9d9d9d' // Common - Gray
+  }
+
+  /**
+   * Get rarity glow color
+   */
+  private getRarityGlow(rarity: number): string {
+    if (rarity > 0.8) return '#ffaa00'
+    if (rarity > 0.6) return '#8800ff'
+    if (rarity > 0.4) return '#0088ff'
+    if (rarity > 0.2) return '#00ff00'
+    return '#666666'
+  }
+
+  /**
+   * Get rarity stars
+   */
+  private getRarityStars(rarity: number): string {
+    if (rarity > 0.8) return '⭐'
+    if (rarity > 0.6) return '💎'
+    if (rarity > 0.4) return '🔷'
+    if (rarity > 0.2) return '🔹'
+    return '⚪'
   }
 
   /**

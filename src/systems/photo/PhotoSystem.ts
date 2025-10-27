@@ -94,14 +94,23 @@ export class PhotoSystem {
     scene: THREE.Scene,
     worldSeed: number
   ): Promise<{ metadata: import('./CreatureCardExporter').CreatureCardMetadata; thumbnail: string } | null> {
+    console.log('🔍 PhotoSystem.exportCreatureCard - Starting search')
+    console.log('Total creatures:', creatures.length)
+    
     // Find the best creature in view (same logic as takePhoto)
     let best: { c: CreatureInstance, score: number } | null = null
+    let checkedCount = 0
+    let inViewCount = 0
     
     for (const c of creatures) {
+      checkedCount++
       const clipPos = c.group.position.clone().project(camera)
+      
       if (Math.abs(clipPos.x) > 1 || Math.abs(clipPos.y) > 1 || clipPos.z > 1 || clipPos.z < -1) {
         continue
       }
+      
+      inViewCount++
       
       this.raycaster.setFromCamera(new THREE.Vector2(clipPos.x, clipPos.y), camera)
       const hits = this.raycaster.intersectObjects(scene.children, true)
@@ -115,12 +124,20 @@ export class PhotoSystem {
       }
     }
 
+    console.log(`Checked ${checkedCount} creatures, ${inViewCount} in view`)
+
     if (best) {
+      console.log(`✅ Found best creature with score ${best.score}`)
+      console.log('🎨 Calling cardExporter.exportCreatureCard...')
       const result = await this.cardExporter.exportCreatureCard(best.c, worldSeed)
-      console.log(`Captured creature card: ${generateCreatureName(best.c)}`)
+      console.log(`✅ Card exported, result:`, result ? 'Success' : 'Failed')
+      if (result) {
+        console.log(`Creature name: ${result.metadata.creatureName}`)
+        console.log(`Thumbnail length: ${result.thumbnail.length}`)
+      }
       return result
     } else {
-      console.warn('No creature in view to export')
+      console.warn('❌ No creature in view to export')
       return null
     }
   }
