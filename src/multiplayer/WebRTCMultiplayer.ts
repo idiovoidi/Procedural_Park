@@ -11,10 +11,9 @@
  */
 
 import * as THREE from 'three'
-import { WebRTCPeer } from './WebRTCPeer'
-import { StateSync } from './StateSync'
-import { PeerAvatar } from './PeerAvatar'
-import { ConnectionUI } from './ConnectionUI'
+import { WebRTCPeer, ConnectionUI } from './webrtc'
+import { StateSync } from './state-sync'
+import { PeerAvatar } from './peer-avatar'
 import type { GameState, GameEvent, ConnectionStatus, WebRTCConfig } from './types'
 import { MessageType } from './types'
 

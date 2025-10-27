@@ -13,9 +13,7 @@ import { DebugPanel } from '@ui/debug'
 import { InputManager } from '@systems/input'
 import { IntegratedStateManager, createStateSyncHelpers, type GameStateType } from '@systems/state'
 import { GAME_CONFIG } from '@core/constants'
-import { CreatureManager } from './CreatureManager'
-import { MultiplayerManager } from './MultiplayerManager'
-import { ShaderService } from './ShaderService'
+import { CreatureManager, MultiplayerManager, ShaderService } from '@game/managers'
 
 export interface GameSystems {
   scene: SceneManager

@@ -65,25 +65,71 @@ npm run preview
 
 ### Project Structure
 
+The codebase is organized into modular domains with clear responsibilities and dependencies:
+
 ```
 src/
-├── multiplayer/          # WebRTC multiplayer system
-│   ├── types.ts         # Shared types and interfaces
-│   ├── WebRTCPeer.ts    # WebRTC connection wrapper
-│   ├── StateSync.ts     # Binary state synchronization
-│   ├── PeerAvatar.ts    # Peer rendering in 3D scene
-│   ├── ConnectionUI.ts  # Connection UI components
-│   └── WebRTCMultiplayer.ts  # Main multiplayer coordinator
-├── shaders/             # Custom GLSL shaders
-├── types/               # TypeScript type definitions
-├── input-manager.ts     # Centralized input handling
-├── game.ts              # Main game logic
-├── scene.ts             # Scene management
-├── camera.ts            # Camera controller
-├── creatures.ts         # Creature behavior
-├── photo-system.ts      # Photography mechanics
-└── ui.ts                # User interface
+├── core/                # Core utilities and constants (no dependencies)
+│   ├── constants/       # Game configuration, biome config, physics constants
+│   ├── utils/           # Math utilities, object pooling, random utilities
+│   └── types/           # Shared type definitions
+├── systems/             # Game systems (depend on core)
+│   ├── creatures/       # Creature generation, behavior, and pooling
+│   ├── terrain/         # Terrain and biome generation
+│   ├── audio/           # Audio management and sound generation
+│   ├── camera/          # Camera control (ride + free roam)
+│   ├── photo/           # Photography system and scoring
+│   ├── input/           # Centralized input handling
+│   └── state/           # State management and synchronization
+├── rendering/           # Rendering systems (depend on core + systems)
+│   ├── scene/           # 3D scene management
+│   ├── shaders/         # Custom GLSL shaders
+│   ├── visual-effects/  # Post-processing effects (CRT, film grain, etc.)
+│   └── textures/        # Texture generation
+├── ui/                  # User interface (depend on core + systems)
+│   ├── components/      # UI components (gallery, settings, mini-map, etc.)
+│   ├── managers/        # UI coordination
+│   └── debug/           # Debug panels and performance monitoring
+├── multiplayer/         # Multiplayer systems (depend on core + systems)
+│   ├── webrtc/          # WebRTC peer connections
+│   ├── state-sync/      # Binary state synchronization
+│   └── peer-avatar/     # Peer rendering in 3D scene
+├── game/                # Game orchestration (can depend on anything)
+│   ├── Game.ts          # Main game class
+│   ├── GameLoop.ts      # Game loop implementation
+│   └── managers/        # High-level system managers
+└── main.ts              # Application entry point
 ```
+
+See [docs/structure.md](docs/structure.md) for detailed module documentation.
+
+### Module System
+
+The codebase uses path aliases for clean imports:
+
+```typescript
+// Import from core utilities
+import { GAME_CONFIG } from '@core/constants'
+import { getPooledVector3 } from '@core/utils'
+
+// Import from game systems
+import { CreatureManager } from '@systems/creatures'
+import { TerrainSystem } from '@systems/terrain'
+import { CameraController } from '@systems/camera'
+
+// Import from rendering
+import { SceneManager } from '@rendering/scene'
+import { ShaderManager } from '@rendering/shaders'
+
+// Import from UI
+import { UIManager } from '@ui/managers'
+
+// Import from multiplayer
+import { WebRTCPeer } from '@multiplayer/webrtc'
+import { StateSync } from '@multiplayer/state-sync'
+```
+
+Each module exports its public API through barrel exports (`index.ts`), making it easy to import only what you need.
 
 ### Scripts
 
@@ -97,6 +143,8 @@ src/
 
 ## Documentation
 
+- [Project Structure](docs/structure.md) - Detailed module organization and architecture
+- [Migration Guide](docs/migration-guide.md) - Guide for navigating the modular structure
 - [Multiplayer User Guide](docs/multiplayer-guide.md) - How to connect and play with friends
 - [Input Manager](docs/input-manager.md) - Centralized input handling system
 - [Troubleshooting](docs/troubleshooting.md) - Common issues and solutions

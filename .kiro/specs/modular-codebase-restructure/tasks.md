@@ -214,6 +214,7 @@
 - [ ] 15. Move UI system to `ui/`
 
 
+
 - [ ] 15.1 Refactor ui.ts into components
   - Create `ui/managers/UIManager.ts` for main UI manager
   - Extract gallery logic to `ui/components/gallery.ts`
@@ -235,9 +236,11 @@
   - Update all imports to use `@ui/*`
   - _Requirements: 2.1, 2.2, 5.3_
 
-- [ ] 16. Move multiplayer system to `multiplayer/`
+- [x] 16. Move multiplayer system to `multiplayer/`
 
-- [ ] 16.1 Reorganize multiplayer directory
+
+- [x] 16.1 Reorganize multiplayer directory
+
   - Move `multiplayer/WebRTCPeer.ts` to `multiplayer/webrtc/WebRTCPeer.ts`
   - Move `multiplayer/ConnectionUI.ts` to `multiplayer/webrtc/ConnectionUI.ts`
   - Move `multiplayer/StateSync.ts` to `multiplayer/state-sync/StateSync.ts`
@@ -245,28 +248,46 @@
   - Keep `MultiplayerManager.ts` in `game/managers/` (orchestration layer)
   - _Requirements: 1.1, 1.3, 4.1_
 
-- [ ] 16.2 Create barrel exports and update imports
+- [x] 16.2 Create barrel exports and update imports
+
+
   - Create `multiplayer/webrtc/index.ts` with public API
   - Create `multiplayer/state-sync/index.ts` with public API
   - Create `multiplayer/peer-avatar/index.ts` with public API
   - Update all imports to use `@multiplayer/*`
   - _Requirements: 2.1, 2.2, 5.3_
 
+
+
+
+
+
 - [ ] 17. Organize game orchestration layer
 
-- [ ] 17.1 Keep game directory organized
+- [x] 17.1 Keep game directory organized
+
+
+
+
+
+
   - Ensure `Game.ts`, `GameLoop.ts`, `SystemsCoordinator.ts`, `InputHandler.ts` remain in `game/`
   - Move `CreatureManager.ts`, `MultiplayerManager.ts`, `ShaderService.ts` to `game/managers/`
   - _Requirements: 1.1, 1.4, 4.1_
+
+
 
 - [ ] 17.2 Update game imports
   - Update all imports in game files to use new path aliases
   - _Requirements: 5.3_
 
+
+
 - [ ] 18. Update documentation
 
 - [ ] 18.1 Update structure documentation
   - Rewrite `docs/structure.md` with new module structure
+
   - Add module dependency diagram
   - Document each module's purpose and responsibilities
   - _Requirements: 7.1, 7.2, 7.3_

@@ -1,4 +1,5 @@
 // Barrel export for game managers
-// Will be populated as files are moved
 
-export {};
+export { CreatureManager } from './CreatureManager'
+export { MultiplayerManager } from './MultiplayerManager'
+export { ShaderService } from './ShaderService'

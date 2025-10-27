@@ -1,4 +1,7 @@
-// Barrel export for WebRTC multiplayer
-// Will be populated as files are moved
+/**
+ * WebRTC multiplayer module
+ * Handles peer-to-peer connections and UI
+ */
 
-export {};
+export { WebRTCPeer } from './WebRTCPeer'
+export { ConnectionUI } from './ConnectionUI'

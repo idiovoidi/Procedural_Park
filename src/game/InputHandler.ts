@@ -6,7 +6,7 @@
 import type { InputManager } from '@systems/input'
 import type { CameraController } from '@systems/camera'
 import type { IntegratedStateManager } from '@systems/state'
-import type { UIManager } from '../ui'
+import type { UIManager } from '@ui/managers'
 import type { VideoRecorder } from '../video-recorder'
 import type { ShaderConfig } from '@rendering/shaders'
 import type { SceneManager } from '@rendering/scene'

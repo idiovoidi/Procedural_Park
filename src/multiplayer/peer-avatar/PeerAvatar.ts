@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { GameState } from './types'
+import type { GameState } from '../types'
 
 /**
  * PeerAvatar renders the other player in the 3D scene

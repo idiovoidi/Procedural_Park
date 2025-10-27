@@ -1,4 +1,6 @@
-// Barrel export for state synchronization
-// Will be populated as files are moved
+/**
+ * State synchronization module
+ * Handles binary serialization and state management
+ */
 
-export {};
+export { StateSync } from './StateSync'

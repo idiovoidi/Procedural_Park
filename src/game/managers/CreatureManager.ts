@@ -14,7 +14,7 @@ import {
 import { GAME_CONFIG } from '@core/constants'
 import type { AudioManager } from '@systems/audio'
 import type { CameraController } from '@systems/camera'
-import type { UIManager } from '../ui'
+import type { UIManager } from '@ui/managers'
 import type { IntegratedStateManager } from '@systems/state'
 import type { ParkStructures } from '@rendering/scene'
 

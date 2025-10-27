@@ -4,10 +4,10 @@
  */
 
 import * as THREE from 'three'
-import { WebRTCMultiplayer } from '../multiplayer/WebRTCMultiplayer'
-import { DEFAULT_CONFIG, type GameState, type GameEvent } from '../multiplayer/types'
+import { WebRTCMultiplayer } from '@multiplayer/WebRTCMultiplayer'
+import { DEFAULT_CONFIG, type GameState, type GameEvent } from '@multiplayer/types'
 import type { IntegratedStateManager, createStateSyncHelpers } from '@systems/state'
-import type { UIManager } from '../ui'
+import type { UIManager } from '@ui/managers'
 import type { AudioManager } from '@systems/audio'
 import type { CameraController } from '@systems/camera'
 import { GAME_CONFIG } from '@core/constants'

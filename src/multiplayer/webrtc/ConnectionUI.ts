@@ -1,4 +1,4 @@
-import type { ConnectionStatus } from './types'
+import type { ConnectionStatus } from '../types'
 
 /**
  * ConnectionUI manages the user interface for WebRTC multiplayer connections

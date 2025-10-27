@@ -1,4 +1,6 @@
-// Barrel export for peer avatars
-// Will be populated as files are moved
+/**
+ * Peer avatar module
+ * Handles 3D rendering of remote players
+ */
 
-export {};
+export { PeerAvatar } from './PeerAvatar'

@@ -9,8 +9,8 @@
  * - Message type handling (STATE_UPDATE, GAME_EVENT, PING, PONG)
  */
 
-import type { GameState, GameEvent } from './types';
-import { MessageType } from './types';
+import type { GameState, GameEvent } from '../types';
+import { MessageType } from '../types';
 
 /**
  * Binary message format:
