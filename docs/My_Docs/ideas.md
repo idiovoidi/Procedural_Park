@@ -7,3 +7,11 @@ Collect and save RNG creature mechanic into a codex
 ~~Creature cards will allow the storage of up to 10 creatures in the players collection tab~~ ✅ **IMPLEMENTED** - Press K to view collection, export PNGs from there
 
 Creature combiner where you can combine the aspects of 2 different creatures and see the results. Later this can be worked into a breeding mechanic.
+
+Buy mechanic at food store
+
+Implement a player money system
+
+World map system with other areas
+A map handler manager to manage map state and map switching
+new folder to contain all the new maps to keep areas organised

@@ -41,52 +41,78 @@ export class Game {
    * Initialize the game
    */
   private async initialize(): Promise<void> {
-    // Show loading screen
     const loadingEl = document.getElementById('loading')
-    loadingEl?.classList.remove('hidden')
+    
+    try {
+      // Show loading screen
+      loadingEl?.classList.remove('hidden')
 
-    // Initialize all systems
-    const coordinator = new SystemsCoordinator(this.container)
-    this.systems = await coordinator.initialize()
+      // Initialize all systems
+      const coordinator = new SystemsCoordinator(this.container)
+      this.systems = await coordinator.initialize()
 
-    // Initialize game loop
-    this.gameLoop = new GameLoop(this.systems)
+      // Initialize game loop
+      this.gameLoop = new GameLoop(this.systems)
 
-    // Setup input handler
-    this.setupInputHandler()
+      // Setup input handler
+      this.setupInputHandler()
 
-    // Setup recording indicator
-    this.setupRecordingIndicator()
+      // Setup recording indicator
+      this.setupRecordingIndicator()
 
-    // Initialize state machine debug panel in development
-    if (import.meta.env.DEV) {
-      this.initializeStateDebugPanel()
+      // Initialize state machine debug panel in development
+      if (import.meta.env.DEV) {
+        this.initializeStateDebugPanel()
+      }
+
+      // Spawn creatures
+      this.systems.creatures.spawnCreatures()
+      this.systems.creatures.spawnExperimentCreature()
+
+      // Update lab sign with experiment creature name
+      this.updateLabSign()
+
+      // Start ambient sounds
+      this.systems.audio.startAmbientSound('forest_ambient', 0.5)
+
+      // Setup UI callbacks
+      this.setupUICallbacks()
+
+      // Initialize world state manager
+      this.initializeWorldState()
+
+      // Initialize food system
+      this.initializeFoodSystem()
+
+      // Hide loading screen and transition to playing state
+      setTimeout(() => {
+        loadingEl?.classList.add('hidden')
+        this.systems.state.setFlowState('playing')
+      }, GAME_CONFIG.LOADING_SCREEN_DELAY_MS)
+    } catch (error) {
+      console.error('❌ Game initialization failed:', error)
+      
+      // Show error in loading screen
+      if (loadingEl) {
+        loadingEl.innerHTML = `
+          <div style="text-align: center; color: #ef4444;">
+            <h2 style="margin-bottom: 1rem;">⚠️ Initialization Error</h2>
+            <p style="margin-bottom: 1rem;">Failed to initialize game systems.</p>
+            <button 
+              onclick="location.reload()" 
+              style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;"
+            >
+              Reload Page
+            </button>
+            ${import.meta.env.DEV ? `<pre style="margin-top: 1rem; text-align: left; font-size: 0.75rem; color: #fbbf24; max-width: 600px; overflow: auto;">${error instanceof Error ? error.stack : String(error)}</pre>` : ''}
+          </div>
+        `
+        loadingEl.classList.remove('hidden')
+      }
+      
+      // Re-throw to propagate to start() method
+      throw error
     }
-
-    // Spawn creatures
-    this.systems.creatures.spawnCreatures()
-    this.systems.creatures.spawnExperimentCreature()
-
-    // Update lab sign with experiment creature name
-    this.updateLabSign()
-
-    // Start ambient sounds
-    this.systems.audio.startAmbientSound('forest_ambient', 0.5)
-
-    // Setup UI callbacks
-    this.setupUICallbacks()
-
-    // Initialize world state manager
-    this.initializeWorldState()
-
-    // Initialize food system
-    this.initializeFoodSystem()
-
-    // Hide loading screen and transition to playing state
-    setTimeout(() => {
-      loadingEl?.classList.add('hidden')
-      this.systems.state.setFlowState('playing')
-    }, GAME_CONFIG.LOADING_SCREEN_DELAY_MS)
   }
 
   /**
