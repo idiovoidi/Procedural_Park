@@ -120,6 +120,8 @@ export class SaveLoadMenu {
   }
 
   public toggle(): void {
+    console.log('SaveLoadMenu.toggle() called, isOpen:', this.isOpen)
+    console.log('worldStateManager:', this.worldStateManager)
     if (this.isOpen) {
       this.close()
     } else {

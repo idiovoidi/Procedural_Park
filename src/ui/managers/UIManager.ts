@@ -35,6 +35,12 @@ export class UIManager {
     this.restartRideBtn = document.getElementById('restartRide') as HTMLButtonElement
     this.toggleSaveLoadBtn = document.getElementById('toggleSaveLoad') as HTMLButtonElement
 
+    if (!this.toggleSaveLoadBtn) {
+      console.error('toggleSaveLoad button not found in DOM!')
+    } else {
+      console.log('toggleSaveLoad button found:', this.toggleSaveLoadBtn)
+    }
+
     this.setupEventListeners()
     this.createShaderStatusIndicator()
   }
@@ -54,10 +60,16 @@ export class UIManager {
     })
 
     // Setup save/load button
-    this.toggleSaveLoadBtn?.addEventListener('click', () => {
-      this.audioCallbacks.onClick?.()
-      this.toggleSaveLoadMenu()
-    })
+    if (this.toggleSaveLoadBtn) {
+      console.log('Adding click listener to save/load button')
+      this.toggleSaveLoadBtn.addEventListener('click', () => {
+        console.log('Save/load button clicked!')
+        this.audioCallbacks.onClick?.()
+        this.toggleSaveLoadMenu()
+      })
+    } else {
+      console.error('Cannot add listener: toggleSaveLoadBtn is null')
+    }
 
     // Setup restart button
     this.restartRideBtn?.addEventListener('click', () => {
@@ -121,6 +133,7 @@ export class UIManager {
 
   // Save/Load methods
   public toggleSaveLoadMenu() {
+    console.log('toggleSaveLoadMenu called')
     this.saveLoadMenu.toggle()
   }
 
