@@ -9,13 +9,14 @@ import {
   spawnCreatureNearPath,
   spawnCreatureAt,
   type CreatureInstance,
-} from '../creatures'
-import { GAME_CONFIG } from '../constants'
-import type { AudioManager } from '../audio'
-import type { CameraController } from '../camera'
+  generateAnatomy,
+} from '@systems/creatures'
+import { GAME_CONFIG } from '@core/constants'
+import type { AudioManager } from '@systems/audio'
+import type { CameraController } from '@systems/camera'
 import type { UIManager } from '../ui'
-import type { IntegratedStateManager } from '../state-integration'
-import type { ParkStructures } from '../park-structures'
+import type { IntegratedStateManager } from '@systems/state'
+import type { ParkStructures } from '@rendering/scene'
 
 export class CreatureManager {
   private creatures: CreatureInstance[] = []
@@ -51,9 +52,10 @@ export class CreatureManager {
    */
   public spawnCreatures(): void {
     const randWorld = createRng(GAME_CONFIG.WORLD_SEED)
-    this.creatures = Array.from({ length: GAME_CONFIG.CREATURE_COUNT }, () =>
-      spawnCreatureNearPath(this.scene, this.curve, randWorld)
-    )
+    this.creatures = Array.from({ length: GAME_CONFIG.CREATURE_COUNT }, () => {
+      const anatomy = generateAnatomy(randWorld)
+      return spawnCreatureNearPath(this.scene, this.curve, randWorld, anatomy)
+    })
 
     // Update creatures state
     this.syncCreaturesToState()
@@ -65,8 +67,9 @@ export class CreatureManager {
   public spawnExperimentCreature(): void {
     const labPosition = this.parkStructures.getLabPosition()
     const rand = createRng(Math.random() * 100000)
+    const anatomy = generateAnatomy(rand)
 
-    this.experimentCreature = spawnCreatureAt(this.scene, labPosition, rand)
+    this.experimentCreature = spawnCreatureAt(this.scene, labPosition, rand, anatomy)
   }
 
   /**

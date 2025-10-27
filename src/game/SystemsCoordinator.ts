@@ -3,18 +3,16 @@
  * Initializes and coordinates all game systems
  */
 
-import { SceneManager } from '../scene'
-import { CameraController } from '../camera'
-import { UIManager } from '../ui'
-import { PhotoSystem } from '../photo-system'
-import { AudioManager } from '../audio'
+import { SceneManager } from '@rendering/scene'
+import { CameraController } from '@systems/camera'
+import { UIManager } from '@ui/managers'
+import { PhotoSystem } from '@systems/photo'
+import { AudioManager } from '@systems/audio'
 import { VideoRecorder } from '../video-recorder'
-import { DebugPanel } from '../debug'
-import { InputManager } from '../input-manager'
-import { IntegratedStateManager } from '../state-integration'
-import { createStateSyncHelpers } from '../state-sync-helpers'
-import { GAME_CONFIG } from '../constants'
-import type { GameStateType } from '../state-machine'
+import { DebugPanel } from '@ui/debug'
+import { InputManager } from '@systems/input'
+import { IntegratedStateManager, createStateSyncHelpers, type GameStateType } from '@systems/state'
+import { GAME_CONFIG } from '@core/constants'
 import { CreatureManager } from './CreatureManager'
 import { MultiplayerManager } from './MultiplayerManager'
 import { ShaderService } from './ShaderService'
@@ -204,8 +202,8 @@ export class SystemsCoordinator {
     })
 
     state.onSubsystemChange('multiplayer', (event) => {
-      const mpState = event.newState as import('../subsystem-states').MultiplayerState
-      const prevState = event.previousState as import('../subsystem-states').MultiplayerState
+      const mpState = event.newState as import('@systems/state').MultiplayerState
+      const prevState = event.previousState as import('@systems/state').MultiplayerState
       if (mpState.isConnected && !prevState.isConnected) {
         console.log('Multiplayer connected')
       } else if (!mpState.isConnected && prevState.isConnected) {

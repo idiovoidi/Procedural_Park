@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { ObjectPool } from './utils'
+import { ObjectPool } from '@core/utils'
 
 export type ParticleType = 'dust' | 'splash' | 'sparkle' | 'leaf' | 'feather'
 

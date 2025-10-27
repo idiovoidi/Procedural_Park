@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import path from 'path'
 
 export default defineConfig({
   // Base path for GitHub Pages deployment
@@ -12,6 +13,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
+      '@core': path.resolve(__dirname, './src/core'),
+      '@systems': path.resolve(__dirname, './src/systems'),
+      '@rendering': path.resolve(__dirname, './src/rendering'),
+      '@ui': path.resolve(__dirname, './src/ui'),
+      '@multiplayer': path.resolve(__dirname, './src/multiplayer'),
+      '@game': path.resolve(__dirname, './src/game'),
       buffer: 'buffer',
       process: 'process/browser',
     },

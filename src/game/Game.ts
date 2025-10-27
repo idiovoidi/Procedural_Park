@@ -6,8 +6,8 @@
 import { SystemsCoordinator, type GameSystems } from './SystemsCoordinator'
 import { GameLoop } from './GameLoop'
 import { InputHandler, type InputHandlerCallbacks } from './InputHandler'
-import { GAME_CONFIG } from '../constants'
-import type { IntegratedStateManager } from '../state-integration'
+import { GAME_CONFIG } from '@core/constants'
+import type { IntegratedStateManager } from '@systems/state'
 
 export class Game {
   private systems!: GameSystems

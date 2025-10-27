@@ -4,8 +4,8 @@
  * Provides a clean interface for shader operations
  */
 
-import type { ShaderManager, ShaderConfig } from '../shaders/ShaderManager'
-import { INSCRYPTION_SHADER_DEFAULTS } from '../shaders/InscryptionShaderConfig'
+import type { ShaderManager, ShaderConfig } from '@rendering/shaders'
+import { INSCRYPTION_SHADER_DEFAULTS } from '@rendering/shaders'
 
 export class ShaderService {
   private config: ShaderConfig

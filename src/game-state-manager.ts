@@ -3,7 +3,7 @@
  * High-level wrapper that integrates the state machine with game systems
  */
 
-import { GameStateMachine, type GameStateType } from './state-machine'
+import { GameStateMachine, type GameStateType } from '@systems/state'
 
 export interface GameStateConfig {
   pauseGameLoop?: boolean

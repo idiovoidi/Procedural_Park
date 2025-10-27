@@ -19,7 +19,18 @@
     "noUnusedParameters": false,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    /* Path Aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": ["./src/core/*"],
+      "@systems/*": ["./src/systems/*"],
+      "@rendering/*": ["./src/rendering/*"],
+      "@ui/*": ["./src/ui/*"],
+      "@multiplayer/*": ["./src/multiplayer/*"],
+      "@game/*": ["./src/game/*"]
+    }
   },
   "include": ["src"]
 }

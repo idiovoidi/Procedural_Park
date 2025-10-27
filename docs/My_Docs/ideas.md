@@ -1,0 +1,1 @@
+Have it so the creatures can battle and you can battle your friend

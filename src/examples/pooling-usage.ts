@@ -5,7 +5,7 @@
  */
 
 import * as THREE from 'three'
-import { CreaturePool } from '../creature-pool'
+import { CreaturePool } from '@systems/creatures'
 import { ParticleSystem } from '../particle-system'
 
 export function setupPoolingExample(scene: THREE.Scene) {

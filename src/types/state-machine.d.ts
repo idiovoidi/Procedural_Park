@@ -55,4 +55,4 @@ export type {
   PhotoSystemState,
   AudioSystemState,
   StateChangeEvent,
-} from '../subsystem-states'
+} from '@systems/state'
