@@ -44,6 +44,7 @@ export class UIManager {
     this.gallery.setAudioCallbacks(callbacks)
     this.settings.setAudioCallbacks(callbacks)
     this.shortcuts.setAudioCallbacks(callbacks)
+    this.saveLoadMenu.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
@@ -55,7 +56,7 @@ export class UIManager {
     // Setup save/load button
     this.toggleSaveLoadBtn?.addEventListener('click', () => {
       this.audioCallbacks.onClick?.()
-      this.onToggleSaveLoad?.()
+      this.toggleSaveLoadMenu()
     })
 
     // Setup restart button
@@ -71,7 +72,8 @@ export class UIManager {
     this.settings.onShaderToggle = (enabled) => this.onShaderToggle?.(enabled)
     this.settings.onShaderPresetLoad = (preset) => this.onShaderPresetLoad?.(preset)
     this.settings.onAutoPerformanceToggle = (enabled) => this.onAutoPerformanceToggle?.(enabled)
-    this.settings.onShowCreatureInfoChange = (enabled) => this.toast.setShowCreatureInfoEnabled(enabled)
+    this.settings.onShowCreatureInfoChange = (enabled) =>
+      this.toast.setShowCreatureInfoEnabled(enabled)
     this.settings.onShaderSettingsClick = () => this.toggleShaderDebugUI()
   }
 
@@ -195,7 +197,7 @@ export class UIManager {
       },
       onAutoPerformanceToggle: (enabled) => {
         this.onAutoPerformanceToggle?.(enabled)
-      }
+      },
     }
 
     this.shaderDebugUI = new ShaderDebugUI(callbacks, initialConfig)
@@ -250,12 +252,12 @@ export class UIManager {
       border: 1px solid rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(4px);
     `
-    
+
     indicator.innerHTML = `
       <span class="status-icon">🎨</span>
       <span class="status-text">Shader: ON</span>
     `
-    
+
     document.body.appendChild(indicator)
     this.shaderStatusIndicator = indicator
   }
@@ -268,10 +270,10 @@ export class UIManager {
     qualityLevel: string
   }): void {
     if (!this.shaderStatusIndicator) return
-    
+
     const iconEl = this.shaderStatusIndicator.querySelector('.status-icon') as HTMLSpanElement
     const textEl = this.shaderStatusIndicator.querySelector('.status-text') as HTMLSpanElement
-    
+
     if (status.hasErrors) {
       iconEl.textContent = '⚠️'
       textEl.textContent = 'Shader: ERROR'
@@ -296,21 +298,24 @@ export class UIManager {
   }
 
   // Show shader notification toast
-  public showShaderNotification(message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info'): void {
+  public showShaderNotification(
+    message: string,
+    type: 'info' | 'success' | 'warning' | 'error' = 'info'
+  ): void {
     const colors = {
       info: '#3b82f6',
-      success: '#22c55e', 
+      success: '#22c55e',
       warning: '#f59e0b',
-      error: '#dc2626'
+      error: '#dc2626',
     }
-    
+
     const icons = {
       info: 'ℹ️',
       success: '✅',
       warning: '⚠️',
-      error: '❌'
+      error: '❌',
     }
-    
+
     // Create notification element
     const notification = document.createElement('div')
     notification.style.cssText = `
@@ -331,12 +336,12 @@ export class UIManager {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       animation: slideInRight 0.3s ease-out;
     `
-    
+
     notification.innerHTML = `
       <span>${icons[type]}</span>
       <span>${message}</span>
     `
-    
+
     // Add animation styles
     if (!document.getElementById('shader-notification-styles')) {
       const style = document.createElement('style')
@@ -365,9 +370,9 @@ export class UIManager {
       `
       document.head.appendChild(style)
     }
-    
+
     document.body.appendChild(notification)
-    
+
     // Auto-remove after 4 seconds
     setTimeout(() => {
       notification.style.animation = 'slideOutRight 0.3s ease-in'
