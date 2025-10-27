@@ -1,89 +1,82 @@
-# Project Structure
+---
+inclusion: always
+---
 
-## Source Organization
+# Project Structure & Architecture
 
-```
-src/
-├── Core Systems
-│   ├── main.ts              # Entry point, game initialization
-│   ├── game.ts              # Main game loop, system coordination
-│   ├── scene.ts             # 3D scene management
-│   ├── camera.ts            # Camera controller (ride + free roam)
-│   ├── input-manager.ts     # Centralized input handling
-│   └── constants.ts         # Game configuration constants
-│
-├── Game Systems
-│   ├── creatures.ts         # Creature generation and animation
-│   ├── creature_behaviour.ts # AI behavior patterns
-│   ├── terrain-system.ts    # Procedural terrain generation
-│   ├── park-structures.ts   # Buildings and landmarks
-│   ├── photo-system.ts      # Photography mechanics and scoring
-│   ├── audio.ts             # Audio generation and management
-│   ├── video-recorder.ts    # Screen recording
-│   └── environment-interactions.ts # Creature-environment interactions
-│
-├── Visual Systems
-│   ├── visual-effects/      # Post-processing effects
-│   │   ├── VisualEffectsManager.ts
-│   │   ├── CRTFilter.ts
-│   │   ├── FilmGrainFilter.ts
-│   │   └── ChromaticAberrationFilter.ts
-│   ├── shaders/             # GLSL shader programs
-│   │   ├── ShaderManager.ts
-│   │   ├── InscryptionShader.ts
-│   │   └── ShaderDebugUI.ts
-│   └── textures.ts          # Texture management
-│
-├── Multiplayer
-│   ├── multiplayer/
-│   │   ├── types.ts         # Shared types and interfaces
-│   │   ├── WebRTCPeer.ts    # WebRTC connection wrapper
-│   │   ├── StateSync.ts     # Binary state synchronization
-│   │   ├── PeerAvatar.ts    # Peer rendering in 3D scene
-│   │   ├── ConnectionUI.ts  # Connection UI components
-│   │   └── WebRTCMultiplayer.ts # Main multiplayer coordinator
-│   │   ├── webrtc/          # WebRTC implementation
-│   │   ├── colyseus/        # Legacy Colyseus implementation
-│   │   └── common/          # Shared multiplayer utilities
-│
-├── UI & Utilities
-│   ├── ui.ts                # User interface and HUD
-│   ├── debug.ts             # Debug panel and performance monitoring
-│   ├── utils.ts             # Object pools, memoization, math helpers
-│   └── counter.ts           # Utility counter
-│
-└── Types & Assets
-    ├── types/               # TypeScript type definitions
-    ├── polyfills.ts         # Browser compatibility polyfills
-    ├── style.css            # Global styles
-    └── vite-env.d.ts        # Vite environment types
-```
+## Core Architecture Principles
 
-## Architecture Patterns
+- **Modular System Design**: Each system (camera, creatures, audio, terrain) is self-contained. The `Game` class in `src/game.ts` coordinates all systems.
+- **Centralized Configuration**: All magic numbers and settings live in `src/constants.ts` via the `GAME_CONFIG` object. Never hardcode values.
+- **Object Pooling**: Reuse Vector3, Color, and other frequently allocated objects via pools in `src/utils.ts` to minimize GC pressure.
+- **Event-Driven Communication**: Systems use callbacks and event handlers, not direct coupling. Example: photo system triggers audio via callbacks.
+- **Deterministic Generation**: Use seeded RNG for procedural content to ensure reproducibility.
 
-### Modular System Design
-Each major system (camera, creatures, audio, etc.) is encapsulated in its own module with clear responsibilities. The `Game` class coordinates all systems.
+## File Organization
 
-### Input Management
-Centralized input handling through `InputManager` with action-based bindings, priority system, and context awareness (game/ui/menu).
+### Core Systems (`src/`)
 
-### Event-Driven Communication
-Systems communicate via callbacks and event handlers rather than direct coupling. Example: photo system triggers audio callbacks on shutter.
+- `main.ts` - Entry point, initializes game
+- `game.ts` - Main loop, system coordinator
+- `scene.ts` - Three.js scene management
+- `camera.ts` - Camera controller (ride/free roam modes)
+- `input-manager.ts` - Centralized input with action bindings and priority
+- `constants.ts` - All configuration constants
 
-### Object Pooling
-Performance-critical objects (Vector3, Color) use pooling to reduce garbage collection pressure (see `utils.ts`).
+### Game Systems (`src/`)
 
-### Configuration Constants
-All magic numbers and configuration values centralized in `constants.ts` using `GAME_CONFIG` object.
+- `creatures.ts` - Creature generation and animation
+- `creature_behaviour.ts` - AI behavior patterns
+- `terrain-system.ts` - Procedural terrain
+- `park-structures.ts` - Buildings and landmarks
+- `photo-system.ts` - Photography scoring (distance, framing, rarity)
+- `audio.ts` - Web Audio API procedural generation
+- `video-recorder.ts` - Screen recording (30s max)
+- `environment-interactions.ts` - Creature-environment logic
 
-### Procedural Generation
-Seeded random number generators ensure deterministic creature and world generation for consistency.
+### Visual Systems
 
-## Key Conventions
+- `src/visual-effects/` - Post-processing (CRT, film grain, chromatic aberration)
+- `src/shaders/` - GLSL shaders with ShaderManager
+- `src/textures.ts` - Texture management
 
-- **File naming**: kebab-case for files (e.g., `input-manager.ts`)
-- **Class naming**: PascalCase (e.g., `InputManager`, `CameraController`)
+### Multiplayer (`src/multiplayer/`)
+
+- `WebRTCMultiplayer.ts` - Main coordinator
+- `WebRTCPeer.ts` - Peer connection wrapper
+- `StateSync.ts` - Binary state synchronization
+- `PeerAvatar.ts` - Peer rendering
+- `ConnectionUI.ts` - UI components
+- `webrtc/` - WebRTC implementation
+- `colyseus/` - Legacy (avoid for new features)
+
+### UI & Utilities (`src/`)
+
+- `ui.ts` - HUD and interface
+- `debug.ts` - Debug panel and performance monitoring
+- `utils.ts` - Pools, memoization, math helpers
+
+## Naming Conventions
+
+- **Files**: kebab-case (`input-manager.ts`, `creature-behaviour.ts`)
+- **Classes**: PascalCase (`InputManager`, `CameraController`, `WebRTCPeer`)
 - **Constants**: SCREAMING_SNAKE_CASE in `GAME_CONFIG` object
-- **Type definitions**: Separate `types/` folder for shared interfaces
-- **Shader code**: GLSL shaders in dedicated `shaders/` folder
-- **No default exports**: Use named exports for better refactoring
+- **Exports**: Named exports only (no default exports)
+
+## Code Style Rules
+
+- Place type definitions in `src/types/` for shared interfaces
+- Store GLSL shaders in `src/shaders/` folder
+- Access config via `GAME_CONFIG` from `constants.ts`
+- Use object pools from `utils.ts` for Vector3, Color, etc.
+- Handle input through `InputManager` action bindings, not raw event listeners
+- Communicate between systems via callbacks, not direct method calls
+
+## When Adding Features
+
+- New game systems go in `src/` root (e.g., `weather-system.ts`)
+- Visual effects go in `src/visual-effects/`
+- Multiplayer features go in `src/multiplayer/`
+- Add configuration to `GAME_CONFIG` in `constants.ts`
+- Register input actions in `InputManager` if needed
+- Use seeded RNG for any procedural generation
