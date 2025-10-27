@@ -9,6 +9,7 @@ import { MiniMap } from '../components/mini-map'
 import { Toast } from '../components/toast'
 import { SaveLoadMenu } from '../components/save-load-menu'
 import { PlayerStats, type InventoryItem } from '../components/player-stats'
+import { CreatureCollection, type CapturedCreature } from '../components/creature-collection'
 
 export class UIManager {
   private gallery: Gallery
@@ -18,10 +19,12 @@ export class UIManager {
   private miniMap: MiniMap
   private saveLoadMenu: SaveLoadMenu
   private playerStats: PlayerStats
+  private creatureCollection: CreatureCollection
   private toggleMultiplayerBtn: HTMLButtonElement
   private restartRideBtn: HTMLButtonElement
   private toggleSaveLoadBtn: HTMLButtonElement
   private togglePlayerStatsBtn: HTMLButtonElement
+  private toggleCollectionBtn: HTMLButtonElement
   private audioCallbacks: UICallbacks = {}
   private shaderDebugUI: ShaderDebugUI | null = null
   private shaderStatusIndicator: HTMLDivElement | null = null
@@ -34,11 +37,13 @@ export class UIManager {
     this.miniMap = new MiniMap()
     this.saveLoadMenu = new SaveLoadMenu()
     this.playerStats = new PlayerStats()
+    this.creatureCollection = new CreatureCollection()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.restartRideBtn = document.getElementById('restartRide') as HTMLButtonElement
     this.toggleSaveLoadBtn = document.getElementById('toggleSaveLoad') as HTMLButtonElement
     this.togglePlayerStatsBtn = document.getElementById('togglePlayerStats') as HTMLButtonElement
+    this.toggleCollectionBtn = document.getElementById('toggleCollection') as HTMLButtonElement
 
     if (!this.toggleSaveLoadBtn) {
       console.error('toggleSaveLoad button not found in DOM!')
@@ -57,6 +62,7 @@ export class UIManager {
     this.shortcuts.setAudioCallbacks(callbacks)
     this.saveLoadMenu.setAudioCallbacks(callbacks)
     this.playerStats.setAudioCallbacks(callbacks)
+    this.creatureCollection.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
@@ -82,6 +88,14 @@ export class UIManager {
       this.togglePlayerStatsBtn.addEventListener('click', () => {
         this.audioCallbacks.onClick?.()
         this.togglePlayerStats()
+      })
+    }
+
+    // Setup collection button
+    if (this.toggleCollectionBtn) {
+      this.toggleCollectionBtn.addEventListener('click', () => {
+        this.audioCallbacks.onClick?.()
+        this.toggleCollection()
       })
     }
 
@@ -160,6 +174,22 @@ export class UIManager {
 
   public addInventoryItem(item: InventoryItem) {
     this.playerStats.addInventoryItem(item)
+  }
+
+  // Creature Collection methods
+  public toggleCollection() {
+    this.creatureCollection.toggle()
+  }
+
+  public addCreatureToCollection(
+    metadata: import('@systems/photo').CreatureCardMetadata,
+    thumbnail: string
+  ): boolean {
+    return this.creatureCollection.addCreature(metadata, thumbnail)
+  }
+
+  public getCreatureCollection(): CreatureCollection {
+    return this.creatureCollection
   }
 
   // Save/Load methods

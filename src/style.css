@@ -688,3 +688,188 @@ canvas { display: block; }
 .btn:active {
   transform: translateY(0);
 }
+
+/* Creature Collection Panel */
+#collection-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 900px;
+  max-height: 80vh;
+  background: rgba(10, 15, 25, 0.95);
+  border: 2px solid rgba(102, 204, 255, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  pointer-events: auto;
+  overflow-y: auto;
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+}
+
+#collection-panel .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(102, 204, 255, 0.2);
+}
+
+#collection-panel h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #6cf;
+}
+
+.collection-info {
+  text-align: center;
+  color: #aaa;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+#collection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.creature-card {
+  background: rgba(20, 25, 35, 0.8);
+  border: 2px solid rgba(102, 204, 255, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.3s ease;
+}
+
+.creature-card:hover {
+  border-color: rgba(102, 204, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 204, 255, 0.2);
+}
+
+.creature-thumbnail {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.creature-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.rarity-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  backdrop-filter: blur(4px);
+}
+
+.rarity-badge.common {
+  background: rgba(150, 150, 150, 0.8);
+  color: #fff;
+}
+
+.rarity-badge.uncommon {
+  background: rgba(30, 255, 0, 0.8);
+  color: #000;
+}
+
+.rarity-badge.rare {
+  background: rgba(0, 112, 221, 0.8);
+  color: #fff;
+}
+
+.rarity-badge.epic {
+  background: rgba(163, 53, 238, 0.8);
+  color: #fff;
+}
+
+.rarity-badge.legendary {
+  background: linear-gradient(135deg, #ff6b00, #ffd700);
+  color: #000;
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+  50% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.8); }
+}
+
+.creature-info {
+  margin-bottom: 10px;
+}
+
+.creature-info h4 {
+  margin: 0 0 5px 0;
+  font-size: 1.1rem;
+  color: #6cf;
+}
+
+.creature-info p {
+  margin: 2px 0;
+  font-size: 0.85rem;
+  color: #aaa;
+  text-transform: capitalize;
+}
+
+.creature-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.creature-actions button {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid rgba(102, 204, 255, 0.3);
+  background: rgba(102, 204, 255, 0.1);
+  color: #6cf;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.creature-actions button:hover {
+  background: rgba(102, 204, 255, 0.2);
+  border-color: rgba(102, 204, 255, 0.5);
+}
+
+.creature-actions .remove-btn {
+  border-color: rgba(255, 100, 100, 0.3);
+  background: rgba(255, 100, 100, 0.1);
+  color: #f66;
+}
+
+.creature-actions .remove-btn:hover {
+  background: rgba(255, 100, 100, 0.2);
+  border-color: rgba(255, 100, 100, 0.5);
+}
+
+.empty-collection {
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
+}
+
+.empty-collection p {
+  margin: 10px 0;
+  font-size: 1.1rem;
+}
+
+.empty-collection .hint {
+  font-size: 0.9rem;
+  color: #6cf;
+}

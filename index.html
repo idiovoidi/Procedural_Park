@@ -23,6 +23,7 @@
           <button id="toggleSettings" title="Settings (ESC)">⚙️</button>
           <button id="toggleShortcuts" title="Keyboard Shortcuts (H)">⌨️</button>
           <button id="toggleGallery" title="Toggle Gallery (G)">📷</button>
+          <button id="toggleCollection" title="Creature Collection (K)">📦</button>
           <button id="restartRide" title="Restart Ride (R)">🔄</button>
         </div>
       </div>
@@ -116,12 +117,20 @@
               <span>Take Photo</span>
             </div>
             <div class="shortcut-item">
+              <kbd>E</kbd>
+              <span>Export Creature Card</span>
+            </div>
+            <div class="shortcut-item">
               <kbd>;</kbd>
               <span>Start/Stop Video Recording</span>
             </div>
             <div class="shortcut-item">
               <kbd>G</kbd>
               <span>Toggle Photo Gallery</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd>K</kbd>
+              <span>Toggle Creature Collection</span>
             </div>
           </div>
 
@@ -231,6 +240,17 @@
           <button class="close-btn">&times;</button>
         </div>
         <div class="gallery-content"></div>
+      </div>
+
+      <div id="collection-panel" class="hidden">
+        <div class="panel-header">
+          <h3>📦 Creature Collection</h3>
+          <button class="close-btn">&times;</button>
+        </div>
+        <div class="panel-content">
+          <p class="collection-info">Capture up to 10 unique creatures. Press E when looking at a creature!</p>
+          <div id="collection-grid"></div>
+        </div>
       </div>
 
       <div id="toast" class="hidden"></div>

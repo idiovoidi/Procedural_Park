@@ -17,6 +17,7 @@ export type InputAction =
   | 'camera.lookDown'
   // Game actions
   | 'game.takePhoto'
+  | 'game.exportCreatureCard'
   | 'game.restartRide'
   | 'game.pause'
   | 'game.speedUp'
@@ -24,6 +25,7 @@ export type InputAction =
   | 'game.randomizeCreature'
   // UI actions
   | 'ui.toggleGallery'
+  | 'ui.toggleCollection'
   | 'ui.toggleSettings'
   | 'ui.toggleShortcuts'
   | 'ui.toggleMultiplayer'

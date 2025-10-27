@@ -6,3 +6,4 @@ export {
   generateCreatureName 
 } from './scoring'
 export type { PhotoResult, PhotoCallbacks, ScoreBreakdown } from './types'
+export { CreatureCardExporter, type CreatureCardMetadata } from './CreatureCardExporter'

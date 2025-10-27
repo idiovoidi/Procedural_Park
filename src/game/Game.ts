@@ -120,6 +120,7 @@ export class Game {
   private setupInputHandler(): void {
     const callbacks: InputHandlerCallbacks = {
       onTakePhoto: () => this.takePhoto(),
+      onExportCreatureCard: () => this.exportCreatureCard(),
       onToggleCamera: () => this.toggleCamera(),
       onRestartRide: () => this.restartRide(),
       onTogglePause: () => this.togglePause(),
@@ -129,6 +130,7 @@ export class Game {
         // TODO: Implement toggle creature info
       },
       onToggleGallery: () => this.systems.ui.toggleGallery(),
+      onToggleCollection: () => this.systems.ui.toggleCollection(),
       onToggleMultiplayer: () => this.systems.ui.toggleMultiplayer(),
       onToggleSettings: () => this.systems.ui.toggleSettings(),
       onToggleShortcuts: () => this.systems.ui.toggleShortcuts(),
@@ -204,6 +206,36 @@ export class Game {
 
     // Send photo event to peer
     multiplayer.sendPhotoEvent()
+  }
+
+  /**
+   * Export creature card
+   */
+  private async exportCreatureCard(): Promise<void> {
+    const { photo, scene, ui, creatures } = this.systems
+
+    try {
+      const result = await photo.exportCreatureCard(
+        creatures.getAllCreatures(),
+        this.systems.camera.camera,
+        scene.scene,
+        GAME_CONFIG.WORLD_SEED
+      )
+
+      if (result) {
+        const added = ui.addCreatureToCollection(result.metadata, result.thumbnail)
+        if (added) {
+          ui.showToast(`📦 Captured ${result.metadata.creatureName}!`)
+        } else {
+          ui.showToast(`Already have ${result.metadata.creatureName}`)
+        }
+      } else {
+        ui.showToast('❌ No creature in view')
+      }
+    } catch (error) {
+      console.error('Failed to capture creature:', error)
+      ui.showToast('❌ Capture failed')
+    }
   }
 
   /**

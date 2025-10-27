@@ -2,12 +2,16 @@ import * as THREE from 'three'
 import type { CreatureInstance } from '@systems/creatures'
 import { scoreCreature, generateCreatureName, getPhotoQualityDescription, getScoreBreakdown } from './scoring'
 import type { PhotoResult, PhotoCallbacks, ScoreBreakdown } from './types'
+import { CreatureCardExporter } from './CreatureCardExporter'
 
 export class PhotoSystem {
   private raycaster = new THREE.Raycaster()
   private callbacks: PhotoCallbacks = {}
+  private cardExporter: CreatureCardExporter
 
-  constructor() {}
+  constructor() {
+    this.cardExporter = new CreatureCardExporter()
+  }
 
   public setCallbacks(callbacks: PhotoCallbacks) {
     this.callbacks = callbacks
@@ -78,5 +82,50 @@ export class PhotoSystem {
 
   public getScoreBreakdown(creature: CreatureInstance, camera: THREE.Camera): ScoreBreakdown {
     return getScoreBreakdown(creature, camera)
+  }
+
+  /**
+   * Export creature card for the creature currently in view
+   * Returns the captured creature data
+   */
+  public async exportCreatureCard(
+    creatures: CreatureInstance[],
+    camera: THREE.Camera,
+    scene: THREE.Scene,
+    worldSeed: number
+  ): Promise<{ metadata: import('./CreatureCardExporter').CreatureCardMetadata; thumbnail: string } | null> {
+    // Find the best creature in view (same logic as takePhoto)
+    let best: { c: CreatureInstance, score: number } | null = null
+    
+    for (const c of creatures) {
+      const clipPos = c.group.position.clone().project(camera)
+      if (Math.abs(clipPos.x) > 1 || Math.abs(clipPos.y) > 1 || clipPos.z > 1 || clipPos.z < -1) {
+        continue
+      }
+      
+      this.raycaster.setFromCamera(new THREE.Vector2(clipPos.x, clipPos.y), camera)
+      const hits = this.raycaster.intersectObjects(scene.children, true)
+      if (hits.length && !this.objectBelongsToGroup(hits[0].object, c.group)) {
+        continue
+      }
+      
+      const s = scoreCreature(c, camera)
+      if (!best || s > best.score) {
+        best = { c, score: s }
+      }
+    }
+
+    if (best) {
+      const result = await this.cardExporter.exportCreatureCard(best.c, worldSeed)
+      console.log(`Captured creature card: ${generateCreatureName(best.c)}`)
+      return result
+    } else {
+      console.warn('No creature in view to export')
+      return null
+    }
+  }
+
+  public dispose(): void {
+    this.cardExporter.dispose()
   }
 }
