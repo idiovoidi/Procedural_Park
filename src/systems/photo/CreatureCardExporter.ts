@@ -109,17 +109,9 @@ export class CreatureCardExporter {
     // Wait a frame to ensure render completes
     await new Promise((resolve) => setTimeout(resolve, 100))
 
-    // Get canvas data
+    // Get canvas data (WebGL canvas, no need for 2D context)
     const canvas = this.cardRenderer.domElement
     console.log(`Canvas size: ${canvas.width}x${canvas.height}`)
-
-    const ctx = canvas.getContext('2d')
-
-    if (!ctx) {
-      console.error('Failed to get canvas context')
-      this.cardScene.remove(creatureClone)
-      throw new Error('Failed to get canvas context')
-    }
 
     // Create metadata object
     const metadata: CreatureCardMetadata = {
