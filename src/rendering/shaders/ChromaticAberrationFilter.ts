@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { clampAndUpdate } from '@core/utils'
 import { BaseVisualEffect } from '../visual-effects/BaseVisualEffect'
+import { createFilterFallbackTarget } from './filter-utils'
 
 export interface ChromaticAberrationConfig {
   offset: number           // Aberration intensity (0.001 - 0.01)
@@ -106,16 +107,13 @@ export class ChromaticAberrationFilter extends BaseVisualEffect {
   ): THREE.WebGLRenderTarget {
     if (!this.config.enabled) {
       // If disabled, just pass through the input
-      if (outputTarget) {
-        // Copy input to output
-        this.copyTexture(renderer, inputTexture, outputTarget)
-        return outputTarget
-      } else {
-        // Create a new render target and copy input
-        const target = this.createRenderTarget(renderer)
-        this.copyTexture(renderer, inputTexture, target)
-        return target
-      }
+      return createFilterFallbackTarget(
+        renderer,
+        this.camera,
+        inputTexture,
+        outputTarget,
+        this.createRenderTarget.bind(this)
+      )
     }
 
     // Set input texture
@@ -141,60 +139,15 @@ export class ChromaticAberrationFilter extends BaseVisualEffect {
       
       // Restore render target and fallback
       renderer.setRenderTarget(currentTarget)
-      
-      // Fallback: copy input to output
-      if (outputTarget) {
-        this.copyTexture(renderer, inputTexture, outputTarget)
-        return outputTarget
-      } else {
-        const fallbackTarget = this.createRenderTarget(renderer)
-        this.copyTexture(renderer, inputTexture, fallbackTarget)
-        return fallbackTarget
-      }
+
+      return createFilterFallbackTarget(
+        renderer,
+        this.camera,
+        inputTexture,
+        outputTarget,
+        this.createRenderTarget.bind(this)
+      )
     }
-  }
-
-  /**
-   * Copy texture to render target (fallback when filter is disabled or fails)
-   */
-  private copyTexture(
-    renderer: THREE.WebGLRenderer, 
-    inputTexture: THREE.Texture, 
-    outputTarget: THREE.WebGLRenderTarget
-  ): void {
-    // Create a simple copy material
-    const copyMaterial = new THREE.ShaderMaterial({
-      uniforms: {
-        tDiffuse: { value: inputTexture }
-      },
-      vertexShader: `
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform sampler2D tDiffuse;
-        varying vec2 vUv;
-        void main() {
-          gl_FragColor = texture2D(tDiffuse, vUv);
-        }
-      `
-    })
-
-    const copyScene = new THREE.Scene()
-    const copyQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), copyMaterial)
-    copyScene.add(copyQuad)
-
-    const currentTarget = renderer.getRenderTarget()
-    renderer.setRenderTarget(outputTarget)
-    renderer.render(copyScene, this.camera)
-    renderer.setRenderTarget(currentTarget)
-
-    // Cleanup
-    copyMaterial.dispose()
-    copyQuad.geometry.dispose()
   }
 
   /**
