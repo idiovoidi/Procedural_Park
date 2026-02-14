@@ -30,8 +30,9 @@ export class CreatureCollection {
     this.loadFromLocalStorage()
     this.render()
     
-    // Add test creature (always for debugging)
-    this.addTestCreature()
+    if (import.meta.env.DEV) {
+      this.addTestCreature()
+    }
   }
 
   public setAudioCallbacks(callbacks: UICallbacks) {

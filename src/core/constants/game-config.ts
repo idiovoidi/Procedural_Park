@@ -7,6 +7,8 @@ export const GAME_CONFIG = {
   // Distance and detection
   MAX_CREATURE_DISTANCE: 25,
   CREATURE_INFO_DISTANCE: 25,
+  STORE_PROXIMITY_M: 10,
+  FEED_CREATURE_RANGE_M: 15,
 
   // Camera and movement
   CAMERA_SPEED_DEFAULT: 0.025,
@@ -17,6 +19,7 @@ export const GAME_CONFIG = {
   // Timing
   MAX_FRAME_TIME_MS: 50,
   LOADING_SCREEN_DELAY_MS: 1000,
+  AUTO_SAVE_INTERVAL_MS: 120_000,
 
   // Photo scoring thresholds
   PHOTO_SCORE_EXCELLENT: 80,
@@ -42,4 +45,7 @@ export const GAME_CONFIG = {
 
   // UI
   TOAST_DURATION_MS: 800,
+
+  // Economy
+  STARTING_CURRENCY: 100,
 } as const

@@ -7,6 +7,7 @@ import { SystemsCoordinator, type GameSystems } from './SystemsCoordinator'
 import { GameLoop } from './GameLoop'
 import { InputHandler, type InputHandlerCallbacks } from './InputHandler'
 import { GAME_CONFIG } from '@core/constants'
+import { showErrorScreen } from '@ui/utils/show-error-screen'
 import type { IntegratedStateManager } from '@systems/state'
 import {
   WorldStateManager,
@@ -91,24 +92,7 @@ export class Game {
       }, GAME_CONFIG.LOADING_SCREEN_DELAY_MS)
     } catch (error) {
       console.error('❌ Game initialization failed:', error)
-      
-      // Show error in loading screen
-      if (loadingEl) {
-        loadingEl.innerHTML = `
-          <div style="text-align: center; color: #ef4444;">
-            <h2 style="margin-bottom: 1rem;">⚠️ Initialization Error</h2>
-            <p style="margin-bottom: 1rem;">Failed to initialize game systems.</p>
-            <button 
-              onclick="location.reload()" 
-              style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;"
-            >
-              Reload Page
-            </button>
-            ${import.meta.env.DEV ? `<pre style="margin-top: 1rem; text-align: left; font-size: 0.75rem; color: #fbbf24; max-width: 600px; overflow: auto;">${error instanceof Error ? error.stack : String(error)}</pre>` : ''}
-          </div>
-        `
-        loadingEl.classList.remove('hidden')
-      }
+      showErrorScreen('Failed to initialize game systems.', error, 'Initialization Error')
       
       // Re-throw to propagate to start() method
       throw error
@@ -627,20 +611,6 @@ export class Game {
   }
 
   /**
-   * Check proximity to food store and show prompt
-   */
-  private checkStoreProximity(): void {
-    const { camera, scene, ui } = this.systems
-    const storePosition = scene.parkStructures.getFoodStorePosition()
-    const distance = camera.camera.position.distanceTo(storePosition)
-
-    // Show prompt when within 10 units of store
-    if (distance < 10 && !ui.getFoodStore().isStoreOpen()) {
-      // Could add a UI prompt here
-    }
-  }
-
-  /**
    * Toggle food inventory
    */
   private toggleFoodInventory(): void {
@@ -679,14 +649,14 @@ export class Game {
 
     for (const creature of allCreatures) {
       const distance = camera.camera.position.distanceTo(creature.group.position)
-      if (distance < nearestDistance && distance < 15) {
+      if (distance < nearestDistance && distance < GAME_CONFIG.FEED_CREATURE_RANGE_M) {
         nearestDistance = distance
         nearestCreature = creature
       }
     }
 
     if (!nearestCreature) {
-      ui.showToast('❌ No creature nearby (get within 15m)')
+      ui.showToast(`❌ No creature nearby (get within ${GAME_CONFIG.FEED_CREATURE_RANGE_M}m)`)
       return
     }
 
@@ -748,7 +718,7 @@ export class Game {
     // Create world state manager
     this.worldStateManager = new WorldStateManager()
     this.worldStateManager.setAutoSaveEnabled(true)
-    this.worldStateManager.setAutoSaveInterval(120000) // 2 minutes
+    this.worldStateManager.setAutoSaveInterval(GAME_CONFIG.AUTO_SAVE_INTERVAL_MS)
 
     // Setup save/load menu
     const saveLoadMenu = this.systems.ui.getSaveLoadMenu()

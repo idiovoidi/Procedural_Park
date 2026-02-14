@@ -115,7 +115,7 @@ export class SystemsCoordinator {
     const foodManager = new FoodManager()
 
     // Initialize currency manager
-    const currencyManager = new CurrencyManager(100)
+    const currencyManager = new CurrencyManager(GAME_CONFIG.STARTING_CURRENCY)
 
     // Store all systems
     this.systems = {

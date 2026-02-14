@@ -4,6 +4,7 @@
  */
 
 import type { Currency, Transaction, PurchaseResult } from './types'
+import { GAME_CONFIG } from '@core/constants'
 
 export class CurrencyManager {
   private currency: Currency
@@ -11,7 +12,7 @@ export class CurrencyManager {
   private readonly MAX_TRANSACTION_HISTORY = 100
   private onBalanceChangeCallbacks: Array<(balance: number) => void> = []
 
-  constructor(startingAmount: number = 100) {
+  constructor(startingAmount: number = GAME_CONFIG.STARTING_CURRENCY) {
     this.currency = {
       amount: startingAmount,
       displayName: 'Safari Coins',
@@ -150,7 +151,7 @@ export class CurrencyManager {
   /**
    * Reset currency to starting amount
    */
-  public reset(startingAmount: number = 100): void {
+  public reset(startingAmount: number = GAME_CONFIG.STARTING_CURRENCY): void {
     this.currency.amount = startingAmount
     this.transactions = []
     this.notifyBalanceChange()
