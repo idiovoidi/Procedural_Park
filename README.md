@@ -1,47 +1,58 @@
-# AI Snap
+# 🦁 AI Snap - Wildlife Photography Game
 
-A 3D wildlife photography game built with Three.js and TypeScript. Explore a virtual safari park, observe creatures in their natural habitat, and capture stunning photos. Now with peer-to-peer multiplayer support!
+A 3D wildlife photography game where you explore a procedurally generated safari park, discover unique creatures, and capture stunning photos. Built with Three.js, TypeScript, and modern web technologies.
 
-## Features
+![AI Snap](https://img.shields.io/badge/Status-In%20Development-yellow)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue)
+![Three.js](https://img.shields.io/badge/Three.js-0.179.1-green)
+![License](https://img.shields.io/badge/License-MIT-blue)
 
-- **Immersive 3D Environment**: Explore a detailed safari park with dynamic terrain and vegetation
-- **Wildlife Photography**: Capture photos of various creatures with a realistic camera system
-- **Multiple Camera Modes**: Switch between ride mode and free exploration
-- **Post-Processing Effects**: Customizable shader effects for retro and pixel-art styles
-- **Peer-to-Peer Multiplayer**: Connect with a friend and explore together in real-time (no server required!)
+## ✨ Features
 
-## Multiplayer
+### 🎮 Core Gameplay
+- **Procedural Wildlife**: 60+ unique creatures with varied anatomies, behaviors, and rarities
+- **Photography System**: Score-based creature photography with distance, framing, and rarity calculations
+- **Dual Camera Modes**: Ride mode (automated path) and free roam mode (WASD controls)
+- **Creature Collection**: Build your collection by photographing different species
 
-The game features serverless peer-to-peer multiplayer using WebRTC. Connect with a friend directly through your browsers without needing any dedicated servers. Perfect for static hosting on GitHub Pages or Vercel!
+### 🍖 Interaction Systems
+- **Feeding Mechanics**: Use different food types to interact with creatures
+- **Currency Economy**: Earn Safari Coins from photos and feeding
+- **Food Store**: Purchase food items to stock your inventory
+- **Creature Reactions**: Creatures respond differently to various foods
 
-### Quick Start
+### 🌍 World & Environment
+- **Biome System**: Forest, meadow, rocky, wetland, crystal cave, and floating islands
+- **Procedural Terrain**: Noise-based generation with smooth biome transitions
+- **Park Structures**: Main gate, ranger station, experiment lab, food store
+- **Dynamic Lighting**: Day/night toggle with atmospheric effects
 
-1. **Host**: Click "Multiplayer" → "Create Session" → Copy the offer code and send it to your friend
-2. **Guest**: Paste the offer code → Copy the answer code and send it back to the host
-3. **Host**: Paste the answer code → You're connected!
+### 🎨 Visual Effects
+- **Post-Processing Pipeline**: CRT simulation, film grain, chromatic aberration
+- **Retro Aesthetics**: Pixel-art style options with customizable shaders
+- **Performance Monitoring**: Auto-adjustment for optimal frame rates
 
-See the [Multiplayer User Guide](docs/multiplayer-guide.md) for detailed instructions.
+### 👥 Multiplayer
+- **WebRTC P2P**: Serverless peer-to-peer connections
+- **Shared Exploration**: See other players in real-time
+- **Photo Events**: Share photography moments with peers
 
-### Multiplayer Features
+### 💾 Progression
+- **Save/Load System**: Multiple save slots with export/import
+- **Player Stats**: Track photos, discoveries, and achievements
+- **Transaction History**: View currency earnings and spending
 
-- Real-time position and camera synchronization
-- See where your friend is looking with visual indicators
-- Photo notifications when your friend takes a picture
-- Low bandwidth usage (~3-4 KB/s)
-- Works on static hosting platforms
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-
-- Node.js (v16 or higher)
-- npm or yarn
+- Node.js 18+ and npm
+- Modern browser with WebGL 2.0 support
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/yourusername/ai-snap.git
 cd ai-snap
 
 # Install dependencies
@@ -51,146 +62,240 @@ npm install
 npm run dev
 ```
 
+The game will open at `http://localhost:3000`
+
 ### Building for Production
 
 ```bash
-# Build the project
+# Build optimized production bundle
 npm run build
 
-# Preview the production build
+# Preview production build
 npm run preview
 ```
 
-## Development
+## 🎮 Controls
 
-### Project Structure
+### Camera
+- **C** - Toggle camera mode (Ride/Free Roam)
+- **WASD** - Move camera (Free Roam mode)
+- **Mouse** - Look around (Free Roam mode)
+- **Shift** - Sprint
+- **Space** - Jump
+- **Arrow Keys** - Look around (alternative)
 
-The codebase is organized into modular domains with clear responsibilities and dependencies:
+### Photography
+- **T** - Take photo
+- **E** - Export creature card
+- **G** - Toggle gallery
+
+### Interaction
+- **F** - Feed nearest creature
+- **B** - Toggle food inventory
+- **O** - Open food store
+
+### UI
+- **I** - Player stats
+- **K** - Creature collection
+- **M** - Multiplayer menu
+- **H** - Keyboard shortcuts
+- **Escape** - Settings menu
+- **P** - Pause game
+
+### Other
+- **R** - Restart ride
+- **X** - Randomize creatures
+- **V** - Toggle visual effects
+- **N** - Toggle day/night
+- **;** - Toggle video recording (30s max)
+
+## 📁 Project Structure
 
 ```
-src/
-├── core/                # Core utilities and constants (no dependencies)
-│   ├── constants/       # Game configuration, biome config, physics constants
-│   ├── utils/           # Math utilities, object pooling, random utilities
-│   └── types/           # Shared type definitions
-├── systems/             # Game systems (depend on core)
-│   ├── creatures/       # Creature generation, behavior, and pooling
-│   ├── terrain/         # Terrain and biome generation
-│   ├── audio/           # Audio management and sound generation
-│   ├── camera/          # Camera control (ride + free roam)
-│   ├── photo/           # Photography system and scoring
-│   ├── input/           # Centralized input handling
-│   └── state/           # State management and synchronization
-├── rendering/           # Rendering systems (depend on core + systems)
-│   ├── scene/           # 3D scene management
-│   ├── shaders/         # Custom GLSL shaders
-│   ├── visual-effects/  # Post-processing effects (CRT, film grain, etc.)
-│   └── textures/        # Texture generation
-├── ui/                  # User interface (depend on core + systems)
-│   ├── components/      # UI components (gallery, settings, mini-map, etc.)
-│   ├── managers/        # UI coordination
-│   └── debug/           # Debug panels and performance monitoring
-├── multiplayer/         # Multiplayer systems (depend on core + systems)
-│   ├── webrtc/          # WebRTC peer connections
-│   ├── state-sync/      # Binary state synchronization
-│   └── peer-avatar/     # Peer rendering in 3D scene
-├── game/                # Game orchestration (can depend on anything)
-│   ├── Game.ts          # Main game class
-│   ├── GameLoop.ts      # Game loop implementation
-│   └── managers/        # High-level system managers
-└── main.ts              # Application entry point
+ai-snap/
+├── src/
+│   ├── core/                 # Core utilities and constants
+│   │   ├── constants/        # Game configuration
+│   │   ├── types/            # Shared TypeScript types
+│   │   └── utils/            # Helper functions
+│   ├── game/                 # Main game logic
+│   │   ├── Game.ts           # Main game class
+│   │   ├── GameLoop.ts       # Update loop
+│   │   ├── SystemsCoordinator.ts  # System initialization
+│   │   └── InputHandler.ts   # Input routing
+│   ├── systems/              # Game systems
+│   │   ├── camera/           # Camera controller
+│   │   ├── creatures/        # Creature generation & AI
+│   │   ├── photo/            # Photography scoring
+│   │   ├── audio/            # Audio management
+│   │   ├── terrain/          # Terrain generation
+│   │   ├── food/             # Feeding mechanics
+│   │   ├── currency/         # Economy system
+│   │   ├── input/            # Input management
+│   │   └── state/            # State management
+│   ├── rendering/            # Rendering systems
+│   │   ├── scene/            # Scene management
+│   │   ├── shaders/          # Custom shaders
+│   │   ├── textures/         # Texture management
+│   │   └── visual-effects/   # Post-processing
+│   ├── ui/                   # User interface
+│   │   ├── components/       # UI components
+│   │   └── managers/         # UI coordination
+│   ├── multiplayer/          # Multiplayer systems
+│   │   ├── webrtc/           # WebRTC implementation
+│   │   ├── state-sync/       # State synchronization
+│   │   └── peer-avatar/      # Peer rendering
+│   └── main.ts               # Entry point
+├── docs/                     # Documentation
+│   ├── CODEBASE_GOALS.md     # Project vision & goals
+│   ├── ARCHITECTURE.md       # Technical architecture
+│   └── My_Docs/              # Development notes
+├── public/                   # Static assets
+├── vite.config.ts            # Vite configuration
+├── tsconfig.json             # TypeScript configuration
+└── package.json              # Dependencies
 ```
 
-See [docs/structure.md](docs/structure.md) for detailed module documentation.
+## 🏗️ Architecture
 
-### Module System
+### Core Principles
+- **Modular Systems**: Self-contained, loosely coupled systems
+- **Event-Driven**: Systems communicate via callbacks and events
+- **Configuration-Driven**: All constants in centralized config
+- **Type-Safe**: TypeScript strict mode throughout
 
-The codebase uses path aliases for clean imports:
+### Key Systems
+- **Game Loop**: Coordinates all system updates at 60 FPS
+- **State Manager**: Centralized state with flow and subsystem states
+- **Input Manager**: Priority-based input handling with context awareness
+- **Scene Manager**: Three.js scene graph and rendering pipeline
+- **Creature Manager**: Procedural generation and behavior AI
+- **Currency Manager**: Economy with transactions and rewards
+
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed documentation.
+
+## 🎨 Customization
+
+### Game Configuration
+Edit `src/core/constants/game-config.ts`:
 
 ```typescript
-// Import from core utilities
-import { GAME_CONFIG } from '@core/constants'
-import { getPooledVector3 } from '@core/utils'
-
-// Import from game systems
-import { CreatureManager } from '@systems/creatures'
-import { TerrainSystem } from '@systems/terrain'
-import { CameraController } from '@systems/camera'
-
-// Import from rendering
-import { SceneManager } from '@rendering/scene'
-import { ShaderManager } from '@rendering/shaders'
-
-// Import from UI
-import { UIManager } from '@ui/managers'
-
-// Import from multiplayer
-import { WebRTCPeer } from '@multiplayer/webrtc'
-import { StateSync } from '@multiplayer/state-sync'
+export const GAME_CONFIG = {
+  CREATURE_COUNT: 60,           // Number of creatures
+  WORLD_SEED: 1337,             // Procedural generation seed
+  CAMERA_SPEED_DEFAULT: 0.025,  // Camera movement speed
+  PHOTO_SCORE_EXCELLENT: 80,    // Score threshold
+  // ... more settings
+}
 ```
 
-Each module exports its public API through barrel exports (`index.ts`), making it easy to import only what you need.
+### Adding New Creatures
+1. Define anatomy in `src/systems/creatures/creature-generator.ts`
+2. Add behavior patterns in `src/systems/creatures/creature-behaviour.ts`
+3. Configure rarity in creature generation logic
 
-### Scripts
+### Creating New Food Items
+1. Add to `src/systems/food/food-data.ts`:
+```typescript
+export const FOOD_ITEMS = {
+  newFood: {
+    id: 'newFood',
+    name: 'New Food',
+    icon: '🍎',
+    effectiveness: { /* archetype preferences */ },
+    // ...
+  }
+}
+```
+2. Add to store in `src/systems/food/store-data.ts`
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run type-check` - Run TypeScript type checking
-- `npm run lint` - Lint code with ESLint
-- `npm run lint:fix` - Fix linting issues
-- `npm run format` - Format code with Prettier
+## 🧪 Development
 
-## Documentation
-
-- [Project Structure](docs/structure.md) - Detailed module organization and architecture
-- [Migration Guide](docs/migration-guide.md) - Guide for navigating the modular structure
-- [Multiplayer User Guide](docs/multiplayer-guide.md) - How to connect and play with friends
-- [Input Manager](docs/input-manager.md) - Centralized input handling system
-- [Troubleshooting](docs/troubleshooting.md) - Common issues and solutions
-- [Architecture](docs/architecture.md) - Technical architecture and design decisions
-
-## Technologies
-
-- **Three.js** - 3D graphics rendering
-- **TypeScript** - Type-safe development
-- **Vite** - Fast build tool and dev server
-- **WebRTC** - Peer-to-peer multiplayer
-- **Simple Peer** - Simplified WebRTC API
-- **Postprocessing** - Visual effects and shaders
-
-## Deployment
-
-The game can be deployed to any static hosting platform:
-
-### GitHub Pages
+### Available Scripts
 
 ```bash
-npm run build
-# Deploy the dist/ folder to GitHub Pages
+npm run dev          # Start development server with HMR
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run type-check   # Run TypeScript type checking
+npm run lint         # Lint TypeScript files
+npm run lint:fix     # Auto-fix linting issues
+npm run format       # Format code with Prettier
 ```
 
-### Vercel
+### Debug Tools
+- **F12**: Toggle debug panel (FPS, memory, system status)
+- **Console**: System events and detailed logging
+- **State Panel**: View state machine transitions (dev mode)
 
-```bash
-# Connect your repository to Vercel
-# Vercel will automatically build and deploy
-```
+### Performance Tips
+- Use object pools for frequently created objects
+- Leverage memoization for expensive calculations
+- Monitor debug panel for performance bottlenecks
+- Enable auto-performance adjustment in shader settings
 
-The multiplayer system works seamlessly on static hosting platforms without requiring any server-side code.
+## 🤝 Contributing
 
-## Browser Support
+Contributions are welcome! Please follow these guidelines:
 
-- Chrome/Edge (recommended)
-- Firefox
-- Safari (limited WebRTC support)
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Follow code style**: Use existing patterns and naming conventions
+4. **Test thoroughly**: Manual testing in development mode
+5. **Update documentation**: Add/update relevant docs
+6. **Commit changes**: `git commit -m 'Add amazing feature'`
+7. **Push to branch**: `git push origin feature/amazing-feature`
+8. **Open a Pull Request**
 
-For the best multiplayer experience, use Chrome or Edge.
+See [CODEBASE_GOALS.md](docs/CODEBASE_GOALS.md) for detailed contribution guidelines.
 
-## License
+## 📝 Roadmap
 
-[Your License Here]
+### Current Version (v0.1.0)
+- ✅ Core photography gameplay
+- ✅ Procedural creature generation
+- ✅ Feeding mechanics
+- ✅ Currency economy
+- ✅ Food store
+- ✅ Multiplayer support
+- ✅ Save/load system
 
-## Contributing
+### Upcoming Features
+- 🎯 Achievement system
+- 🎯 Daily challenges
+- 🎯 Weather system
+- 🎯 Time of day cycle
+- 🎯 Creature breeding
+- 🎯 Park customization
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+### Future Considerations
+- 💭 VR support
+- 💭 Mobile version
+- 💭 Mod support
+- 💭 Social features
+
+## 🐛 Known Issues
+
+- WebRTC multiplayer may have connection issues on some networks
+- Safari has limited WebRTC support
+- Performance may vary on older hardware
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Three.js** - 3D graphics library
+- **Vite** - Build tool and dev server
+- **simple-peer** - WebRTC wrapper
+- **postprocessing** - Visual effects pipeline
+
+## 📧 Contact
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/ai-snap/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/ai-snap/discussions)
+
+---
+
+Made with ❤️ and TypeScript
