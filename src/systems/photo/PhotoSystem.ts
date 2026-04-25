@@ -30,33 +30,45 @@ export class PhotoSystem {
     return generateCreatureName(creature)
   }
 
-  public takePhoto(
-    creatures: CreatureInstance[], 
-    camera: THREE.Camera, 
+  /**
+   * Find the best creature currently in view of the camera
+   */
+  private findBestCreature(
+    creatures: CreatureInstance[],
+    camera: THREE.Camera,
     scene: THREE.Scene
-  ): PhotoResult {
-    // Find the best creature in view (close to center and visible)
-    let best: { c: CreatureInstance, score: number } | null = null
-    
+  ): { c: CreatureInstance; score: number } | null {
+    let best: { c: CreatureInstance; score: number } | null = null
+
     for (const c of creatures) {
       // Quick visibility test
       const clipPos = c.group.position.clone().project(camera)
       if (Math.abs(clipPos.x) > 1 || Math.abs(clipPos.y) > 1 || clipPos.z > 1 || clipPos.z < -1) {
         continue
       }
-      
+
       // Raycast occlusion check (first hit must belong to this creature)
       this.raycaster.setFromCamera(new THREE.Vector2(clipPos.x, clipPos.y), camera)
       const hits = this.raycaster.intersectObjects(scene.children, true)
       if (hits.length && !this.objectBelongsToGroup(hits[0].object, c.group)) {
         continue
       }
-      
+
       const s = scoreCreature(c, camera)
       if (!best || s > best.score) {
         best = { c, score: s }
       }
     }
+
+    return best
+  }
+
+  public takePhoto(
+    creatures: CreatureInstance[],
+    camera: THREE.Camera,
+    scene: THREE.Scene
+  ): PhotoResult {
+    const best = this.findBestCreature(creatures, camera, scene)
 
     const score = best?.score ?? 0
     const creature = best?.c ?? null
@@ -96,35 +108,10 @@ export class PhotoSystem {
   ): Promise<{ metadata: import('./CreatureCardExporter').CreatureCardMetadata; thumbnail: string } | null> {
     console.log('🔍 PhotoSystem.exportCreatureCard - Starting search')
     console.log('Total creatures:', creatures.length)
-    
-    // Find the best creature in view (same logic as takePhoto)
-    let best: { c: CreatureInstance, score: number } | null = null
-    let checkedCount = 0
-    let inViewCount = 0
-    
-    for (const c of creatures) {
-      checkedCount++
-      const clipPos = c.group.position.clone().project(camera)
-      
-      if (Math.abs(clipPos.x) > 1 || Math.abs(clipPos.y) > 1 || clipPos.z > 1 || clipPos.z < -1) {
-        continue
-      }
-      
-      inViewCount++
-      
-      this.raycaster.setFromCamera(new THREE.Vector2(clipPos.x, clipPos.y), camera)
-      const hits = this.raycaster.intersectObjects(scene.children, true)
-      if (hits.length && !this.objectBelongsToGroup(hits[0].object, c.group)) {
-        continue
-      }
-      
-      const s = scoreCreature(c, camera)
-      if (!best || s > best.score) {
-        best = { c, score: s }
-      }
-    }
 
-    console.log(`Checked ${checkedCount} creatures, ${inViewCount} in view`)
+    const best = this.findBestCreature(creatures, camera, scene)
+
+    console.log(`Checked ${creatures.length} creatures, ${best ? '1' : '0'} best found`)
 
     if (best) {
       console.log(`✅ Found best creature with score ${best.score}`)

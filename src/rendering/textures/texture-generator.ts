@@ -1,6 +1,13 @@
 import * as THREE from 'three'
 import { TAU } from '@core/constants'
 
+/**
+ * Convert a THREE.Color to an RGB CSS string
+ */
+function colorToRGB(color: THREE.Color): string {
+  return `rgb(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)})`
+}
+
 export type PatternType =
   | 'solid'
   | 'spots'
@@ -29,10 +36,10 @@ export function createPatternTexture(
   }
 
   // Fill base color
-  ctx.fillStyle = `rgb(${baseColor.r * 255}, ${baseColor.g * 255}, ${baseColor.b * 255})`
+  ctx.fillStyle = colorToRGB(baseColor)
   ctx.fillRect(0, 0, 512, 512)
 
-  const patternRGB = `rgb(${patternColor.r * 255}, ${patternColor.g * 255}, ${patternColor.b * 255})`
+  const patternRGB = colorToRGB(patternColor)
 
   switch (pattern) {
     case 'spots': {
@@ -146,15 +153,9 @@ export function createPatternTexture(
     case 'gradient': {
       // Vertical gradient
       const gradient = ctx.createLinearGradient(0, 0, 0, 512)
-      gradient.addColorStop(
-        0,
-        `rgb(${baseColor.r * 255}, ${baseColor.g * 255}, ${baseColor.b * 255})`
-      )
+      gradient.addColorStop(0, colorToRGB(baseColor))
       gradient.addColorStop(0.5, patternRGB)
-      gradient.addColorStop(
-        1,
-        `rgb(${baseColor.r * 255}, ${baseColor.g * 255}, ${baseColor.b * 255})`
-      )
+      gradient.addColorStop(1, colorToRGB(baseColor))
       ctx.fillStyle = gradient
       ctx.fillRect(0, 0, 512, 512)
       break
@@ -182,15 +183,9 @@ export function createBellyTexture(bellyColor: THREE.Color, baseColor: THREE.Col
 
   // Create gradient from belly to base color
   const gradient = ctx.createRadialGradient(256, 256, 50, 256, 256, 256)
-  gradient.addColorStop(
-    0,
-    `rgb(${bellyColor.r * 255}, ${bellyColor.g * 255}, ${bellyColor.b * 255})`
-  )
-  gradient.addColorStop(
-    0.6,
-    `rgb(${bellyColor.r * 255}, ${bellyColor.g * 255}, ${bellyColor.b * 255})`
-  )
-  gradient.addColorStop(1, `rgb(${baseColor.r * 255}, ${baseColor.g * 255}, ${baseColor.b * 255})`)
+  gradient.addColorStop(0, colorToRGB(bellyColor))
+  gradient.addColorStop(0.6, colorToRGB(bellyColor))
+  gradient.addColorStop(1, colorToRGB(baseColor))
 
   ctx.fillStyle = gradient
   ctx.fillRect(0, 0, 512, 512)

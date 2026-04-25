@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import { clamp } from '@core/utils'
-import { BaseVisualEffect } from '../visual-effects/BaseVisualEffect'
-import { createFilterFallbackTarget } from './filter-utils'
+import { ShaderFilterBase, FULLSCREEN_VERTEX_SHADER, createFilterFallbackTarget } from './filter-utils'
 
 export interface FilmGrainConfig {
   intensity: number       // Grain strength (0.0 - 1.0)
@@ -10,67 +9,34 @@ export interface FilmGrainConfig {
   enabled: boolean       // Enable/disable the effect
 }
 
-export class FilmGrainFilter extends BaseVisualEffect {
-  protected material: THREE.ShaderMaterial
-  protected config: FilmGrainConfig
-  protected renderTarget: THREE.WebGLRenderTarget | null = null
-  protected scene: THREE.Scene
-  protected camera: THREE.OrthographicCamera
-  protected quad: THREE.Mesh
+export class FilmGrainFilter extends ShaderFilterBase {
+  protected config!: FilmGrainConfig
   private time: number = 0
-  private targetIntensity: number
-  private currentIntensity: number
+  private targetIntensity!: number
+  private currentIntensity!: number
   private _intensityTransitionSpeed: number = 5.0 // Transitions per second
 
   constructor(config: FilmGrainConfig) {
-    super()
-    this.config = { ...config }
-    
-    // Initialize intensity values for smooth transitions
-    this.targetIntensity = this.config.intensity
-    this.currentIntensity = this.config.intensity
-    
-    // Create orthographic camera for fullscreen quad
-    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
-    
-    // Create scene for the filter
-    this.scene = new THREE.Scene()
-    
-    // Create shader material for film grain
-    this.material = new THREE.ShaderMaterial({
-      uniforms: {
+    // Initialize intensity values for smooth transitions before super()
+    const targetIntensity = config.intensity
+    const currentIntensity = config.intensity
+
+    super(
+      FULLSCREEN_VERTEX_SHADER,
+      FilmGrainFilter.getFragmentShader(),
+      {
         tDiffuse: { value: null },
-        uIntensity: { value: this.currentIntensity },
+        uIntensity: { value: currentIntensity },
         uTime: { value: 0.0 }
-      },
-      vertexShader: this.getVertexShader(),
-      fragmentShader: this.getFragmentShader()
-    })
-    
-    // Create fullscreen quad
-    const geometry = new THREE.PlaneGeometry(2, 2)
-    this.quad = new THREE.Mesh(geometry, this.material)
-    this.scene.add(this.quad)
-  }
-
-  /**
-   * Get the vertex shader for the film grain filter
-   */
-  private getVertexShader(): string {
-    return `
-      varying vec2 vUv;
-      
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
-    `
+    )
+
+    this.config = { ...config }
+    this.targetIntensity = targetIntensity
+    this.currentIntensity = currentIntensity
   }
 
-  /**
-   * Get the optimized fragment shader with pseudo-random noise generation
-   */
-  private getFragmentShader(): string {
+  private static getFragmentShader(): string {
     return `
       uniform sampler2D tDiffuse;
       uniform float uIntensity;
@@ -130,7 +96,7 @@ export class FilmGrainFilter extends BaseVisualEffect {
         this.camera,
         inputTexture,
         outputTarget,
-        this.createRenderTarget.bind(this)
+        this.getOrCreateRenderTarget.bind(this)
       )
     }
 
@@ -142,7 +108,7 @@ export class FilmGrainFilter extends BaseVisualEffect {
     this.material.uniforms.uIntensity.value = this.currentIntensity
 
     // Create or use provided render target
-    const target = outputTarget || this.createRenderTarget(renderer)
+    const target = outputTarget || this.getOrCreateRenderTarget(renderer)
     
     // Store current render target
     const currentTarget = renderer.getRenderTarget()
@@ -150,7 +116,7 @@ export class FilmGrainFilter extends BaseVisualEffect {
     try {
       // Render to target
       renderer.setRenderTarget(target)
-      renderer.render(this.scene, this.camera)
+      renderer.render(this, this.camera)
       
       // Restore previous render target
       renderer.setRenderTarget(currentTarget)
@@ -167,24 +133,9 @@ export class FilmGrainFilter extends BaseVisualEffect {
         this.camera,
         inputTexture,
         outputTarget,
-        this.createRenderTarget.bind(this)
+        this.getOrCreateRenderTarget.bind(this)
       )
     }
-  }
-
-  /**
-   * Create a render target with appropriate settings
-   */
-  private createRenderTarget(renderer: THREE.WebGLRenderer): THREE.WebGLRenderTarget {
-    const size = renderer.getSize(new THREE.Vector2())
-    
-    return new THREE.WebGLRenderTarget(size.x, size.y, {
-      minFilter: THREE.LinearFilter,
-      magFilter: THREE.LinearFilter,
-      format: THREE.RGBAFormat,
-      type: THREE.UnsignedByteType,
-      generateMipmaps: false
-    })
   }
 
   /**
