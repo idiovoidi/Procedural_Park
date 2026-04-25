@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import { clampAndUpdate } from '@core/utils'
-import { BaseVisualEffect } from '../visual-effects/BaseVisualEffect'
-import { createFilterFallbackTarget } from './filter-utils'
+import { ShaderFilterBase, FULLSCREEN_VERTEX_SHADER, createFilterFallbackTarget } from './filter-utils'
 
 export interface CRTConfig {
   scanlines: {
@@ -33,86 +32,40 @@ export interface CRTConfig {
   enabled: boolean        // Enable/disable the entire effect
 }
 
-export class CRTFilter extends BaseVisualEffect {
-  protected material: THREE.ShaderMaterial
-  protected config: CRTConfig
-  protected renderTarget: THREE.WebGLRenderTarget | null = null
-  protected scene: THREE.Scene
-  protected camera: THREE.OrthographicCamera
-  protected quad: THREE.Mesh
+export class CRTFilter extends ShaderFilterBase {
+  protected config!: CRTConfig
   private time: number = 0
 
   constructor(config: CRTConfig) {
-    super()
-    this.config = { ...config }
-    
-    // Create orthographic camera for fullscreen quad
-    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
-    
-    // Create scene for the filter
-    this.scene = new THREE.Scene()
-    
-    // Create shader material with CRT effects
-    this.material = new THREE.ShaderMaterial({
-      uniforms: {
+    super(
+      FULLSCREEN_VERTEX_SHADER,
+      CRTFilter.getFragmentShader(),
+      {
         tDiffuse: { value: null },
         uResolution: { value: new THREE.Vector2(1920, 1080) },
         uTime: { value: 0.0 },
-        
-        // Scanline uniforms
-        uScanlinesEnabled: { value: this.config.scanlines.enabled },
-        uScanlineIntensity: { value: this.config.scanlines.intensity },
-        uScanlineSpacing: { value: this.config.scanlines.spacing },
-        uScanlineThickness: { value: this.config.scanlines.thickness },
-        
-        // Curvature uniforms
-        uCurvatureEnabled: { value: this.config.curvature.enabled },
-        uCurvatureAmount: { value: this.config.curvature.amount },
-        uCornerDarkening: { value: this.config.curvature.corners },
-        
-        // Phosphor uniforms
-        uPhosphorEnabled: { value: this.config.phosphor.enabled },
-        uPhosphorIntensity: { value: this.config.phosphor.intensity },
-        uPhosphorPersistence: { value: this.config.phosphor.persistence },
-        
-        // Noise uniforms
-        uNoiseEnabled: { value: this.config.noise.enabled },
-        uNoiseIntensity: { value: this.config.noise.intensity },
-        uNoiseSpeed: { value: this.config.noise.speed },
-        
-        // Flicker uniforms
-        uFlickerEnabled: { value: this.config.flicker.enabled },
-        uFlickerIntensity: { value: this.config.flicker.intensity },
-        uFlickerFrequency: { value: this.config.flicker.frequency }
-      },
-      vertexShader: this.getVertexShader(),
-      fragmentShader: this.getFragmentShader()
-    })
-    
-    // Create fullscreen quad
-    const geometry = new THREE.PlaneGeometry(2, 2)
-    this.quad = new THREE.Mesh(geometry, this.material)
-    this.scene.add(this.quad)
-  }
-
-  /**
-   * Get the vertex shader for the CRT filter
-   */
-  private getVertexShader(): string {
-    return `
-      varying vec2 vUv;
-      
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        uScanlinesEnabled: { value: config.scanlines.enabled },
+        uScanlineIntensity: { value: config.scanlines.intensity },
+        uScanlineSpacing: { value: config.scanlines.spacing },
+        uScanlineThickness: { value: config.scanlines.thickness },
+        uCurvatureEnabled: { value: config.curvature.enabled },
+        uCurvatureAmount: { value: config.curvature.amount },
+        uCornerDarkening: { value: config.curvature.corners },
+        uPhosphorEnabled: { value: config.phosphor.enabled },
+        uPhosphorIntensity: { value: config.phosphor.intensity },
+        uPhosphorPersistence: { value: config.phosphor.persistence },
+        uNoiseEnabled: { value: config.noise.enabled },
+        uNoiseIntensity: { value: config.noise.intensity },
+        uNoiseSpeed: { value: config.noise.speed },
+        uFlickerEnabled: { value: config.flicker.enabled },
+        uFlickerIntensity: { value: config.flicker.intensity },
+        uFlickerFrequency: { value: config.flicker.frequency }
       }
-    `
+    )
+    this.config = { ...config }
   }
 
-  /**
-   * Get the fragment shader that handles all CRT effects
-   */
-  private getFragmentShader(): string {
+  private static getFragmentShader(): string {
     return `
       uniform sampler2D tDiffuse;
       uniform vec2 uResolution;
@@ -232,57 +185,26 @@ export class CRTFilter extends BaseVisualEffect {
    * Apply the CRT filter to a texture
    */
   public apply(
-    renderer: THREE.WebGLRenderer, 
-    inputTexture: THREE.Texture, 
+    renderer: THREE.WebGLRenderer,
+    inputTexture: THREE.Texture,
     outputTarget?: THREE.WebGLRenderTarget
   ): THREE.WebGLRenderTarget {
     if (!this.config.enabled) {
-      // If disabled, just pass through the input
       return createFilterFallbackTarget(
         renderer,
         this.camera,
         inputTexture,
         outputTarget,
-        this.createRenderTarget.bind(this)
+        this.getOrCreateRenderTarget.bind(this)
       )
     }
 
-    // Set input texture
     this.material.uniforms.tDiffuse.value = inputTexture
-
-    // Update resolution uniform
     const size = renderer.getSize(new THREE.Vector2())
     this.material.uniforms.uResolution.value.set(size.x, size.y)
 
-    // Create or use provided render target
-    const target = outputTarget || this.createRenderTarget(renderer)
-    
-    // Store current render target
-    const currentTarget = renderer.getRenderTarget()
-    
-    try {
-      // Render to target
-      renderer.setRenderTarget(target)
-      renderer.render(this.scene, this.camera)
-      
-      // Restore previous render target
-      renderer.setRenderTarget(currentTarget)
-      
-      return target
-    } catch (error) {
-      console.error('Failed to apply CRT filter:', error)
-      
-      // Restore render target and fallback
-      renderer.setRenderTarget(currentTarget)
-
-      return createFilterFallbackTarget(
-        renderer,
-        this.camera,
-        inputTexture,
-        outputTarget,
-        this.createRenderTarget.bind(this)
-      )
-    }
+    const target = outputTarget || this.getOrCreateRenderTarget(renderer)
+    return this.renderWithFallback(renderer, inputTexture, target, 'CRT filter')
   }
 
   /**
@@ -291,27 +213,6 @@ export class CRTFilter extends BaseVisualEffect {
   public updateTime(deltaTime: number): void {
     this.time += deltaTime
     this.material.uniforms.uTime.value = this.time
-  }
-
-  /**
-   * Create a render target with appropriate settings
-   */
-  private createRenderTarget(renderer: THREE.WebGLRenderer): THREE.WebGLRenderTarget {
-    const size = renderer.getSize(new THREE.Vector2())
-    
-    return new THREE.WebGLRenderTarget(size.x, size.y, {
-      minFilter: THREE.LinearFilter,
-      magFilter: THREE.LinearFilter,
-      format: THREE.RGBAFormat,
-      type: THREE.UnsignedByteType,
-      generateMipmaps: false
-    })
-  }  /**
-
-   * Get the current scanlines configuration
-   */
-  public get scanlines(): CRTConfig['scanlines'] {
-    return { ...this.config.scanlines }
   }
 
   /**

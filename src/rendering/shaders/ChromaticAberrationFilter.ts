@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import { clampAndUpdate } from '@core/utils'
-import { BaseVisualEffect } from '../visual-effects/BaseVisualEffect'
-import { createFilterFallbackTarget } from './filter-utils'
+import { ShaderFilterBase, FULLSCREEN_VERTEX_SHADER, createFilterFallbackTarget } from './filter-utils'
 
 export interface ChromaticAberrationConfig {
   offset: number           // Aberration intensity (0.001 - 0.01)
@@ -10,60 +9,24 @@ export interface ChromaticAberrationConfig {
   enabled: boolean        // Enable/disable the effect
 }
 
-export class ChromaticAberrationFilter extends BaseVisualEffect {
-  protected material: THREE.ShaderMaterial
-  protected config: ChromaticAberrationConfig
-  protected renderTarget: THREE.WebGLRenderTarget | null = null
-  protected scene: THREE.Scene
-  protected camera: THREE.OrthographicCamera
-  protected quad: THREE.Mesh
+export class ChromaticAberrationFilter extends ShaderFilterBase {
+  protected config!: ChromaticAberrationConfig
 
   constructor(config: ChromaticAberrationConfig) {
-    super()
-    this.config = { ...config }
-    
-    // Create orthographic camera for fullscreen quad
-    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
-    
-    // Create scene for the filter
-    this.scene = new THREE.Scene()
-    
-    // Create shader material with linear aberration as default
-    this.material = new THREE.ShaderMaterial({
-      uniforms: {
+    super(
+      FULLSCREEN_VERTEX_SHADER,
+      ChromaticAberrationFilter.getFragmentShader(),
+      {
         tDiffuse: { value: null },
-        uOffset: { value: this.config.offset },
-        uDirection: { value: new THREE.Vector2(this.config.direction[0], this.config.direction[1]) },
-        uRadial: { value: this.config.radial }
-      },
-      vertexShader: this.getVertexShader(),
-      fragmentShader: this.getFragmentShader()
-    })
-    
-    // Create fullscreen quad
-    const geometry = new THREE.PlaneGeometry(2, 2)
-    this.quad = new THREE.Mesh(geometry, this.material)
-    this.scene.add(this.quad)
-  }
-
-  /**
-   * Get the vertex shader for the chromatic aberration filter
-   */
-  private getVertexShader(): string {
-    return `
-      varying vec2 vUv;
-      
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        uOffset: { value: config.offset },
+        uDirection: { value: new THREE.Vector2(config.direction[0], config.direction[1]) },
+        uRadial: { value: config.radial }
       }
-    `
+    )
+    this.config = { ...config }
   }
 
-  /**
-   * Get the fragment shader that handles both linear and radial aberration
-   */
-  private getFragmentShader(): string {
+  private static getFragmentShader(): string {
     return `
       uniform sampler2D tDiffuse;
       uniform float uOffset;
@@ -101,68 +64,24 @@ export class ChromaticAberrationFilter extends BaseVisualEffect {
    * Apply the chromatic aberration filter to a texture
    */
   public apply(
-    renderer: THREE.WebGLRenderer, 
-    inputTexture: THREE.Texture, 
+    renderer: THREE.WebGLRenderer,
+    inputTexture: THREE.Texture,
     outputTarget?: THREE.WebGLRenderTarget
   ): THREE.WebGLRenderTarget {
     if (!this.config.enabled) {
-      // If disabled, just pass through the input
       return createFilterFallbackTarget(
         renderer,
         this.camera,
         inputTexture,
         outputTarget,
-        this.createRenderTarget.bind(this)
+        this.getOrCreateRenderTarget.bind(this)
       )
     }
 
-    // Set input texture
     this.material.uniforms.tDiffuse.value = inputTexture
+    const target = outputTarget || this.getOrCreateRenderTarget(renderer)
 
-    // Create or use provided render target
-    const target = outputTarget || this.createRenderTarget(renderer)
-    
-    // Store current render target
-    const currentTarget = renderer.getRenderTarget()
-    
-    try {
-      // Render to target
-      renderer.setRenderTarget(target)
-      renderer.render(this.scene, this.camera)
-      
-      // Restore previous render target
-      renderer.setRenderTarget(currentTarget)
-      
-      return target
-    } catch (error) {
-      console.error('Failed to apply chromatic aberration filter:', error)
-      
-      // Restore render target and fallback
-      renderer.setRenderTarget(currentTarget)
-
-      return createFilterFallbackTarget(
-        renderer,
-        this.camera,
-        inputTexture,
-        outputTarget,
-        this.createRenderTarget.bind(this)
-      )
-    }
-  }
-
-  /**
-   * Create a render target with appropriate settings
-   */
-  private createRenderTarget(renderer: THREE.WebGLRenderer): THREE.WebGLRenderTarget {
-    const size = renderer.getSize(new THREE.Vector2())
-    
-    return new THREE.WebGLRenderTarget(size.x, size.y, {
-      minFilter: THREE.LinearFilter,
-      magFilter: THREE.LinearFilter,
-      format: THREE.RGBAFormat,
-      type: THREE.UnsignedByteType,
-      generateMipmaps: false
-    })
+    return this.renderWithFallback(renderer, inputTexture, target, 'chromatic aberration filter')
   }
 
   /**
