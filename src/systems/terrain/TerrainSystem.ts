@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { TAU } from '@core/constants'
 import type { BiomeType } from './types'
 import { BIOME_CONFIGS, generateBiomeMap } from './biome-generator'
+import { noise2D } from './noise-utils'
 
 export class TerrainSystem {
   private scene: THREE.Scene
@@ -65,7 +66,6 @@ export class TerrainSystem {
   }
 
   private generateHeightMap(seed: number) {
-    const rand = this.createRng(seed)
     this.heightMap = []
 
     // Initialize with base noise
@@ -75,13 +75,13 @@ export class TerrainSystem {
         let height = 0
 
         // Multiple octaves of noise for realistic terrain
-        height += this.noise2D(x * 0.02, z * 0.02, rand) * 4
-        height += this.noise2D(x * 0.05, z * 0.05, rand) * 2
-        height += this.noise2D(x * 0.1, z * 0.1, rand) * 1
-        height += this.noise2D(x * 0.2, z * 0.2, rand) * 0.5
+        height += noise2D(x * 0.02, z * 0.02) * 4
+        height += noise2D(x * 0.05, z * 0.05) * 2
+        height += noise2D(x * 0.1, z * 0.1) * 1
+        height += noise2D(x * 0.2, z * 0.2) * 0.5
 
         // Add some dramatic features
-        const ridgeNoise = Math.abs(this.noise2D(x * 0.03, z * 0.03, rand))
+        const ridgeNoise = Math.abs(noise2D(x * 0.03, z * 0.03))
         height += ridgeNoise * ridgeNoise * 3
 
         this.heightMap[x][z] = Math.max(-2, Math.min(this.maxHeight, height))
@@ -444,32 +444,6 @@ export class TerrainSystem {
     this.scene.fog = new THREE.Fog(config.fogColor.getHex(), 25, 120)
   }
 
-  private noise2D(x: number, y: number, rand: () => number): number {
-    // Simple 2D noise implementation
-    const ix = Math.floor(x)
-    const iy = Math.floor(y)
-    const fx = x - ix
-    const fy = y - iy
-
-    // Generate pseudo-random values at grid corners
-    const a = this.hash2D(ix, iy)
-    const b = this.hash2D(ix + 1, iy)
-    const c = this.hash2D(ix, iy + 1)
-    const d = this.hash2D(ix + 1, iy + 1)
-
-    // Smooth interpolation
-    const u = fx * fx * (3 - 2 * fx)
-    const v = fy * fy * (3 - 2 * fy)
-
-    return (a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v
-  }
-
-  private hash2D(x: number, y: number): number {
-    // Simple hash function for 2D coordinates
-    const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453
-    return (n - Math.floor(n)) * 2 - 1
-  }
-
   private createRng(seed: number): () => number {
     let state = seed >>> 0
     return () => (state = (Math.imul(1664525, state) + 1013904223) >>> 0) / 0xffffffff
@@ -540,26 +514,7 @@ export class TerrainSystem {
         const x = side.axis === 'x' ? side.value : perpPos
         const z = side.axis === 'z' ? side.value : perpPos
 
-        const height = 50 + Math.random() * 80
-        const width = 40 + Math.random() * 50
-        const segments = 4 + Math.floor(Math.random() * 2) // 4-5 sides for low poly
-        const geometry = new THREE.ConeGeometry(width, height, segments)
-
-        // Vary mountain colors - darker and more atmospheric
-        const brightness = 0.15 + Math.random() * 0.1
-        const hue = 0.55 + Math.random() * 0.15
-        const color = new THREE.Color().setHSL(hue, 0.25, brightness)
-
-        const material = new THREE.MeshBasicMaterial({
-          color,
-          fog: true,
-        })
-
-        const mountain = new THREE.Mesh(geometry, material)
-        mountain.position.set(x, height / 2 - 10, z)
-        mountain.rotation.y = Math.random() * TAU
-
-        mountainGroup.add(mountain)
+        this.createMountain(mountainGroup, x, z, 50, 80, 40, 50)
       }
     })
 
@@ -572,23 +527,38 @@ export class TerrainSystem {
     ]
 
     corners.forEach(([x, z]) => {
-      const height = 60 + Math.random() * 70
-      const width = 45 + Math.random() * 45
-      const geometry = new THREE.ConeGeometry(width, height, 5)
-      const color = new THREE.Color().setHSL(0.58, 0.2, 0.18)
-
-      const material = new THREE.MeshBasicMaterial({
-        color,
-        fog: true,
-      })
-
-      const mountain = new THREE.Mesh(geometry, material)
-      mountain.position.set(x, height / 2 - 10, z)
-      mountain.rotation.y = Math.random() * TAU
-
-      mountainGroup.add(mountain)
+      this.createMountain(mountainGroup, x, z, 60, 70, 45, 45, 0.58, 0.18)
     })
 
     this.scene.add(mountainGroup)
+  }
+
+  private createMountain(
+    group: THREE.Group,
+    x: number,
+    z: number,
+    minHeight: number,
+    heightVar: number,
+    minWidth: number,
+    widthVar: number,
+    hue: number = 0.55 + Math.random() * 0.15,
+    brightness: number = 0.15 + Math.random() * 0.1
+  ): void {
+    const height = minHeight + Math.random() * heightVar
+    const width = minWidth + Math.random() * widthVar
+    const segments = 4 + Math.floor(Math.random() * 2)
+    const geometry = new THREE.ConeGeometry(width, height, segments)
+    const color = new THREE.Color().setHSL(hue, 0.25, brightness)
+
+    const material = new THREE.MeshBasicMaterial({
+      color,
+      fog: true,
+    })
+
+    const mountain = new THREE.Mesh(geometry, material)
+    mountain.position.set(x, height / 2 - 10, z)
+    mountain.rotation.y = Math.random() * TAU
+
+    group.add(mountain)
   }
 }

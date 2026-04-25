@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import type { BiomeType, BiomeConfig } from './types'
+import { noise2D, hash2D } from './noise-utils'
 
 export const BIOME_CONFIGS: Record<BiomeType, BiomeConfig> = {
   forest: {
@@ -88,8 +89,8 @@ export function generateBiomeMap(
     biomeMap[x] = []
     for (let z = 0; z < resolution; z++) {
       const height = heightMap[x][z]
-      const moisture = noise2D(x * 0.04, z * 0.04, rand)
-      const temperature = noise2D(x * 0.03 + 100, z * 0.03 + 100, rand)
+      const moisture = noise2D(x * 0.04, z * 0.04)
+      const temperature = noise2D(x * 0.03 + 100, z * 0.03 + 100)
 
       let biome: BiomeType
 
@@ -115,32 +116,6 @@ export function generateBiomeMap(
   }
 
   return biomeMap
-}
-
-function noise2D(x: number, y: number, rand: () => number): number {
-  // Simple 2D noise implementation
-  const ix = Math.floor(x)
-  const iy = Math.floor(y)
-  const fx = x - ix
-  const fy = y - iy
-
-  // Generate pseudo-random values at grid corners
-  const a = hash2D(ix, iy)
-  const b = hash2D(ix + 1, iy)
-  const c = hash2D(ix, iy + 1)
-  const d = hash2D(ix + 1, iy + 1)
-
-  // Smooth interpolation
-  const u = fx * fx * (3 - 2 * fx)
-  const v = fy * fy * (3 - 2 * fy)
-
-  return (a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v
-}
-
-function hash2D(x: number, y: number): number {
-  // Simple hash function for 2D coordinates
-  const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453
-  return (n - Math.floor(n)) * 2 - 1
 }
 
 function createRng(seed: number): () => number {

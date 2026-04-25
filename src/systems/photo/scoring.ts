@@ -2,25 +2,35 @@ import * as THREE from 'three'
 import type { CreatureInstance } from '@systems/creatures'
 import type { ScoreBreakdown } from './types'
 
+interface ScoreComponents {
+  centerBonus: number
+  sizeBonus: number
+  facing: number
+  rarityBonus: number
+}
+
+function calculateScoreComponents(creature: CreatureInstance, camera: THREE.Camera): ScoreComponents {
+  const v = creature.group.position.clone().project(camera)
+  const centerBonus = 1.0 - Math.min(1, v.distanceTo(new THREE.Vector3(0, 0, 0)))
+
+  const dist = camera.position.distanceTo(creature.group.position)
+  const sizeBonus = Math.max(0, 1.2 - dist / 20)
+
+  const toCam = new THREE.Vector3().subVectors(camera.position, creature.group.position).normalize()
+  const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(creature.group.quaternion)
+  const facing = Math.max(0, forward.dot(toCam))
+
+  const rarityBonus = 0.5 + creature.rarity
+
+  return { centerBonus, sizeBonus, facing, rarityBonus }
+}
+
 /**
  * Calculate photo score for a creature
  */
 export function scoreCreature(creature: CreatureInstance, camera: THREE.Camera): number {
-  // Project to NDC (Normalized Device Coordinates)
-  const v = creature.group.position.clone().project(camera)
-  const centerBonus = 1.0 - Math.min(1, v.distanceTo(new THREE.Vector3(0, 0, 0)))
-  
-  const dist = camera.position.distanceTo(creature.group.position)
-  const sizeBonus = Math.max(0, 1.2 - dist / 20)
-  
-  // Facing: dot between forward and vector to camera
-  const toCam = new THREE.Vector3().subVectors(camera.position, creature.group.position).normalize()
-  const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(creature.group.quaternion)
-  const facing = Math.max(0, forward.dot(toCam))
-  
-  const rarityBonus = 0.5 + creature.rarity
+  const { centerBonus, sizeBonus, facing, rarityBonus } = calculateScoreComponents(creature, camera)
   const score = Math.round((centerBonus * 40 + sizeBonus * 35 + facing * 25) * rarityBonus)
-  
   return Math.max(0, score)
 }
 
@@ -28,18 +38,8 @@ export function scoreCreature(creature: CreatureInstance, camera: THREE.Camera):
  * Get detailed score breakdown for a creature
  */
 export function getScoreBreakdown(creature: CreatureInstance, camera: THREE.Camera): ScoreBreakdown {
-  const v = creature.group.position.clone().project(camera)
-  const centerBonus = 1.0 - Math.min(1, v.distanceTo(new THREE.Vector3(0, 0, 0)))
-  
-  const dist = camera.position.distanceTo(creature.group.position)
-  const sizeBonus = Math.max(0, 1.2 - dist / 20)
-  
-  const toCam = new THREE.Vector3().subVectors(camera.position, creature.group.position).normalize()
-  const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(creature.group.quaternion)
-  const facing = Math.max(0, forward.dot(toCam))
-  
-  const rarityBonus = 0.5 + creature.rarity
-  
+  const { centerBonus, sizeBonus, facing, rarityBonus } = calculateScoreComponents(creature, camera)
+
   const centering = Math.round(centerBonus * 40 * rarityBonus)
   const size = Math.round(sizeBonus * 35 * rarityBonus)
   const facingScore = Math.round(facing * 25 * rarityBonus)

@@ -6,6 +6,7 @@
 import * as THREE from 'three'
 import type { UICallbacks } from '@core/types'
 import type { PlayerProgress } from '@systems/state'
+import { UIComponentBase } from './UIComponentBase'
 
 export interface InventoryItem {
   id: string
@@ -16,11 +17,9 @@ export interface InventoryItem {
   rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
 }
 
-export class PlayerStats {
-  private container: HTMLDivElement
-  private isVisible: boolean = false
-  private audioCallbacks: UICallbacks = {}
-  
+export class PlayerStats extends UIComponentBase {
+  protected displayStyle = 'flex'
+
   // Avatar preview
   private avatarCanvas: HTMLCanvasElement | null = null
   private avatarScene: THREE.Scene | null = null
@@ -28,16 +27,11 @@ export class PlayerStats {
   private avatarRenderer: THREE.WebGLRenderer | null = null
   private avatarMesh: THREE.Group | null = null
   private animationId: number | null = null
-  
+
   // Inventory
   private inventory: InventoryItem[] = []
 
-  constructor() {
-    this.container = this.createContainer()
-    document.body.appendChild(this.container)
-  }
-
-  private createContainer(): HTMLDivElement {
+  protected createContainer(): HTMLDivElement {
     const container = document.createElement('div')
     container.id = 'player-stats-modal'
     container.style.cssText = `
@@ -586,10 +580,7 @@ export class PlayerStats {
     })
   }
 
-  public show(): void {
-    this.isVisible = true
-    this.container.style.display = 'flex'
-
+  protected onShow(): void {
     // Initialize avatar preview if not already done
     if (!this.avatarScene) {
       this.initAvatarPreview()
@@ -598,30 +589,7 @@ export class PlayerStats {
     }
   }
 
-  public hide(): void {
-    this.isVisible = false
-    this.container.style.display = 'none'
-  }
-
-  public toggle(): void {
-    if (this.isVisible) {
-      this.hide()
-    } else {
-      this.show()
-    }
-  }
-
-  public isOpen(): boolean {
-    return this.isVisible
-  }
-
-  public setAudioCallbacks(callbacks: UICallbacks): void {
-    this.audioCallbacks = callbacks
-  }
-
-  public dispose(): void {
-    this.hide()
-
+  protected onDispose(): void {
     // Cleanup Three.js resources
     if (this.avatarRenderer) {
       this.avatarRenderer.dispose()
@@ -638,10 +606,6 @@ export class PlayerStats {
           }
         }
       })
-    }
-
-    if (this.container.parentNode) {
-      document.body.removeChild(this.container)
     }
   }
 }

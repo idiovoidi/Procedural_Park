@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { UICallbacks } from '@core/types'
+import type { UICallbacks, SettingsCallbacks } from '@core/types'
 import type { ShaderConfig } from '@rendering/shaders'
 import { ShaderDebugUI, type ShaderDebugCallbacks } from '@rendering/shaders'
 import { Gallery } from '../components/gallery'
@@ -141,15 +141,15 @@ export class UIManager {
     this.settings.onShaderSettingsClick = () => this.toggleShaderDebugUI()
   }
 
-  // Callback functions that can be set by the game
-  public onRideSpeedChange?: (speed: number) => void
-  public onClearGallery?: () => void
+  // Callback functions that can be set by the game (matches SettingsCallbacks)
+  public onRideSpeedChange?: SettingsCallbacks['onRideSpeedChange']
+  public onClearGallery?: SettingsCallbacks['onClearGallery']
   public onRestartRide?: () => void
-  public onDayNightToggle?: (mode: 'day' | 'night') => void
-  public onShaderConfigChange?: (config: Partial<ShaderConfig>) => void
-  public onShaderToggle?: (enabled: boolean) => void
-  public onShaderPresetLoad?: (preset: ShaderConfig) => void
-  public onAutoPerformanceToggle?: (enabled: boolean) => void
+  public onDayNightToggle?: SettingsCallbacks['onDayNightToggle']
+  public onShaderConfigChange?: SettingsCallbacks['onShaderConfigChange']
+  public onShaderToggle?: SettingsCallbacks['onShaderToggle']
+  public onShaderPresetLoad?: SettingsCallbacks['onShaderPresetLoad']
+  public onAutoPerformanceToggle?: SettingsCallbacks['onAutoPerformanceToggle']
   public onToggleMultiplayer?: () => void
   public onToggleSaveLoad?: () => void
 

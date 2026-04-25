@@ -5,20 +5,14 @@
 
 import type { UICallbacks } from '@core/types'
 import type { FoodItem } from '@systems/food'
+import { UIComponentBase } from './UIComponentBase'
 
-export class FoodInventory {
-  private container: HTMLDivElement
-  private isVisible: boolean = false
-  private audioCallbacks: UICallbacks = {}
+export class FoodInventory extends UIComponentBase {
+  protected displayStyle = 'block'
   private onFoodSelect?: (foodId: string) => void
   private selectedFoodId: string | null = null
 
-  constructor() {
-    this.container = this.createContainer()
-    document.body.appendChild(this.container)
-  }
-
-  private createContainer(): HTMLDivElement {
+  protected createContainer(): HTMLDivElement {
     const container = document.createElement('div')
     container.id = 'food-inventory'
     container.style.cssText = `
@@ -192,40 +186,7 @@ export class FoodInventory {
     this.selectedFoodId = foodId
   }
 
-  public show(): void {
-    this.isVisible = true
-    this.container.style.display = 'block'
-  }
-
-  public hide(): void {
-    this.isVisible = false
-    this.container.style.display = 'none'
-  }
-
-  public toggle(): void {
-    if (this.isVisible) {
-      this.hide()
-    } else {
-      this.show()
-    }
-  }
-
-  public isOpen(): boolean {
-    return this.isVisible
-  }
-
-  public setAudioCallbacks(callbacks: UICallbacks): void {
-    this.audioCallbacks = callbacks
-  }
-
   public setOnFoodSelect(callback: (foodId: string) => void): void {
     this.onFoodSelect = callback
-  }
-
-  public dispose(): void {
-    this.hide()
-    if (this.container.parentNode) {
-      document.body.removeChild(this.container)
-    }
   }
 }

@@ -15,6 +15,7 @@ import { IntegratedStateManager, createStateSyncHelpers, type GameStateType } fr
 import { GAME_CONFIG } from '@core/constants'
 import { CreatureManager, MultiplayerManager, ShaderService } from '@game/managers'
 import { FoodManager } from '@systems/food'
+import type { ShaderConfig } from '@rendering/shaders'
 import { CurrencyManager } from '@systems/currency'
 
 export interface GameSystems {
@@ -168,7 +169,7 @@ export class SystemsCoordinator {
     // onRideSpeedChange, onClearGallery, onRestartRide, onDayNightToggle, onToggleMultiplayer
 
     // UI shader callbacks
-    ui.onShaderConfigChange = (config) => shaders.updateConfig(config)
+    ui.onShaderConfigChange = (config) => shaders.updateConfig(config as Partial<ShaderConfig>)
     ui.onShaderToggle = (enabled) => {
       if (enabled) {
         shaders.enable()
@@ -176,7 +177,7 @@ export class SystemsCoordinator {
         shaders.disable()
       }
     }
-    ui.onShaderPresetLoad = (preset) => shaders.loadPreset(preset)
+    ui.onShaderPresetLoad = (preset) => shaders.loadPreset(preset as ShaderConfig)
     ui.onAutoPerformanceToggle = (enabled) => {
       shaders.setAutoPerformanceAdjustment(enabled)
     }

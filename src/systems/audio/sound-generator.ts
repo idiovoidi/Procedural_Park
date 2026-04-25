@@ -2,6 +2,24 @@ import { TAU } from '@core/constants'
 import { randomCentered } from '@core/utils'
 import type { SoundEffect, AmbientSound } from './types'
 
+type SampleGenerator = (t: number, i: number, sampleRate: number) => number
+
+function createSoundBuffer(
+  audioContext: AudioContext,
+  duration: number,
+  generateSample: SampleGenerator
+): AudioBuffer {
+  const sampleRate = audioContext.sampleRate
+  const buffer = audioContext.createBuffer(1, sampleRate * duration, sampleRate)
+  const data = buffer.getChannelData(0)
+
+  for (let i = 0; i < data.length; i++) {
+    data[i] = generateSample(i / sampleRate, i, sampleRate)
+  }
+
+  return buffer
+}
+
 /**
  * Generate all procedural sound effects and ambient sounds
  */
@@ -73,17 +91,10 @@ async function generateUIClick(
   audioContext: AudioContext,
   soundBuffers: Map<string, AudioBuffer>
 ) {
-  const sampleRate = audioContext.sampleRate
-  const duration = 0.1
-  const buffer = audioContext.createBuffer(1, sampleRate * duration, sampleRate)
-  const data = buffer.getChannelData(0)
-
-  for (let i = 0; i < data.length; i++) {
-    const t = i / sampleRate
+  const buffer = createSoundBuffer(audioContext, 0.1, (t) => {
     const envelope = Math.exp(-t * 30)
-    data[i] = Math.sin(t * 1200 * Math.PI) * envelope * 0.4
-  }
-
+    return Math.sin(t * 1200 * Math.PI) * envelope * 0.4
+  })
   soundBuffers.set('ui_click', buffer)
 }
 
@@ -91,17 +102,10 @@ async function generateUIHover(
   audioContext: AudioContext,
   soundBuffers: Map<string, AudioBuffer>
 ) {
-  const sampleRate = audioContext.sampleRate
-  const duration = 0.15
-  const buffer = audioContext.createBuffer(1, sampleRate * duration, sampleRate)
-  const data = buffer.getChannelData(0)
-
-  for (let i = 0; i < data.length; i++) {
-    const t = i / sampleRate
+  const buffer = createSoundBuffer(audioContext, 0.15, (t) => {
     const envelope = Math.exp(-t * 15) * (1 - Math.exp(-t * 50))
-    data[i] = Math.sin(t * 600 * Math.PI) * envelope * 0.2
-  }
-
+    return Math.sin(t * 600 * Math.PI) * envelope * 0.2
+  })
   soundBuffers.set('ui_hover', buffer)
 }
 
