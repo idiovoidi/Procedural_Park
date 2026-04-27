@@ -511,7 +511,7 @@ export class VisualEffectsManager {
     },
     inputTexture: THREE.Texture,
     outputTarget: THREE.WebGLRenderTarget | undefined,
-    _originalError: any
+    _originalError: Error | unknown
   ): THREE.WebGLRenderTarget | null {
     console.warn(`Attempting recovery for ${filterInfo.name} filter...`)
 
@@ -671,7 +671,7 @@ export class VisualEffectsManager {
   /**
    * Handle render errors with appropriate fallback strategies
    */
-  private handleRenderError(error: any): void {
+  private handleRenderError(error: Error | unknown): void {
     console.warn('Attempting to recover from render error...', error)
 
     try {
@@ -1207,7 +1207,7 @@ export class VisualEffectsManager {
     name: string,
     vertexShader: string,
     fragmentShader: string,
-    uniforms: { [key: string]: any } = {}
+    uniforms: { [key: string]: THREE.IUniform } = {}
   ) {
     return this.performanceOptimizer.profileShader(name, vertexShader, fragmentShader, uniforms)
   }
@@ -1229,7 +1229,7 @@ export class VisualEffectsManager {
   /**
    * Handle critical initialization failure
    */
-  private handleCriticalInitializationFailure(_error: any): void {
+  private handleCriticalInitializationFailure(_error: Error | unknown): void {
     console.error('Critical initialization failure - entering safe mode')
 
     // Disable all effects for safe mode

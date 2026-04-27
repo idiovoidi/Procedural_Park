@@ -16,7 +16,7 @@ export interface ErrorReport {
     | 'unknown'
   severity: 'low' | 'medium' | 'high' | 'critical'
   message: string
-  details?: any
+  details?: Record<string, unknown>
   stack?: string
   recovered: boolean
   recoveryStrategy?: string
@@ -123,7 +123,7 @@ export class ErrorHandler {
         type: 'webgl_context',
         severity: 'critical',
         message: 'WebGL context lost',
-        details: { reason: (event as any).statusMessage || 'Unknown' },
+        details: { reason: (event as WebGLContextEvent).statusMessage || 'Unknown' },
       })
 
       // Notify callbacks
@@ -191,7 +191,7 @@ export class ErrorHandler {
         type: 'webgl_context',
         severity: 'critical',
         message: 'Failed to recover from WebGL context loss',
-        details: error,
+        details: { error: error instanceof Error ? error.message : String(error) },
       })
     }
   }
@@ -213,13 +213,13 @@ export class ErrorHandler {
     shaderName: string,
     vertexShader: string,
     fragmentShader: string,
-    error: any
+    error: Error | unknown
   ): THREE.ShaderMaterial | null {
     this.reportError({
       type: 'shader_compilation',
       severity: 'high',
       message: `Shader compilation failed for ${shaderName}`,
-      details: { error: error.toString(), vertexShader, fragmentShader },
+      details: { error: error instanceof Error ? error.message : String(error), vertexShader, fragmentShader },
     })
 
     if (!this.config.enableShaderFallbacks) {
@@ -343,13 +343,13 @@ export class ErrorHandler {
     width: number,
     height: number,
     options: THREE.RenderTargetOptions,
-    error: any
+    error: Error | unknown
   ): THREE.WebGLRenderTarget | null {
     this.reportError({
       type: 'render_target',
       severity: 'medium',
       message: 'Render target creation failed',
-      details: { width, height, options, error: error.toString() },
+      details: { width, height, options, error: error instanceof Error ? error.message : String(error) },
     })
 
     const recoveryKey = `render_target_${width}x${height}`
@@ -407,12 +407,12 @@ export class ErrorHandler {
   /**
    * Handle memory-related errors
    */
-  public handleMemoryError(operation: string, error: any): boolean {
+  public handleMemoryError(operation: string, error: Error | unknown): boolean {
     this.reportError({
       type: 'memory',
       severity: 'high',
       message: `Memory error during ${operation}`,
-      details: { operation, error: error.toString() },
+      details: { operation, error: error instanceof Error ? error.message : String(error) },
     })
 
     if (!this.config.enableGracefulDegradation) {
@@ -422,7 +422,7 @@ export class ErrorHandler {
     try {
       // Force garbage collection if available
       if ('gc' in window) {
-        ;(window as any).gc()
+        ;(window as unknown as { gc?: () => void }).gc?.()
       }
 
       // Clear Three.js caches

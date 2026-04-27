@@ -109,7 +109,7 @@ export class LowResolutionRenderer {
   /**
    * Handle render errors with appropriate fallback strategies
    */
-  private handleRenderError(_error: any): void {
+  private handleRenderError(_error: Error | unknown): void {
     console.warn('Attempting to recover from render error...')
 
     try {

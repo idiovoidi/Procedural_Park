@@ -193,7 +193,7 @@ export class TerrainSystem {
   }
 
   private addVegetation(x: number, z: number, biome: BiomeType, rand: () => number) {
-    let mesh: THREE.Mesh
+    let mesh: THREE.Object3D
 
     switch (biome) {
       case 'forest':
@@ -254,7 +254,7 @@ export class TerrainSystem {
     this.terrainGroup.add(rock)
   }
 
-  private createTree(rand: () => number): THREE.Mesh {
+  private createTree(rand: () => number): THREE.Group {
     const group = new THREE.Group()
 
     // Trunk
@@ -272,7 +272,7 @@ export class TerrainSystem {
     foliage.position.y = 2.5 + rand() * 1
     group.add(foliage)
 
-    return group as any
+    return group
   }
 
   private createGrass(rand: () => number): THREE.Mesh {
@@ -283,7 +283,7 @@ export class TerrainSystem {
     return new THREE.Mesh(geometry, material)
   }
 
-  private createWetlandPlant(rand: () => number): THREE.Mesh {
+  private createWetlandPlant(rand: () => number): THREE.Group {
     const group = new THREE.Group()
 
     // Stem
@@ -303,7 +303,7 @@ export class TerrainSystem {
       group.add(pad)
     }
 
-    return group as any
+    return group
   }
 
   private createCrystalFormation(rand: () => number): THREE.Mesh {

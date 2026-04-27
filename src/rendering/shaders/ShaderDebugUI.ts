@@ -611,7 +611,7 @@ export class ShaderDebugUI {
     const handleSliderChange = () => {
       const value = isInteger ? parseInt(slider.value, 10) : parseFloat(slider.value)
       if (!Number.isNaN(value)) {
-        ;(this.currentConfig as any)[configKey] = value
+        ;(this.currentConfig as unknown as Record<string, number>)[configKey] = value
         input.value = value.toString()
         onChange(value)
       }
@@ -626,7 +626,7 @@ export class ShaderDebugUI {
       if (!Number.isNaN(value)) {
         // Clamp value to valid range
         const clampedValue = Math.max(minValue, Math.min(maxValue, value))
-        ;(this.currentConfig as any)[configKey] = clampedValue
+        ;(this.currentConfig as unknown as Record<string, number>)[configKey] = clampedValue
         slider.value = clampedValue.toString()
         input.value = clampedValue.toString()
         onChange(clampedValue)

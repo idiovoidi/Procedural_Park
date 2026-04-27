@@ -119,7 +119,7 @@ export class PerformanceOptimizer {
     name: string,
     vertexShader: string,
     fragmentShader: string,
-    uniforms: { [key: string]: any } = {}
+    uniforms: { [key: string]: THREE.IUniform } = {}
   ): ShaderProfile {
     const startTime = performance.now()
 
@@ -357,7 +357,7 @@ export class PerformanceOptimizer {
 
     // Add JS heap usage if available
     if ('memory' in performance) {
-      const memInfo = (performance as any).memory
+      const memInfo = (performance as unknown as { memory: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory
       memoryUsage.jsHeapUsed = memInfo.usedJSHeapSize
       memoryUsage.jsHeapTotal = memInfo.totalJSHeapSize
     }

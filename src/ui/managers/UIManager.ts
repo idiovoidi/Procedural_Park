@@ -229,7 +229,7 @@ export class UIManager {
     this.foodInventory.setSelectedFood(foodId)
   }
 
-  public setOnFoodSelect(callback: (foodId: string) => void) {
+  public setOnFoodSelect(callback: (foodId: string | null) => void) {
     this.foodInventory.setOnFoodSelect(callback)
   }
 
