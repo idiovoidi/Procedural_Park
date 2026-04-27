@@ -276,7 +276,9 @@ export class InputManager {
   private triggerAction(action: InputAction) {
     const callbacks = this.callbacks.get(action)
     if (callbacks) {
-      callbacks.forEach((callback) => callback(action, this.state))
+      callbacks.forEach((callback) => {
+        callback(action, this.state)
+      })
     }
   }
 
@@ -302,7 +304,10 @@ export class InputManager {
     if (!this.callbacks.has(action)) {
       this.callbacks.set(action, new Set())
     }
-    this.callbacks.get(action)!.add(callback)
+    const actionCallbacks = this.callbacks.get(action)
+    if (actionCallbacks) {
+      actionCallbacks.add(callback)
+    }
   }
 
   public off(action: InputAction, callback: InputCallback) {

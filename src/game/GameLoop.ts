@@ -106,7 +106,7 @@ export class GameLoop {
    */
   private updateMiniMap(): void {
     const { ui, camera } = this.systems
-    const pos = camera.camera.position
+    const _pos = camera.camera.position
     // TODO: Implement updateMiniMapPlayerPosition in UIManager
     // ui.updateMiniMapPlayerPosition(pos.x, pos.z)
   }

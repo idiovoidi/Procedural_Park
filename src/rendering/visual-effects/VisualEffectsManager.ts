@@ -1610,7 +1610,9 @@ export class VisualEffectsManager {
   public handleResize(): void {
     try {
       // Dispose old render targets
-      this.renderTargets.forEach((target) => target.dispose())
+      this.renderTargets.forEach((target) => {
+        target.dispose()
+      })
       this.renderTargets = []
 
       // Create new render targets with updated size
@@ -1670,7 +1672,9 @@ export class VisualEffectsManager {
       }
 
       // Dispose render targets
-      this.renderTargets.forEach((target) => target.dispose())
+      this.renderTargets.forEach((target) => {
+        target.dispose()
+      })
       this.renderTargets = []
 
       // Clear filter pipeline

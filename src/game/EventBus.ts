@@ -24,18 +24,18 @@ export interface GameEvents {
 
   // UI
   uiPanelToggled: { panel: string; visible: boolean }
-  settingChanged: { key: string; value: any }
+  settingChanged: { key: string; value: unknown }
 
   // Game state
-  gameStarted: void
-  gamePaused: void
-  gameResumed: void
-  rideRestarted: void
+  gameStarted: undefined
+  gamePaused: undefined
+  gameResumed: undefined
+  rideRestarted: undefined
 
   // Multiplayer
   peerConnected: { peerId: string }
   peerDisconnected: { peerId: string }
-  peerStateReceived: { peerId: string; state: any }
+  peerStateReceived: { peerId: string; state: unknown }
 
   // Visual effects
   shaderEnabled: { shader: string; enabled: boolean }
@@ -59,6 +59,7 @@ type EventMap = { [K in keyof GameEvents]: EventHandler<GameEvents[K]>[] }
 
 class EventBusClass {
   private events: Partial<EventMap> = {}
+  // biome-ignore lint/complexity/noBannedTypes: Event handlers have varying signatures
   private onceHandlers: Map<string, Set<Function>> = new Map()
   private debugMode = false
 
@@ -89,7 +90,10 @@ class EventBusClass {
     if (!this.onceHandlers.has(String(event))) {
       this.onceHandlers.set(String(event), new Set())
     }
-    this.onceHandlers.get(String(event))!.add(handler)
+    const handlers = this.onceHandlers.get(String(event))
+    if (handlers) {
+      handlers.add(handler)
+    }
 
     this.on(event, wrappedHandler as EventHandler<GameEvents[K]>)
   }

@@ -230,7 +230,10 @@ export class SubsystemStateManager {
     if (!this.changeCallbacks.has(subsystem)) {
       this.changeCallbacks.set(subsystem, new Set())
     }
-    this.changeCallbacks.get(subsystem)!.add(callback)
+    const subsystemCallbacks = this.changeCallbacks.get(subsystem)
+    if (subsystemCallbacks) {
+      subsystemCallbacks.add(callback)
+    }
 
     // Return unsubscribe function
     return () => {

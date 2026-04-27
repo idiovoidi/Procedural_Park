@@ -212,7 +212,8 @@ export class CreatureCollection {
         const canvas = document.createElement('canvas')
         canvas.width = img.width
         canvas.height = img.height
-        const ctx = canvas.getContext('2d')!
+        const ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('Failed to get 2D context')
 
         // For JPG, add white background
         if (format === 'jpg') {
@@ -326,7 +327,8 @@ export class CreatureCollection {
     const canvas = document.createElement('canvas')
     canvas.width = 200
     canvas.height = 200
-    const ctx = canvas.getContext('2d')!
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Failed to get 2D context')
 
     // Draw a gradient background
     const gradient = ctx.createLinearGradient(0, 0, 200, 200)

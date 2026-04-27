@@ -141,7 +141,9 @@ export class CurrencyManager {
    * Notify all callbacks of balance change
    */
   private notifyBalanceChange(): void {
-    this.onBalanceChangeCallbacks.forEach((callback) => callback(this.currency.amount))
+    this.onBalanceChangeCallbacks.forEach((callback) => {
+      callback(this.currency.amount)
+    })
   }
 
   /**

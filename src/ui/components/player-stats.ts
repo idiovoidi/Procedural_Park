@@ -600,7 +600,9 @@ export class PlayerStats extends UIComponentBase {
         if (object instanceof THREE.Mesh) {
           object.geometry.dispose()
           if (Array.isArray(object.material)) {
-            object.material.forEach((mat) => mat.dispose())
+            object.material.forEach((mat) => {
+              mat.dispose()
+            })
           } else {
             object.material.dispose()
           }

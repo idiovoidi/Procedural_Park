@@ -56,7 +56,9 @@ export class TerrainSystem {
       if (child instanceof THREE.Mesh) {
         child.geometry.dispose()
         if (Array.isArray(child.material)) {
-          child.material.forEach((mat) => mat.dispose())
+          child.material.forEach((mat) => {
+            mat.dispose()
+          })
         } else {
           child.material.dispose()
         }

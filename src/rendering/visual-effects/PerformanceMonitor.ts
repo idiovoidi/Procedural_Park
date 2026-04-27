@@ -188,7 +188,11 @@ export class PerformanceMonitor {
     }
 
     const effectTime = performance.now() - startTime
-    const timings = this.effectTimings.get(effectName)!
+    let timings = this.effectTimings.get(effectName)
+    if (!timings) {
+      timings = []
+      this.effectTimings.set(effectName, timings)
+    }
 
     // Keep only last 60 measurements for rolling average
     timings.push(effectTime)

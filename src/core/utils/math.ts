@@ -20,7 +20,7 @@ export function clampAndUpdate(
   value: number,
   min: number,
   max: number,
-  configTarget: any,
+  configTarget: Record<string, number>,
   configKey: string,
   uniformTarget: { value: number },
   propertyName?: string
@@ -47,7 +47,7 @@ export function lerp(start: number, end: number, t: number): number {
 /**
  * Simple memoization utility for expensive function calls
  */
-export function memoize<TArgs extends any[], TReturn>(
+export function memoize<TArgs extends unknown[], TReturn>(
   fn: (...args: TArgs) => TReturn,
   keyGenerator?: (...args: TArgs) => string
 ): (...args: TArgs) => TReturn {
@@ -56,8 +56,9 @@ export function memoize<TArgs extends any[], TReturn>(
   return (...args: TArgs): TReturn => {
     const key = keyGenerator ? keyGenerator(...args) : JSON.stringify(args)
 
-    if (cache.has(key)) {
-      return cache.get(key)!
+    const cached = cache.get(key)
+    if (cached !== undefined) {
+      return cached
     }
 
     const result = fn(...args)

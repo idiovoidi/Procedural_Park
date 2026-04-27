@@ -4,15 +4,19 @@
  */
 
 import { Buffer } from 'buffer'
-// @ts-expect-error - EventEmitter is a Node.js module
 import { EventEmitter } from 'events'
 import process from 'process'
 
+// biome-ignore lint/suspicious/noExplicitAny: Polyfills require any for global modifications
+type GlobalWindow = Window & typeof globalThis & Record<string, unknown>
+
 // Set up global polyfills for browser environment
 if (typeof window !== 'undefined') {
+  const win = window as GlobalWindow
+
   // Buffer polyfill
-  if (!(window as any).Buffer) {
-    ;(window as any).Buffer = Buffer
+  if (!win.Buffer) {
+    win.Buffer = Buffer as unknown as typeof win.Buffer
   }
 
   // Process polyfill with nextTick support
@@ -22,7 +26,8 @@ if (typeof window !== 'undefined') {
     env: process.env || {},
     version: process.version || '',
     versions: process.versions || {},
-    nextTick: (fn: Function, ...args: any[]) => {
+    // biome-ignore lint/complexity/noBannedTypes: Polyfill requires Function type
+    nextTick: (fn: (...args: unknown[]) => void, ...args: unknown[]) => {
       // Use queueMicrotask if available, otherwise Promise
       if (typeof queueMicrotask === 'function') {
         queueMicrotask(() => fn(...args))
@@ -32,20 +37,21 @@ if (typeof window !== 'undefined') {
     },
   }
 
-  ;(window as any).process = processPolyfill
-  ;(window as any).global = window
+  win.process = processPolyfill as unknown as typeof win.process
+  win.global = window
 
   // EventEmitter polyfill
-  if (!(window as any).EventEmitter) {
-    ;(window as any).EventEmitter = EventEmitter
+  if (!win.EventEmitter) {
+    win.EventEmitter = EventEmitter as unknown as typeof win.EventEmitter
   }
 
   // Ensure global.process is also set
-  if (!(window as any).global) {
-    ;(window as any).global = window
+  if (!win.global) {
+    win.global = window
   }
-  if (!(window as any).global.process) {
-    ;(window as any).global.process = processPolyfill
+  const globalWin = win.global as GlobalWindow
+  if (!globalWin.process) {
+    globalWin.process = processPolyfill as unknown as typeof globalWin.process
   }
 
   console.log('[Polyfills] Browser polyfills initialized')

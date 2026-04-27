@@ -34,7 +34,8 @@ export function createPatternTexture(
   const canvas = document.createElement('canvas')
   canvas.width = 512
   canvas.height = 512
-  const ctx = canvas.getContext('2d')!
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Failed to get 2D context')
 
   // Simple seeded random
   let randSeed = seed
@@ -182,7 +183,8 @@ export function createBellyTexture(bellyColor: THREE.Color, baseColor: THREE.Col
   const canvas = document.createElement('canvas')
   canvas.width = 512
   canvas.height = 512
-  const ctx = canvas.getContext('2d')!
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Failed to get 2D context')
 
   // Create gradient from belly to base color
   const gradient = ctx.createRadialGradient(256, 256, 50, 256, 256, 256)

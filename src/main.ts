@@ -1,6 +1,7 @@
 // Import polyfills FIRST before anything else
 import './polyfills'
 import './style.css'
+import type { IntegratedStateManager } from '@systems/state'
 import { showErrorScreen } from '@ui/utils/show-error-screen'
 import { Game } from './game/Game'
 
@@ -15,8 +16,9 @@ try {
     .start()
     .then(() => {
       // Expose game instance to window for debugging
-      ;(window as any).game = game
-      ;(window as any).stateManager = game.getStateManager()
+      const win = window as Window & { game?: Game; stateManager?: IntegratedStateManager }
+      win.game = game
+      win.stateManager = game.getStateManager()
     })
     .catch((error) => {
       console.error('❌ Failed to start game:', error)
@@ -30,7 +32,7 @@ try {
 // Hot Module Replacement
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
-    const game = (window as any).game
+    const game = (window as Window & { game?: Game }).game
     if (game) {
       game.stop()
     }

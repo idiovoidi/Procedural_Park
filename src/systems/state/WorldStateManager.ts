@@ -332,7 +332,9 @@ export class WorldStateManager {
   public clearAllSaves(): boolean {
     try {
       const slots = this.getAvailableSlots()
-      slots.forEach((slot) => this.deleteSave(slot))
+      slots.forEach((slot) => {
+        this.deleteSave(slot)
+      })
       this.deleteSave('quicksave')
       localStorage.removeItem(METADATA_KEY)
       this.currentSlotId = null

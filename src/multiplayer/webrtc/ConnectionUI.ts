@@ -513,7 +513,9 @@ export class ConnectionUI {
     if (!this.modal) return
 
     const flows = this.modal.querySelectorAll('.mp-flow-container')
-    flows.forEach((f) => f.classList.remove('active'))
+    flows.forEach((f) => {
+      f.classList.remove('active')
+    })
 
     const targetFlow = this.modal.querySelector(`[data-flow="${flow}"]`)
     targetFlow?.classList.add('active')

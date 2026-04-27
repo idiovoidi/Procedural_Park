@@ -54,7 +54,7 @@ export abstract class BaseVisualEffect {
   /**
    * Log disposal error - override in subclasses for specific messages
    */
-  protected logDisposalError(error: any): void {
+  protected logDisposalError(error: Error | unknown): void {
     console.error(`Error during ${this.constructor.name} disposal:`, error)
   }
 }

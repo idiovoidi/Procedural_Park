@@ -3,9 +3,6 @@
  * Centralizes all input handling and bindings
  */
 
-import type { VideoRecorder } from '@game/VideoRecorder'
-import type { SceneManager } from '@rendering/scene'
-import type { ShaderConfig } from '@rendering/shaders'
 import type { CameraController } from '@systems/camera'
 import type { InputManager } from '@systems/input'
 import type { IntegratedStateManager } from '@systems/state'
@@ -36,11 +33,9 @@ export interface InputHandlerCallbacks {
 
 export class InputHandler {
   private inputManager: InputManager
-  private camera: CameraController
-  private stateManager: IntegratedStateManager
-  private uiManager: UIManager
-  private videoRecorder: VideoRecorder
-  private sceneManager: SceneManager
+  private _camera: CameraController
+  private _stateManager: IntegratedStateManager
+  private _uiManager: UIManager
   private callbacks: InputHandlerCallbacks
 
   constructor(
@@ -48,16 +43,12 @@ export class InputHandler {
     camera: CameraController,
     stateManager: IntegratedStateManager,
     uiManager: UIManager,
-    videoRecorder: VideoRecorder,
-    sceneManager: SceneManager,
     callbacks: InputHandlerCallbacks
   ) {
     this.inputManager = inputManager
-    this.camera = camera
-    this.stateManager = stateManager
-    this.uiManager = uiManager
-    this.videoRecorder = videoRecorder
-    this.sceneManager = sceneManager
+    this._camera = camera
+    this._stateManager = stateManager
+    this._uiManager = uiManager
     this.callbacks = callbacks
 
     this.setupInputBindings()

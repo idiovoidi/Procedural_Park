@@ -111,7 +111,8 @@ export class PeerAvatar {
   private createNameLabel(name: string): THREE.Sprite {
     // Create canvas for text rendering
     const canvas = document.createElement('canvas')
-    const context = canvas.getContext('2d')!
+    const context = canvas.getContext('2d')
+    if (!context) throw new Error('Failed to get 2D context')
     canvas.width = 256
     canvas.height = 64
 
@@ -239,7 +240,9 @@ export class PeerAvatar {
         object.geometry.dispose()
 
         if (Array.isArray(object.material)) {
-          object.material.forEach((material) => material.dispose())
+          object.material.forEach((material) => {
+            material.dispose()
+          })
         } else {
           object.material.dispose()
         }

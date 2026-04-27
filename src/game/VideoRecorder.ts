@@ -79,7 +79,9 @@ export class VideoRecorder {
 
       // Stop all tracks in the stream
       if (this.stream) {
-        this.stream.getTracks().forEach((track) => track.stop())
+        this.stream.getTracks().forEach((track) => {
+          track.stop()
+        })
       }
 
       console.log('Recording stopped')

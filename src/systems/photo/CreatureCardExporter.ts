@@ -184,7 +184,8 @@ export class CreatureCardExporter {
     const enhancedCanvas = document.createElement('canvas')
     enhancedCanvas.width = newWidth
     enhancedCanvas.height = newHeight
-    const ctx = enhancedCanvas.getContext('2d')!
+    const ctx = enhancedCanvas.getContext('2d')
+    if (!ctx) throw new Error('Failed to get 2D context')
 
     // Background gradient
     const gradient = ctx.createLinearGradient(0, 0, 0, newHeight)

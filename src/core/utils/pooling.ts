@@ -23,8 +23,9 @@ export class ObjectPool<T> {
 
   get(): T {
     let obj: T
-    if (this.available.length > 0) {
-      obj = this.available.pop()!
+    const popped = this.available.pop()
+    if (popped !== undefined) {
+      obj = popped
     } else {
       obj = this.createFn()
     }
