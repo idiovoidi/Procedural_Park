@@ -3,11 +3,7 @@ import { randomCenteredSeeded } from '@core/utils'
 import type { Random } from '@core/types'
 import type { PatternType } from '@rendering/textures'
 import type { Anatomy, CreatureArchetype, BodyType } from './types'
-
-export function createRng(seed: number): Random {
-  let state = seed >>> 0
-  return () => (state = (Math.imul(1664525, state) + 1013904223) >>> 0) / 0xffffffff
-}
+import { createRng } from '@systems/terrain/noise-utils'
 
 export function choose<T>(rand: Random, items: T[]): T {
   return items[Math.floor(rand() * items.length)]

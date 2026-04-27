@@ -171,19 +171,13 @@ export class CreatureStateSync {
     })
   }
 
-  /**
-   * Update creature position
-   */
-  public updateCreaturePosition(id: string, position: THREE.Vector3): void {
+  private updateCreature(id: string, update: Partial<CreatureState>): void {
     const creatures = this.stateManager.getCreaturesState().creatures
     const creature = creatures.get(id)
-    
+
     if (creature) {
       const newCreatures = new Map(creatures)
-      newCreatures.set(id, {
-        ...creature,
-        position: { x: position.x, y: position.y, z: position.z },
-      })
+      newCreatures.set(id, { ...creature, ...update })
 
       this.stateManager.updateCreaturesState({
         creatures: newCreatures,
@@ -193,27 +187,22 @@ export class CreatureStateSync {
   }
 
   /**
+   * Update creature position
+   */
+  public updateCreaturePosition(id: string, position: THREE.Vector3): void {
+    this.updateCreature(id, {
+      position: { x: position.x, y: position.y, z: position.z },
+    })
+  }
+
+  /**
    * Update creature behavior
    */
   public updateCreatureBehavior(
     id: string,
     behaviorState: CreatureState['behaviorState']
   ): void {
-    const creatures = this.stateManager.getCreaturesState().creatures
-    const creature = creatures.get(id)
-    
-    if (creature) {
-      const newCreatures = new Map(creatures)
-      newCreatures.set(id, {
-        ...creature,
-        behaviorState,
-      })
-
-      this.stateManager.updateCreaturesState({
-        creatures: newCreatures,
-        lastUpdateTime: Date.now(),
-      })
-    }
+    this.updateCreature(id, { behaviorState })
   }
 
   /**

@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import type { BiomeType, BiomeConfig } from './types'
-import { noise2D, hash2D } from './noise-utils'
+import { noise2D, createRng } from './noise-utils'
 
 export const BIOME_CONFIGS: Record<BiomeType, BiomeConfig> = {
   forest: {
@@ -116,9 +116,4 @@ export function generateBiomeMap(
   }
 
   return biomeMap
-}
-
-function createRng(seed: number): () => number {
-  let state = seed >>> 0
-  return () => (state = (Math.imul(1664525, state) + 1013904223) >>> 0) / 0xffffffff
 }

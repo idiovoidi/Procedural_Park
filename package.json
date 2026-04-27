@@ -8,12 +8,15 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix",
-    "format": "prettier --write \"src/**/*.{ts,css}\"",
+    "lint": "biome lint src",
+    "lint:fix": "biome lint src --write",
+    "format": "biome format src --write",
+    "check": "biome check src",
+    "check:fix": "biome check src --write",
     "jscpd": "jscpd --min-lines 5 --min-tokens 50 src/"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.13",
     "@types/three": "^0.180.0",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",

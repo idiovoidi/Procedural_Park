@@ -31,3 +31,11 @@ export function noise2D(x: number, y: number): number {
 
   return (a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v
 }
+
+/**
+ * Simple LCG (Linear Congruential Generator) for seeded random numbers
+ */
+export function createRng(seed: number): () => number {
+  let state = seed >>> 0
+  return () => (state = (Math.imul(1664525, state) + 1013904223) >>> 0) / 0xffffffff
+}

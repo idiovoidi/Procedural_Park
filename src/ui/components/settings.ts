@@ -27,17 +27,14 @@ export class Settings {
     this.audioCallbacks = callbacks
   }
 
-  private setupEventListeners() {
-    this.toggleSettingsBtn?.addEventListener('click', () => {
-      this.audioCallbacks.onClick?.()
-      this.toggle()
-    })
+  private handleSettingsClick() {
+    this.audioCallbacks.onClick?.()
+    this.toggle()
+  }
 
-    // Settings panel close button
-    this.settingsPanel.querySelector('.close-btn')?.addEventListener('click', () => {
-      this.audioCallbacks.onClick?.()
-      this.toggle()
-    })
+  private setupEventListeners() {
+    this.toggleSettingsBtn?.addEventListener('click', () => this.handleSettingsClick())
+    this.settingsPanel.querySelector('.close-btn')?.addEventListener('click', () => this.handleSettingsClick())
 
     // Settings controls
     const rideSpeedSlider = document.getElementById('rideSpeed') as HTMLInputElement

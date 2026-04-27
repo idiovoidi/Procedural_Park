@@ -8,7 +8,8 @@ export type {
 } from './types'
 
 // Generator functions
-export { createRng, generateAnatomy, choose, rangeInt, normalish } from './creature-generator'
+export { generateAnatomy, choose, rangeInt, normalish } from './creature-generator'
+export { createRng } from '@systems/terrain/noise-utils'
 
 // Builder functions
 export { spawnCreatureNearPath, spawnCreatureAt } from './creature-builder'
