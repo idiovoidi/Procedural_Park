@@ -1,5 +1,5 @@
 import { GAME_CONFIG } from '@core/constants'
-import type { UICallbacks, SettingsCallbacks } from '@core/types'
+import type { SettingsCallbacks, UICallbacks } from '@core/types'
 import type { ShaderConfig } from '@rendering/shaders'
 
 export class Settings {
@@ -34,7 +34,9 @@ export class Settings {
 
   private setupEventListeners() {
     this.toggleSettingsBtn?.addEventListener('click', () => this.handleSettingsClick())
-    this.settingsPanel.querySelector('.close-btn')?.addEventListener('click', () => this.handleSettingsClick())
+    this.settingsPanel
+      .querySelector('.close-btn')
+      ?.addEventListener('click', () => this.handleSettingsClick())
 
     // Settings controls
     const rideSpeedSlider = document.getElementById('rideSpeed') as HTMLInputElement

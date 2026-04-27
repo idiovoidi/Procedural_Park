@@ -3,9 +3,9 @@
  * Displays player statistics, avatar preview, and inventory
  */
 
-import * as THREE from 'three'
 import type { UICallbacks } from '@core/types'
 import type { PlayerProgress } from '@systems/state'
+import * as THREE from 'three'
 import { UIComponentBase } from './UIComponentBase'
 
 export interface InventoryItem {

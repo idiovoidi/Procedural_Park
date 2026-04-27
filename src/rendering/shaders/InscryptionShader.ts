@@ -300,15 +300,15 @@ export class InscryptionShader {
 
   // Create a new instance of uniforms (for multiple shader instances)
   static createUniforms(): InscryptionShaderUniforms {
-    return THREE.UniformsUtils.clone(this.uniforms)
+    return THREE.UniformsUtils.clone(InscryptionShader.uniforms)
   }
 
   // Create shader material
   static createMaterial(uniforms?: InscryptionShaderUniforms): THREE.ShaderMaterial {
     return new THREE.ShaderMaterial({
-      uniforms: uniforms || this.createUniforms(),
-      vertexShader: this.vertexShader,
-      fragmentShader: this.fragmentShader,
+      uniforms: uniforms || InscryptionShader.createUniforms(),
+      vertexShader: InscryptionShader.vertexShader,
+      fragmentShader: InscryptionShader.fragmentShader,
     })
   }
 }

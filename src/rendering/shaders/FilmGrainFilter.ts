@@ -1,12 +1,16 @@
-import * as THREE from 'three'
 import { clamp } from '@core/utils'
-import { ShaderFilterBase, FULLSCREEN_VERTEX_SHADER, createFilterFallbackTarget } from './filter-utils'
+import type * as THREE from 'three'
+import {
+  createFilterFallbackTarget,
+  FULLSCREEN_VERTEX_SHADER,
+  ShaderFilterBase,
+} from './filter-utils'
 
 export interface FilmGrainConfig {
-  intensity: number       // Grain strength (0.0 - 1.0)
-  animated: boolean       // Enable time-based animation
-  speed: number          // Animation speed multiplier
-  enabled: boolean       // Enable/disable the effect
+  intensity: number // Grain strength (0.0 - 1.0)
+  animated: boolean // Enable time-based animation
+  speed: number // Animation speed multiplier
+  enabled: boolean // Enable/disable the effect
 }
 
 export class FilmGrainFilter extends ShaderFilterBase {
@@ -21,15 +25,11 @@ export class FilmGrainFilter extends ShaderFilterBase {
     const targetIntensity = config.intensity
     const currentIntensity = config.intensity
 
-    super(
-      FULLSCREEN_VERTEX_SHADER,
-      FilmGrainFilter.getFragmentShader(),
-      {
-        tDiffuse: { value: null },
-        uIntensity: { value: currentIntensity },
-        uTime: { value: 0.0 }
-      }
-    )
+    super(FULLSCREEN_VERTEX_SHADER, FilmGrainFilter.getFragmentShader(), {
+      tDiffuse: { value: null },
+      uIntensity: { value: currentIntensity },
+      uTime: { value: 0.0 },
+    })
 
     this.config = { ...config }
     this.targetIntensity = targetIntensity
@@ -84,8 +84,8 @@ export class FilmGrainFilter extends ShaderFilterBase {
    * Apply the film grain filter to a texture
    */
   public apply(
-    renderer: THREE.WebGLRenderer, 
-    inputTexture: THREE.Texture, 
+    renderer: THREE.WebGLRenderer,
+    inputTexture: THREE.Texture,
     outputTarget?: THREE.WebGLRenderTarget
   ): THREE.WebGLRenderTarget {
     // Performance optimization: skip if disabled or intensity is effectively zero
@@ -102,29 +102,29 @@ export class FilmGrainFilter extends ShaderFilterBase {
 
     // Set input texture
     this.material.uniforms.tDiffuse.value = inputTexture
-    
+
     // Ensure uniforms are up to date
     this.material.uniforms.uTime.value = this.time
     this.material.uniforms.uIntensity.value = this.currentIntensity
 
     // Create or use provided render target
     const target = outputTarget || this.getOrCreateRenderTarget(renderer)
-    
+
     // Store current render target
     const currentTarget = renderer.getRenderTarget()
-    
+
     try {
       // Render to target
       renderer.setRenderTarget(target)
       renderer.render(this, this.camera)
-      
+
       // Restore previous render target
       renderer.setRenderTarget(currentTarget)
-      
+
       return target
     } catch (error) {
       console.error('Failed to apply film grain filter:', error)
-      
+
       // Restore render target and fallback
       renderer.setRenderTarget(currentTarget)
 
@@ -212,7 +212,7 @@ export class FilmGrainFilter extends ShaderFilterBase {
     if (typeof value !== 'number' || !isFinite(value)) {
       throw new Error('Animation speed must be a finite number')
     }
-    
+
     this.config.speed = value
   }
 
@@ -230,7 +230,7 @@ export class FilmGrainFilter extends ShaderFilterBase {
     if (typeof value !== 'number' || !isFinite(value) || value < 0) {
       throw new Error('Intensity transition speed must be a positive finite number')
     }
-    
+
     this._intensityTransitionSpeed = value
   }
 
@@ -253,25 +253,24 @@ export class FilmGrainFilter extends ShaderFilterBase {
    */
   public updateConfig(newConfig: Partial<FilmGrainConfig>): void {
     const oldConfig = { ...this.config }
-    
+
     try {
       // Apply new configuration with validation
       if (newConfig.intensity !== undefined) {
         this.intensity = newConfig.intensity
       }
-      
+
       if (newConfig.animated !== undefined) {
         this.setAnimated(newConfig.animated)
       }
-      
+
       if (newConfig.speed !== undefined) {
         this.speed = newConfig.speed
       }
-      
+
       if (newConfig.enabled !== undefined) {
         this.enabled = newConfig.enabled
       }
-      
     } catch (error) {
       console.error('Failed to update film grain config:', error)
       // Revert to old configuration
@@ -290,16 +289,16 @@ export class FilmGrainFilter extends ShaderFilterBase {
     if (this.config.animated) {
       // Update time with configurable speed
       this.time += deltaTime * this.config.speed
-      
+
       // Update shader uniform
       this.material.uniforms.uTime.value = this.time
     }
-    
+
     // Handle smooth intensity transitions
     if (Math.abs(this.currentIntensity - this.targetIntensity) > 0.001) {
       const intensityDelta = this.targetIntensity - this.currentIntensity
       const maxChange = this._intensityTransitionSpeed * deltaTime
-      
+
       if (Math.abs(intensityDelta) <= maxChange) {
         // Close enough, snap to target
         this.currentIntensity = this.targetIntensity
@@ -307,7 +306,7 @@ export class FilmGrainFilter extends ShaderFilterBase {
         // Move towards target
         this.currentIntensity += Math.sign(intensityDelta) * maxChange
       }
-      
+
       // Update shader uniform
       this.material.uniforms.uIntensity.value = this.currentIntensity
     }

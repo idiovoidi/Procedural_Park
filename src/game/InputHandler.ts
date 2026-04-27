@@ -3,13 +3,13 @@
  * Centralizes all input handling and bindings
  */
 
-import type { InputManager } from '@systems/input'
+import type { VideoRecorder } from '@game/VideoRecorder'
+import type { SceneManager } from '@rendering/scene'
+import type { ShaderConfig } from '@rendering/shaders'
 import type { CameraController } from '@systems/camera'
+import type { InputManager } from '@systems/input'
 import type { IntegratedStateManager } from '@systems/state'
 import type { UIManager } from '@ui/managers'
-import type { VideoRecorder } from '@game/VideoRecorder'
-import type { ShaderConfig } from '@rendering/shaders'
-import type { SceneManager } from '@rendering/scene'
 
 export interface InputHandlerCallbacks {
   onTakePhoto: () => void

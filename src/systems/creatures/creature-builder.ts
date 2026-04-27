@@ -1,19 +1,19 @@
-import * as THREE from 'three'
-import { createPatternTexture } from '@rendering/textures'
-import { TAU, HALF_PI, QUARTER_PI } from '@core/constants'
-import { randomCenteredSeeded, memoizedSin, memoizedCos } from '@core/utils'
+import { HALF_PI, QUARTER_PI, TAU } from '@core/constants'
 import type { Random } from '@core/types'
-import type { Anatomy, BodyType, CreatureArchetype, CreatureInstance, BehaviorState } from './types'
-import { normalish, rangeInt } from './creature-generator'
+import { memoizedCos, memoizedSin, randomCenteredSeeded } from '@core/utils'
+import { createPatternTexture } from '@rendering/textures'
+import * as THREE from 'three'
 import {
-  updateBehaviorState as updateBehaviorStateLogic,
-  updateMovement,
-  getMouthOpenAmount,
-  getWingFlapSpeedMultiplier,
   applyBehaviorEffects,
   type BehaviorContext,
   type BehaviorState_Internal,
+  getMouthOpenAmount,
+  getWingFlapSpeedMultiplier,
+  updateBehaviorState as updateBehaviorStateLogic,
+  updateMovement,
 } from './creature-behavior'
+import { normalish, rangeInt } from './creature-generator'
+import type { Anatomy, BehaviorState, BodyType, CreatureArchetype, CreatureInstance } from './types'
 
 function getBodyTypeScale(bodyType: BodyType): { width: number; height: number; length: number } {
   switch (bodyType) {

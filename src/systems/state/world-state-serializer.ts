@@ -3,13 +3,13 @@
  * Helper functions to convert game objects to/from serializable format
  */
 
-import * as THREE from 'three'
 import type { CreatureInstance } from '@systems/creatures'
+import type * as THREE from 'three'
 import type {
+  PlayerProgress,
+  SerializedCameraState,
   SerializedCreature,
   SerializedPhoto,
-  SerializedCameraState,
-  PlayerProgress,
   WorldState,
 } from './world-state-types'
 
@@ -101,10 +101,7 @@ export function serializeCameraState(
 /**
  * Deserialize camera state
  */
-export function deserializeCameraState(
-  camera: THREE.Camera,
-  state: SerializedCameraState
-): void {
+export function deserializeCameraState(camera: THREE.Camera, state: SerializedCameraState): void {
   camera.position.set(state.position.x, state.position.y, state.position.z)
   camera.rotation.set(state.rotation.x, state.rotation.y, state.rotation.z)
 }
@@ -135,7 +132,7 @@ export function updateProgressWithPhoto(
   rarity: number
 ): PlayerProgress {
   const updated = { ...progress }
-  
+
   updated.photoCount++
   updated.totalScore += score
   updated.bestScore = Math.max(updated.bestScore, score)

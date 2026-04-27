@@ -3,19 +3,19 @@
  * Main game class - now simplified and modular
  */
 
-import { SystemsCoordinator, type GameSystems } from './SystemsCoordinator'
-import { GameLoop } from './GameLoop'
-import { InputHandler, type InputHandlerCallbacks } from './InputHandler'
 import { GAME_CONFIG } from '@core/constants'
-import { showErrorScreen } from '@ui/utils/show-error-screen'
 import type { IntegratedStateManager } from '@systems/state'
 import {
-  WorldStateManager,
   createWorldStateSnapshot,
   type PlayerProgress,
   type SerializedPhoto,
   type WorldState,
+  WorldStateManager,
 } from '@systems/state'
+import { showErrorScreen } from '@ui/utils/show-error-screen'
+import { GameLoop } from './GameLoop'
+import { InputHandler, type InputHandlerCallbacks } from './InputHandler'
+import { type GameSystems, SystemsCoordinator } from './SystemsCoordinator'
 
 export class Game {
   private systems!: GameSystems
@@ -43,7 +43,7 @@ export class Game {
    */
   private async initialize(): Promise<void> {
     const loadingEl = document.getElementById('loading')
-    
+
     try {
       // Show loading screen
       loadingEl?.classList.remove('hidden')
@@ -93,7 +93,7 @@ export class Game {
     } catch (error) {
       console.error('❌ Game initialization failed:', error)
       showErrorScreen('Failed to initialize game systems.', error, 'Initialization Error')
-      
+
       // Re-throw to propagate to start() method
       throw error
     }
@@ -215,7 +215,7 @@ export class Game {
     const newPhotoCount = currentUI.photoCount + 1
     const newTotalScore = currentUI.totalScore + result.score
     const newBestScore = Math.max(currentUI.lastScore, result.score)
-    
+
     state.updateUIState({
       photoCount: newPhotoCount,
       totalScore: newTotalScore,
@@ -254,7 +254,7 @@ export class Game {
         console.log('➕ Adding to collection:', result.metadata.creatureName)
         const added = ui.addCreatureToCollection(result.metadata, result.thumbnail)
         console.log('Collection add result:', added ? 'Added' : 'Already exists')
-        
+
         if (added) {
           ui.showToast(`📦 Captured ${result.metadata.creatureName}!`)
         } else {
@@ -352,11 +352,11 @@ export class Game {
    */
   private togglePlayerStats(): void {
     this.systems.ui.togglePlayerStats()
-    
+
     // Update stats when opening
     const progress = this.getPlayerProgress()
     this.systems.ui.updatePlayerStats(progress)
-    
+
     // Update inventory with sample items (photos as collectibles)
     const inventoryItems: import('@ui/components').InventoryItem[] = [
       {
@@ -376,7 +376,7 @@ export class Game {
         rarity: 'common',
       },
     ]
-    
+
     // Add food items to inventory
     const foodItems = this.systems.food.getInventory()
     foodItems.forEach((food) => {
@@ -389,7 +389,7 @@ export class Game {
         rarity: food.rarity,
       })
     })
-    
+
     // Add rarity-based collectibles
     if (progress.rarityTiers.legendary > 0) {
       inventoryItems.push({
@@ -401,7 +401,7 @@ export class Game {
         rarity: 'legendary',
       })
     }
-    
+
     if (progress.rarityTiers.epic > 0) {
       inventoryItems.push({
         id: 'epic_badge',
@@ -412,7 +412,7 @@ export class Game {
         rarity: 'epic',
       })
     }
-    
+
     if (progress.rarityTiers.rare > 0) {
       inventoryItems.push({
         id: 'rare_badge',
@@ -423,7 +423,7 @@ export class Game {
         rarity: 'rare',
       })
     }
-    
+
     this.systems.ui.setInventory(inventoryItems)
   }
 
@@ -779,7 +779,8 @@ export class Game {
       const success = this.worldStateManager.createSave(slotId, snapshot)
 
       if (success) {
-        const displayName = slotId === 'quicksave' ? 'Quick Save' : `Slot ${slotId.replace('slot_', '')}`
+        const displayName =
+          slotId === 'quicksave' ? 'Quick Save' : `Slot ${slotId.replace('slot_', '')}`
         this.systems.ui.showToast(`💾 ${displayName} saved!`)
       } else {
         this.systems.ui.showToast('❌ Save failed!')
@@ -804,7 +805,8 @@ export class Game {
 
       this.restoreGameState(state)
 
-      const displayName = slotId === 'quicksave' ? 'Quick Save' : `Slot ${slotId.replace('slot_', '')}`
+      const displayName =
+        slotId === 'quicksave' ? 'Quick Save' : `Slot ${slotId.replace('slot_', '')}`
       this.systems.ui.showToast(`📂 ${displayName} loaded!`)
     } catch (error) {
       console.error('Load error:', error)

@@ -1,6 +1,6 @@
-import * as THREE from 'three'
 import type { CreatureInstance } from '@systems/creatures'
 import type { BiomeType } from '@systems/terrain'
+import * as THREE from 'three'
 
 export interface InteractionPoint {
   position: THREE.Vector3
@@ -22,29 +22,29 @@ export class EnvironmentInteractions {
   public generateInteractionPoints(terrainSystem: any, seed: number = 123) {
     this.clearInteractionPoints()
     const rand = this.createRng(seed)
-    
+
     // Generate interaction points based on terrain features
     for (let i = 0; i < 100; i++) {
       const x = (rand() - 0.5) * 180 // Stay within terrain bounds
       const z = (rand() - 0.5) * 180
-      
+
       const height = terrainSystem.getHeightAt(x, z)
       const biome = terrainSystem.getBiomeAt(x, z)
-      
+
       // Generate different types of interaction points based on biome and height
       const interactionTypes = this.getInteractionTypesForBiome(biome, height)
-      
+
       if (interactionTypes.length > 0) {
         const type = interactionTypes[Math.floor(rand() * interactionTypes.length)]
-        
+
         this.interactionPoints.push({
           position: new THREE.Vector3(x, height + this.getHeightOffset(type), z),
           type,
           biome,
           occupied: false,
-          lastUsed: 0
+          lastUsed: 0,
         })
-        
+
         if (this.debugMode) {
           this.createDebugMarker(x, height, z, type)
         }
@@ -52,9 +52,12 @@ export class EnvironmentInteractions {
     }
   }
 
-  private getInteractionTypesForBiome(biome: BiomeType, height: number): Array<'perch' | 'hide' | 'drink' | 'rest' | 'feed'> {
+  private getInteractionTypesForBiome(
+    biome: BiomeType,
+    height: number
+  ): Array<'perch' | 'hide' | 'drink' | 'rest' | 'feed'> {
     const types: Array<'perch' | 'hide' | 'drink' | 'rest' | 'feed'> = []
-    
+
     switch (biome) {
       case 'forest':
         types.push('perch', 'hide', 'rest', 'feed')
@@ -78,29 +81,35 @@ export class EnvironmentInteractions {
         types.push('perch', 'rest')
         break
     }
-    
+
     return types
   }
 
   private getHeightOffset(type: string): number {
     switch (type) {
-      case 'perch': return 2 + Math.random() * 3
-      case 'hide': return 0.2
-      case 'drink': return 0.1
-      case 'rest': return 0.3
-      case 'feed': return 0.2
-      default: return 0.5
+      case 'perch':
+        return 2 + Math.random() * 3
+      case 'hide':
+        return 0.2
+      case 'drink':
+        return 0.1
+      case 'rest':
+        return 0.3
+      case 'feed':
+        return 0.2
+      default:
+        return 0.5
     }
   }
 
   public findNearestInteraction(
-    creature: CreatureInstance, 
+    creature: CreatureInstance,
     interactionType: 'perch' | 'hide' | 'drink' | 'rest' | 'feed',
     maxDistance: number = 15
   ): InteractionPoint | null {
     let nearest: InteractionPoint | null = null
     let nearestDistance = maxDistance
-    
+
     for (const point of this.interactionPoints) {
       if (point.type === interactionType && !point.occupied) {
         const distance = creature.group.position.distanceTo(point.position)
@@ -113,18 +122,27 @@ export class EnvironmentInteractions {
         }
       }
     }
-    
+
     return nearest
   }
 
-  private isInteractionSuitableForCreature(creature: CreatureInstance, point: InteractionPoint): boolean {
+  private isInteractionSuitableForCreature(
+    creature: CreatureInstance,
+    point: InteractionPoint
+  ): boolean {
     const archetype = creature.anatomy.archetype
-    
+
     switch (point.type) {
       case 'perch':
-        return archetype === 'aerial' || (archetype === 'terrestrial' && creature.anatomy.limbCount >= 2)
+        return (
+          archetype === 'aerial' || (archetype === 'terrestrial' && creature.anatomy.limbCount >= 2)
+        )
       case 'hide':
-        return creature.anatomy.temperament === 'shy' || creature.anatomy.size === 'tiny' || creature.anatomy.size === 'small'
+        return (
+          creature.anatomy.temperament === 'shy' ||
+          creature.anatomy.size === 'tiny' ||
+          creature.anatomy.size === 'small'
+        )
       case 'drink':
         return archetype === 'terrestrial' || archetype === 'aquatic'
       case 'rest':
@@ -151,12 +169,12 @@ export class EnvironmentInteractions {
 
   public updateCreatureBehavior(creature: CreatureInstance, deltaTime: number): void {
     const currentTime = performance.now() / 1000
-    
+
     // Check if creature should look for an interaction
     if (creature.behaviorState === 'idle' && Math.random() < 0.02) {
       this.tryStartInteraction(creature)
     }
-    
+
     // Handle current interactions
     if (creature.currentInteraction) {
       this.updateInteractionBehavior(creature, deltaTime, currentTime)
@@ -165,7 +183,7 @@ export class EnvironmentInteractions {
 
   private tryStartInteraction(creature: CreatureInstance): void {
     const possibleInteractions: Array<'perch' | 'hide' | 'drink' | 'rest' | 'feed'> = []
-    
+
     // Determine which interactions this creature might want based on its traits
     if (creature.anatomy.archetype === 'aerial' && Math.random() < 0.4) {
       possibleInteractions.push('perch')
@@ -173,7 +191,10 @@ export class EnvironmentInteractions {
     if (creature.anatomy.temperament === 'shy' && Math.random() < 0.3) {
       possibleInteractions.push('hide')
     }
-    if ((creature.anatomy.archetype === 'terrestrial' || creature.anatomy.archetype === 'aquatic') && Math.random() < 0.2) {
+    if (
+      (creature.anatomy.archetype === 'terrestrial' || creature.anatomy.archetype === 'aquatic') &&
+      Math.random() < 0.2
+    ) {
       possibleInteractions.push('drink')
     }
     if (Math.random() < 0.3) {
@@ -182,11 +203,12 @@ export class EnvironmentInteractions {
     if (Math.random() < 0.25) {
       possibleInteractions.push('feed')
     }
-    
+
     if (possibleInteractions.length > 0) {
-      const desiredInteraction = possibleInteractions[Math.floor(Math.random() * possibleInteractions.length)]
+      const desiredInteraction =
+        possibleInteractions[Math.floor(Math.random() * possibleInteractions.length)]
       const interactionPoint = this.findNearestInteraction(creature, desiredInteraction)
-      
+
       if (interactionPoint && this.occupyInteraction(interactionPoint, creature)) {
         creature.currentInteraction = interactionPoint
         creature.interactionStartTime = performance.now() / 1000
@@ -195,7 +217,10 @@ export class EnvironmentInteractions {
     }
   }
 
-  private setCreatureBehaviorForInteraction(creature: CreatureInstance, interactionType: string): void {
+  private setCreatureBehaviorForInteraction(
+    creature: CreatureInstance,
+    interactionType: string
+  ): void {
     switch (interactionType) {
       case 'perch':
         creature.behaviorState = 'perching'
@@ -215,13 +240,17 @@ export class EnvironmentInteractions {
     }
   }
 
-  private updateInteractionBehavior(creature: CreatureInstance, deltaTime: number, currentTime: number): void {
+  private updateInteractionBehavior(
+    creature: CreatureInstance,
+    deltaTime: number,
+    currentTime: number
+  ): void {
     if (!creature.currentInteraction || !creature.interactionStartTime) return
-    
+
     const interactionDuration = currentTime - creature.interactionStartTime
     const targetPosition = creature.currentInteraction.position
     const currentPosition = creature.group.position
-    
+
     // Move towards interaction point if not there yet
     const distanceToTarget = currentPosition.distanceTo(targetPosition)
     if (distanceToTarget > 0.5) {
@@ -231,7 +260,7 @@ export class EnvironmentInteractions {
     } else {
       // Apply interaction-specific animations and behaviors
       this.applyInteractionAnimation(creature, deltaTime)
-      
+
       // Check if interaction should end
       const maxDuration = this.getInteractionDuration(creature.currentInteraction.type)
       if (interactionDuration > maxDuration || Math.random() < 0.01) {
@@ -242,49 +271,58 @@ export class EnvironmentInteractions {
 
   private applyInteractionAnimation(creature: CreatureInstance, deltaTime: number): void {
     if (!creature.currentInteraction) return
-    
+
     const time = performance.now() / 1000
-    
+
     switch (creature.currentInteraction.type) {
       case 'perch':
         // Reduce floating motion, more stable
-        creature.group.position.y = creature.currentInteraction.position.y + Math.sin(time * 0.5) * 0.1
+        creature.group.position.y =
+          creature.currentInteraction.position.y + Math.sin(time * 0.5) * 0.1
         creature.group.rotation.y += deltaTime * 0.2 // Slow turning to look around
         break
-        
+
       case 'hide':
         // Crouch down, reduce visibility
         creature.group.scale.y = 0.7
         creature.group.position.y = creature.currentInteraction.position.y - 0.2
         break
-        
+
       case 'drink':
         // Lean forward animation
         creature.group.rotation.x = Math.sin(time * 2) * 0.2 - 0.1
         break
-        
-      case 'rest':
+
+      case 'rest': {
         // Slower, calmer breathing animation
         const restScale = 1 + Math.sin(time * 0.8) * 0.05
         creature.group.scale.setScalar(restScale)
         break
-        
+      }
+
       case 'feed':
         // Pecking or grazing motion
         creature.group.rotation.x = Math.sin(time * 4) * 0.15
-        creature.group.position.y = creature.currentInteraction.position.y + Math.abs(Math.sin(time * 4)) * 0.1
+        creature.group.position.y =
+          creature.currentInteraction.position.y + Math.abs(Math.sin(time * 4)) * 0.1
         break
     }
   }
 
   private getInteractionDuration(type: string): number {
     switch (type) {
-      case 'perch': return 8 + Math.random() * 12
-      case 'hide': return 5 + Math.random() * 10
-      case 'drink': return 3 + Math.random() * 4
-      case 'rest': return 10 + Math.random() * 15
-      case 'feed': return 6 + Math.random() * 8
-      default: return 5
+      case 'perch':
+        return 8 + Math.random() * 12
+      case 'hide':
+        return 5 + Math.random() * 10
+      case 'drink':
+        return 3 + Math.random() * 4
+      case 'rest':
+        return 10 + Math.random() * 15
+      case 'feed':
+        return 6 + Math.random() * 8
+      default:
+        return 5
     }
   }
 
@@ -294,7 +332,7 @@ export class EnvironmentInteractions {
       creature.currentInteraction = null
       creature.interactionStartTime = null
     }
-    
+
     // Reset any animation changes
     creature.group.scale.setScalar(1)
     creature.group.rotation.x = 0
@@ -307,14 +345,14 @@ export class EnvironmentInteractions {
       hide: 0xff0000,
       drink: 0x0000ff,
       rest: 0xffff00,
-      feed: 0xff00ff
+      feed: 0xff00ff,
     }
-    
+
     const geometry = new THREE.SphereGeometry(0.2)
-    const material = new THREE.MeshBasicMaterial({ 
+    const material = new THREE.MeshBasicMaterial({
       color: colors[type as keyof typeof colors] || 0xffffff,
       transparent: true,
-      opacity: 0.7
+      opacity: 0.7,
     })
     const marker = new THREE.Mesh(geometry, material)
     marker.position.set(x, y + this.getHeightOffset(type), z)
@@ -327,7 +365,7 @@ export class EnvironmentInteractions {
 
   private createRng(seed: number): () => number {
     let state = seed >>> 0
-    return () => (state = Math.imul(1664525, state) + 1013904223 >>> 0) / 0xffffffff
+    return () => (state = (Math.imul(1664525, state) + 1013904223) >>> 0) / 0xffffffff
   }
 
   public getInteractionPoints(): InteractionPoint[] {

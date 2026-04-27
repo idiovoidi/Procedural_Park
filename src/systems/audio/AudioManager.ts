@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { generateAllSounds } from './sound-generator'
-import type { AudioSettings, SoundEffect, AmbientSound } from './types'
+import type { AmbientSound, AudioSettings, SoundEffect } from './types'
 
 export class AudioManager {
   private audioContext: AudioContext | null = null

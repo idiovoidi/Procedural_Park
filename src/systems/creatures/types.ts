@@ -1,5 +1,5 @@
-import * as THREE from 'three'
 import type { PatternType } from '@rendering/textures'
+import type * as THREE from 'three'
 
 export type CreatureArchetype = 'terrestrial' | 'aerial' | 'aquatic' | 'ethereal' | 'crystalline'
 

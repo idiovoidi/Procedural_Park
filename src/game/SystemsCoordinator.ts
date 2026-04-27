@@ -3,20 +3,20 @@
  * Initializes and coordinates all game systems
  */
 
-import { SceneManager } from '@rendering/scene'
-import { CameraController } from '@systems/camera'
-import { UIManager } from '@ui/managers'
-import { PhotoSystem } from '@systems/photo'
-import { AudioManager } from '@systems/audio'
-import { VideoRecorder } from '@game/VideoRecorder'
-import { DebugPanel } from '@ui/debug'
-import { InputManager } from '@systems/input'
-import { IntegratedStateManager, createStateSyncHelpers, type GameStateType } from '@systems/state'
 import { GAME_CONFIG } from '@core/constants'
 import { CreatureManager, MultiplayerManager, ShaderService } from '@game/managers'
-import { FoodManager } from '@systems/food'
+import { VideoRecorder } from '@game/VideoRecorder'
+import { SceneManager } from '@rendering/scene'
 import type { ShaderConfig } from '@rendering/shaders'
+import { AudioManager } from '@systems/audio'
+import { CameraController } from '@systems/camera'
 import { CurrencyManager } from '@systems/currency'
+import { FoodManager } from '@systems/food'
+import { InputManager } from '@systems/input'
+import { PhotoSystem } from '@systems/photo'
+import { createStateSyncHelpers, type GameStateType, IntegratedStateManager } from '@systems/state'
+import { DebugPanel } from '@ui/debug'
+import { UIManager } from '@ui/managers'
 
 export interface GameSystems {
   scene: SceneManager

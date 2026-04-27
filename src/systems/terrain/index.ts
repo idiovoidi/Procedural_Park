@@ -1,3 +1,3 @@
-export { TerrainSystem } from './TerrainSystem'
 export { BIOME_CONFIGS } from './biome-generator'
-export type { BiomeType, BiomeConfig } from './types'
+export { TerrainSystem } from './TerrainSystem'
+export type { BiomeConfig, BiomeType } from './types'

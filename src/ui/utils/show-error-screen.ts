@@ -1,11 +1,7 @@
 /**
  * Render a consistent error state into the loading container.
  */
-export function showErrorScreen(
-  message: string,
-  error?: unknown,
-  title: string = 'Error'
-): void {
+export function showErrorScreen(message: string, error?: unknown, title: string = 'Error'): void {
   const loadingEl = document.getElementById('loading')
   if (!loadingEl) return
 

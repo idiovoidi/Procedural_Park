@@ -1,9 +1,9 @@
-import * as THREE from 'three'
+import { TAU } from '@core/constants'
+import { type ShaderConfig, ShaderManager } from '@rendering/shaders'
 import { TerrainSystem } from '@systems/terrain'
+import * as THREE from 'three'
 import { EnvironmentInteractions } from './environment-interactions'
 import { ParkStructures } from './park-structures'
-import { ShaderManager, type ShaderConfig } from '@rendering/shaders'
-import { TAU } from '@core/constants'
 
 export class SceneManager {
   public scene: THREE.Scene
@@ -17,7 +17,6 @@ export class SceneManager {
   public sky: THREE.Mesh | null = null
   private shaderManager: ShaderManager
   private onShaderManagerRecreated: ((manager: ShaderManager) => void) | null = null
-
 
   constructor(container: HTMLElement) {
     // Scene setup
@@ -71,7 +70,12 @@ export class SceneManager {
     this.parkStructures.buildAll()
 
     // Initialize shader manager for post-processing (camera will be set on first render)
-    this.shaderManager = new ShaderManager(this.renderer, this.scene, new THREE.PerspectiveCamera(), this.createShaderCallbacks())
+    this.shaderManager = new ShaderManager(
+      this.renderer,
+      this.scene,
+      new THREE.PerspectiveCamera(),
+      this.createShaderCallbacks()
+    )
 
     // Handle window resize
     window.addEventListener('resize', () => {
@@ -178,7 +182,7 @@ export class SceneManager {
     if (this.shaderManager && camera !== this.shaderManager['camera']) {
       this.updateShaderCamera(camera)
     }
-    
+
     // Use shader manager for rendering with post-processing
     this.shaderManager.render(deltaTime)
   }
@@ -249,8 +253,13 @@ export class SceneManager {
     const currentConfig = this.shaderManager.getConfig()
     const autoPerformanceEnabled = this.shaderManager.isAutoPerformanceAdjustmentEnabled()
     this.shaderManager.dispose()
-    
-    this.shaderManager = new ShaderManager(this.renderer, this.scene, camera, this.createShaderCallbacks())
+
+    this.shaderManager = new ShaderManager(
+      this.renderer,
+      this.scene,
+      camera,
+      this.createShaderCallbacks()
+    )
     this.shaderManager.updateConfig(currentConfig)
     this.shaderManager.setAutoPerformanceAdjustment(autoPerformanceEnabled)
 
@@ -298,7 +307,7 @@ export class SceneManager {
       },
       onPerformanceWarning: (message: string) => {
         console.warn(`Shader performance: ${message}`)
-      }
+      },
     }
   }
 

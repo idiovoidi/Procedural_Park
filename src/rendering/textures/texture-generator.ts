@@ -1,5 +1,5 @@
-import * as THREE from 'three'
 import { TAU } from '@core/constants'
+import * as THREE from 'three'
 
 /**
  * Convert a THREE.Color to an RGB CSS string

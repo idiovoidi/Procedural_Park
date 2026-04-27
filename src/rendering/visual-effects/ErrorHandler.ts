@@ -7,7 +7,13 @@ import * as THREE from 'three'
 
 export interface ErrorReport {
   timestamp: number
-  type: 'shader_compilation' | 'webgl_context' | 'render_target' | 'filter_application' | 'memory' | 'unknown'
+  type:
+    | 'shader_compilation'
+    | 'webgl_context'
+    | 'render_target'
+    | 'filter_application'
+    | 'memory'
+    | 'unknown'
   severity: 'low' | 'medium' | 'high' | 'critical'
   message: string
   details?: any
@@ -33,11 +39,11 @@ export class ErrorHandler {
   private contextLostCallbacks: (() => void)[] = []
   private contextRestoredCallbacks: (() => void)[] = []
   private isContextLost: boolean = false
-  
+
   // Fallback shaders
   private fallbackVertexShader!: string
   private fallbackFragmentShader!: string
-  
+
   // Error callbacks
   private onError?: (error: ErrorReport) => void
   private onRecovery?: (error: ErrorReport) => void
@@ -52,19 +58,19 @@ export class ErrorHandler {
     this.gl = renderer.getContext()
     this.onError = onError
     this.onRecovery = onRecovery
-    
+
     this.config = {
       enableShaderFallbacks: true,
       enableContextRecovery: true,
       enableGracefulDegradation: true,
       maxRecoveryAttempts: 3,
       recoveryDelay: 1000,
-      ...config
+      ...config,
     }
-    
+
     this.initializeFallbackShaders()
     this.setupContextLossHandling()
-    
+
     console.log('Error handler initialized with config:', this.config)
   }
 
@@ -85,7 +91,7 @@ export class ErrorHandler {
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `
-    
+
     // Simple pass-through fragment shader
     this.fallbackFragmentShader = `
       precision mediump float;
@@ -105,23 +111,23 @@ export class ErrorHandler {
     if (!this.config.enableContextRecovery) {
       return
     }
-    
+
     const canvas = this.renderer.domElement
-    
+
     canvas.addEventListener('webglcontextlost', (event) => {
       console.warn('WebGL context lost')
       event.preventDefault()
       this.isContextLost = true
-      
+
       this.reportError({
         type: 'webgl_context',
         severity: 'critical',
         message: 'WebGL context lost',
-        details: { reason: (event as any).statusMessage || 'Unknown' }
+        details: { reason: (event as any).statusMessage || 'Unknown' },
       })
-      
+
       // Notify callbacks
-      this.contextLostCallbacks.forEach(callback => {
+      this.contextLostCallbacks.forEach((callback) => {
         try {
           callback()
         } catch (error) {
@@ -129,16 +135,16 @@ export class ErrorHandler {
         }
       })
     })
-    
+
     canvas.addEventListener('webglcontextrestored', () => {
       console.log('WebGL context restored')
       this.isContextLost = false
-      
+
       // Attempt to recover
       this.attemptContextRecovery()
-      
+
       // Notify callbacks
-      this.contextRestoredCallbacks.forEach(callback => {
+      this.contextRestoredCallbacks.forEach((callback) => {
         try {
           callback()
         } catch (error) {
@@ -154,39 +160,38 @@ export class ErrorHandler {
   private async attemptContextRecovery(): Promise<void> {
     const recoveryKey = 'webgl_context_recovery'
     const attempts = this.recoveryAttempts.get(recoveryKey) || 0
-    
+
     if (attempts >= this.config.maxRecoveryAttempts) {
       console.error('Max context recovery attempts reached')
       return
     }
-    
+
     this.recoveryAttempts.set(recoveryKey, attempts + 1)
-    
+
     try {
       // Wait before attempting recovery
-      await new Promise(resolve => setTimeout(resolve, this.config.recoveryDelay))
-      
+      await new Promise((resolve) => setTimeout(resolve, this.config.recoveryDelay))
+
       // Force renderer to recreate resources
       this.renderer.dispose()
-      
+
       // The renderer should automatically recreate resources on next render
       console.log('WebGL context recovery initiated')
-      
+
       this.reportRecovery({
         type: 'webgl_context',
         severity: 'critical',
         message: 'WebGL context recovered successfully',
-        recoveryStrategy: 'renderer_disposal_and_recreation'
+        recoveryStrategy: 'renderer_disposal_and_recreation',
       })
-      
     } catch (error) {
       console.error('Failed to recover from WebGL context loss:', error)
-      
+
       this.reportError({
         type: 'webgl_context',
         severity: 'critical',
         message: 'Failed to recover from WebGL context loss',
-        details: error
+        details: error,
       })
     }
   }
@@ -214,31 +219,35 @@ export class ErrorHandler {
       type: 'shader_compilation',
       severity: 'high',
       message: `Shader compilation failed for ${shaderName}`,
-      details: { error: error.toString(), vertexShader, fragmentShader }
+      details: { error: error.toString(), vertexShader, fragmentShader },
     })
-    
+
     if (!this.config.enableShaderFallbacks) {
       return null
     }
-    
+
     const recoveryKey = `shader_${shaderName}`
     if (!this.trackRecoveryAttempt(recoveryKey, `shader ${shaderName}`)) {
       return null
     }
-    
+
     try {
       // Strategy 1: Try with simplified shader
-      const simplifiedMaterial = this.createSimplifiedShader(shaderName, vertexShader, fragmentShader)
+      const simplifiedMaterial = this.createSimplifiedShader(
+        shaderName,
+        vertexShader,
+        fragmentShader
+      )
       if (simplifiedMaterial) {
         this.reportRecovery({
           type: 'shader_compilation',
           severity: 'high',
           message: `Shader recovered with simplified version: ${shaderName}`,
-          recoveryStrategy: 'simplified_shader'
+          recoveryStrategy: 'simplified_shader',
         })
         return simplifiedMaterial
       }
-      
+
       // Strategy 2: Use fallback shader
       const fallbackMaterial = this.createFallbackShader(shaderName)
       if (fallbackMaterial) {
@@ -246,15 +255,14 @@ export class ErrorHandler {
           type: 'shader_compilation',
           severity: 'high',
           message: `Shader recovered with fallback: ${shaderName}`,
-          recoveryStrategy: 'fallback_shader'
+          recoveryStrategy: 'fallback_shader',
         })
         return fallbackMaterial
       }
-      
     } catch (recoveryError) {
       console.error(`Shader recovery failed for ${shaderName}:`, recoveryError)
     }
-    
+
     return null
   }
 
@@ -276,32 +284,31 @@ export class ErrorHandler {
         .replace(/log\s*\(/g, '0.0 + (') // Replace log with linear approximation
         .replace(/for\s*\([^}]+\}/g, '') // Remove for loops
         .replace(/while\s*\([^}]+\}/g, '') // Remove while loops
-      
+
       const material = new THREE.ShaderMaterial({
         vertexShader,
         fragmentShader: simplifiedFragment,
-        uniforms: {}
+        uniforms: {},
       })
-      
+
       // Test compilation
       const testGeometry = new THREE.PlaneGeometry(1, 1)
       const testMesh = new THREE.Mesh(testGeometry, material)
       const testScene = new THREE.Scene()
       const testCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
       testScene.add(testMesh)
-      
+
       // Try to render to test compilation
       const testTarget = new THREE.WebGLRenderTarget(1, 1)
       this.renderer.setRenderTarget(testTarget)
       this.renderer.render(testScene, testCamera)
       this.renderer.setRenderTarget(null)
-      
+
       // Cleanup test objects
       testGeometry.dispose()
       testTarget.dispose()
-      
+
       return material
-      
     } catch (error) {
       console.warn(`Simplified shader creation failed for ${shaderName}:`, error)
       return null
@@ -317,13 +324,12 @@ export class ErrorHandler {
         vertexShader: this.fallbackVertexShader,
         fragmentShader: this.fallbackFragmentShader,
         uniforms: {
-          tDiffuse: { value: null }
-        }
+          tDiffuse: { value: null },
+        },
       })
-      
+
       console.log(`Created fallback shader for ${shaderName}`)
       return material
-      
     } catch (error) {
       console.error(`Fallback shader creation failed for ${shaderName}:`, error)
       return null
@@ -343,37 +349,36 @@ export class ErrorHandler {
       type: 'render_target',
       severity: 'medium',
       message: 'Render target creation failed',
-      details: { width, height, options, error: error.toString() }
+      details: { width, height, options, error: error.toString() },
     })
-    
+
     const recoveryKey = `render_target_${width}x${height}`
     if (!this.trackRecoveryAttempt(recoveryKey, `render target ${width}x${height}`)) {
       return null
     }
-    
+
     try {
       // Strategy 1: Try with reduced size
       const reducedWidth = Math.max(256, Math.floor(width / 2))
       const reducedHeight = Math.max(256, Math.floor(height / 2))
-      
+
       const reducedTarget = new THREE.WebGLRenderTarget(reducedWidth, reducedHeight, {
         ...options,
         type: THREE.UnsignedByteType, // Use safer type
-        format: THREE.RGBAFormat // Use standard format
+        format: THREE.RGBAFormat, // Use standard format
       })
-      
+
       this.reportRecovery({
         type: 'render_target',
         severity: 'medium',
         message: `Render target recovered with reduced size: ${reducedWidth}x${reducedHeight}`,
-        recoveryStrategy: 'reduced_size'
+        recoveryStrategy: 'reduced_size',
       })
-      
+
       return reducedTarget
-      
     } catch (recoveryError) {
       console.error('Render target recovery failed:', recoveryError)
-      
+
       try {
         // Strategy 2: Minimal render target
         const minimalTarget = new THREE.WebGLRenderTarget(256, 256, {
@@ -381,18 +386,17 @@ export class ErrorHandler {
           magFilter: THREE.LinearFilter,
           format: THREE.RGBAFormat,
           type: THREE.UnsignedByteType,
-          generateMipmaps: false
+          generateMipmaps: false,
         })
-        
+
         this.reportRecovery({
           type: 'render_target',
           severity: 'medium',
           message: 'Render target recovered with minimal settings',
-          recoveryStrategy: 'minimal_settings'
+          recoveryStrategy: 'minimal_settings',
         })
-        
+
         return minimalTarget
-        
       } catch (minimalError) {
         console.error('Minimal render target creation failed:', minimalError)
         return null
@@ -408,34 +412,33 @@ export class ErrorHandler {
       type: 'memory',
       severity: 'high',
       message: `Memory error during ${operation}`,
-      details: { operation, error: error.toString() }
+      details: { operation, error: error.toString() },
     })
-    
+
     if (!this.config.enableGracefulDegradation) {
       return false
     }
-    
+
     try {
       // Force garbage collection if available
       if ('gc' in window) {
-        (window as any).gc()
+        ;(window as any).gc()
       }
-      
+
       // Clear Three.js caches
       THREE.Cache.clear()
-      
+
       // Suggest memory cleanup
       console.warn('Memory error detected - consider reducing texture sizes or effect complexity')
-      
+
       this.reportRecovery({
         type: 'memory',
         severity: 'high',
         message: 'Memory cleanup attempted',
-        recoveryStrategy: 'cache_clear_and_gc'
+        recoveryStrategy: 'cache_clear_and_gc',
       })
-      
+
       return true
-      
     } catch (cleanupError) {
       console.error('Memory cleanup failed:', cleanupError)
       return false
@@ -449,18 +452,18 @@ export class ErrorHandler {
     const error: ErrorReport = {
       ...errorInfo,
       timestamp: Date.now(),
-      recovered: false
+      recovered: false,
     }
-    
+
     this.errorHistory.push(error)
-    
+
     // Keep only last 100 errors
     if (this.errorHistory.length > 100) {
       this.errorHistory.shift()
     }
-    
+
     console.error(`Visual Effects Error [${error.severity}]:`, error.message, error.details)
-    
+
     if (this.onError) {
       this.onError(error)
     }
@@ -473,13 +476,13 @@ export class ErrorHandler {
     const recovery: ErrorReport = {
       ...errorInfo,
       timestamp: Date.now(),
-      recovered: true
+      recovered: true,
     }
-    
+
     this.errorHistory.push(recovery)
-    
+
     console.log(`Visual Effects Recovery [${recovery.severity}]:`, recovery.message)
-    
+
     if (this.onRecovery) {
       this.onRecovery(recovery)
     }
@@ -533,26 +536,26 @@ export class ErrorHandler {
       totalErrors: this.errorHistory.length,
       errorsByType: {} as Record<string, number>,
       errorsBySeverity: {} as Record<string, number>,
-      recoveryRate: 0
+      recoveryRate: 0,
     }
-    
+
     let recoveredCount = 0
-    
+
     for (const error of this.errorHistory) {
       // Count by type
       stats.errorsByType[error.type] = (stats.errorsByType[error.type] || 0) + 1
-      
+
       // Count by severity
       stats.errorsBySeverity[error.severity] = (stats.errorsBySeverity[error.severity] || 0) + 1
-      
+
       // Count recoveries
       if (error.recovered) {
         recoveredCount++
       }
     }
-    
+
     stats.recoveryRate = stats.totalErrors > 0 ? recoveredCount / stats.totalErrors : 0
-    
+
     return stats
   }
 
@@ -573,30 +576,34 @@ export class ErrorHandler {
     recommendations: string[]
   } {
     const recentErrors = this.getRecentErrors()
-    const criticalErrors = recentErrors.filter(e => e.severity === 'critical' && !e.recovered)
-    const highErrors = recentErrors.filter(e => e.severity === 'high' && !e.recovered)
-    
+    const criticalErrors = recentErrors.filter((e) => e.severity === 'critical' && !e.recovered)
+    const highErrors = recentErrors.filter((e) => e.severity === 'high' && !e.recovered)
+
     const issues: string[] = []
     const recommendations: string[] = []
-    
+
     if (this.isWebGLContextLost()) {
       issues.push('WebGL context is lost')
       recommendations.push('Refresh the page or restart the application')
     }
-    
+
     if (criticalErrors.length > 0) {
       issues.push(`${criticalErrors.length} critical errors in recent history`)
       recommendations.push('Check browser console for detailed error information')
     }
-    
+
     if (highErrors.length > 2) {
       issues.push(`${highErrors.length} high-severity errors detected`)
       recommendations.push('Consider reducing visual effect complexity')
     }
-    
-    const status = criticalErrors.length > 0 ? 'critical' : 
-                  (highErrors.length > 2 || issues.length > 0) ? 'warning' : 'healthy'
-    
+
+    const status =
+      criticalErrors.length > 0
+        ? 'critical'
+        : highErrors.length > 2 || issues.length > 0
+          ? 'warning'
+          : 'healthy'
+
     return { status, issues, recommendations }
   }
 

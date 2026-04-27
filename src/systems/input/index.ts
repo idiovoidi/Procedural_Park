@@ -6,8 +6,8 @@
 export { InputManager } from './InputManager'
 export type {
   InputAction,
-  InputContext,
   InputBinding,
-  InputState,
   InputCallback,
+  InputContext,
+  InputState,
 } from './types'

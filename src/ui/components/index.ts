@@ -1,10 +1,11 @@
 // Barrel export for UI components
+
+export { type CapturedCreature, CreatureCollection } from './creature-collection'
+export { FoodInventory } from './food-inventory'
 export { Gallery } from './gallery'
+export { MiniMap } from './mini-map'
+export { type InventoryItem, PlayerStats } from './player-stats'
+export { type SaveLoadCallbacks, SaveLoadMenu } from './save-load-menu'
 export { Settings } from './settings'
 export { Shortcuts } from './shortcuts'
-export { MiniMap } from './mini-map'
 export { Toast } from './toast'
-export { SaveLoadMenu, type SaveLoadCallbacks } from './save-load-menu'
-export { PlayerStats, type InventoryItem } from './player-stats'
-export { CreatureCollection, type CapturedCreature } from './creature-collection'
-export { FoodInventory } from './food-inventory'

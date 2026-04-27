@@ -4,7 +4,7 @@
  * Provides a clean interface for shader operations
  */
 
-import type { ShaderManager, ShaderConfig } from '@rendering/shaders'
+import type { ShaderConfig, ShaderManager } from '@rendering/shaders'
 import { INSCRYPTION_SHADER_DEFAULTS } from '@rendering/shaders'
 
 export class ShaderService {
@@ -96,7 +96,7 @@ export class ShaderService {
    */
   public loadPreset(preset: ShaderConfig): void {
     this.config = { ...preset }
-    
+
     if (this.shaderManager) {
       this.shaderManager.updateConfig(this.config)
     }
@@ -112,7 +112,7 @@ export class ShaderService {
    */
   public resetToDefaults(): void {
     this.config = { ...INSCRYPTION_SHADER_DEFAULTS }
-    
+
     if (this.shaderManager) {
       this.shaderManager.updateConfig(this.config)
     }
@@ -175,7 +175,7 @@ export class ShaderService {
       0,
       Math.min(1, this.config.luminanceThreshold + delta)
     )
-    
+
     if (this.shaderManager) {
       this.shaderManager.updateConfig({ luminanceThreshold: this.config.luminanceThreshold })
     }
@@ -191,7 +191,7 @@ export class ShaderService {
    */
   public adjustIntensity(delta: number): void {
     this.config.intensity = Math.max(0, Math.min(2, this.config.intensity + delta))
-    
+
     if (this.shaderManager) {
       this.shaderManager.updateConfig({ intensity: this.config.intensity })
     }

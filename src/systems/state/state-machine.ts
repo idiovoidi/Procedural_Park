@@ -47,12 +47,18 @@ export class GameStateMachine {
   private setupAllowedTransitions(): void {
     this.allowedTransitions.set('loading', new Set(['menu', 'playing']))
     this.allowedTransitions.set('menu', new Set(['playing', 'settings', 'multiplayer_connecting']))
-    this.allowedTransitions.set('playing', new Set(['paused', 'photo_mode', 'gallery', 'settings', 'game_over']))
+    this.allowedTransitions.set(
+      'playing',
+      new Set(['paused', 'photo_mode', 'gallery', 'settings', 'game_over'])
+    )
     this.allowedTransitions.set('paused', new Set(['playing', 'menu', 'settings']))
     this.allowedTransitions.set('photo_mode', new Set(['playing']))
     this.allowedTransitions.set('gallery', new Set(['playing', 'paused']))
     this.allowedTransitions.set('settings', new Set(['playing', 'paused', 'menu']))
-    this.allowedTransitions.set('multiplayer_connecting', new Set(['multiplayer_connected', 'menu', 'playing']))
+    this.allowedTransitions.set(
+      'multiplayer_connecting',
+      new Set(['multiplayer_connected', 'menu', 'playing'])
+    )
     this.allowedTransitions.set('multiplayer_connected', new Set(['playing', 'paused']))
     this.allowedTransitions.set('game_over', new Set(['menu', 'playing']))
   }

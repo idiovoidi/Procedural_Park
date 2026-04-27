@@ -4,4 +4,4 @@
  */
 
 export { CurrencyManager } from './CurrencyManager'
-export type { Currency, Transaction, PurchaseResult } from './types'
+export type { Currency, PurchaseResult, Transaction } from './types'

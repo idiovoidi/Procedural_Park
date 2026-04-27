@@ -25,7 +25,9 @@ export class Gallery {
 
   private setupEventListeners() {
     this.toggleGalleryBtn?.addEventListener('click', () => this.handleGalleryClick())
-    this.galleryEl.querySelector('.close-btn')?.addEventListener('click', () => this.handleGalleryClick())
+    this.galleryEl
+      .querySelector('.close-btn')
+      ?.addEventListener('click', () => this.handleGalleryClick())
   }
 
   public toggle() {

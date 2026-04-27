@@ -1,4 +1,5 @@
 // Main barrel export for UI module
-export { UIManager } from './managers'
+
+export { Gallery, MiniMap, Settings, Shortcuts, Toast } from './components'
 export { DebugPanel } from './debug'
-export { Gallery, Settings, Shortcuts, MiniMap, Toast } from './components'
+export { UIManager } from './managers'

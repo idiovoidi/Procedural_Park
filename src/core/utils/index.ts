@@ -2,27 +2,27 @@
 export {
   clamp,
   clampAndUpdate,
-  normalizeAngle,
+  fastCos,
+  fastSin,
   lerp,
   memoize,
-  memoizedSin,
   memoizedCos,
-  memoizedTan,
+  memoizedSin,
   memoizedSqrt,
-  fastSin,
-  fastCos,
+  memoizedTan,
+  normalizeAngle,
 } from './math'
 
 export {
-  ObjectPool,
-  vector3Pool,
-  vector2Pool,
   colorPool,
-  getPooledVector3,
-  getPooledVector2,
   getPooledColor,
-  releaseVector3,
+  getPooledVector2,
+  getPooledVector3,
+  ObjectPool,
   releaseVector2,
+  releaseVector3,
+  vector2Pool,
+  vector3Pool,
 } from './pooling'
 
 export { randomCentered, randomCenteredSeeded } from './random'

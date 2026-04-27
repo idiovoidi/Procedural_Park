@@ -1,28 +1,28 @@
-import * as THREE from 'three'
 import { clampAndUpdate } from '@core/utils'
-import { ShaderFilterBase, FULLSCREEN_VERTEX_SHADER, createFilterFallbackTarget } from './filter-utils'
+import * as THREE from 'three'
+import {
+  createFilterFallbackTarget,
+  FULLSCREEN_VERTEX_SHADER,
+  ShaderFilterBase,
+} from './filter-utils'
 
 export interface ChromaticAberrationConfig {
-  offset: number           // Aberration intensity (0.001 - 0.01)
+  offset: number // Aberration intensity (0.001 - 0.01)
   direction: [number, number] // Direction vector [x, y]
-  radial: boolean         // Use radial aberration
-  enabled: boolean        // Enable/disable the effect
+  radial: boolean // Use radial aberration
+  enabled: boolean // Enable/disable the effect
 }
 
 export class ChromaticAberrationFilter extends ShaderFilterBase {
   protected config!: ChromaticAberrationConfig
 
   constructor(config: ChromaticAberrationConfig) {
-    super(
-      FULLSCREEN_VERTEX_SHADER,
-      ChromaticAberrationFilter.getFragmentShader(),
-      {
-        tDiffuse: { value: null },
-        uOffset: { value: config.offset },
-        uDirection: { value: new THREE.Vector2(config.direction[0], config.direction[1]) },
-        uRadial: { value: config.radial }
-      }
-    )
+    super(FULLSCREEN_VERTEX_SHADER, ChromaticAberrationFilter.getFragmentShader(), {
+      tDiffuse: { value: null },
+      uOffset: { value: config.offset },
+      uDirection: { value: new THREE.Vector2(config.direction[0], config.direction[1]) },
+      uRadial: { value: config.radial },
+    })
     this.config = { ...config }
   }
 
@@ -129,10 +129,7 @@ export class ChromaticAberrationFilter extends ShaderFilterBase {
       this.config.direction = [1.0, 0.0] // Default to horizontal
     }
 
-    this.material.uniforms.uDirection.value.set(
-      this.config.direction[0],
-      this.config.direction[1]
-    )
+    this.material.uniforms.uDirection.value.set(this.config.direction[0], this.config.direction[1])
   }
 
   /**
@@ -169,25 +166,24 @@ export class ChromaticAberrationFilter extends ShaderFilterBase {
    */
   public updateConfig(newConfig: Partial<ChromaticAberrationConfig>): void {
     const oldConfig = { ...this.config }
-    
+
     try {
       // Apply new configuration with validation
       if (newConfig.offset !== undefined) {
         this.offset = newConfig.offset
       }
-      
+
       if (newConfig.direction !== undefined) {
         this.direction = newConfig.direction
       }
-      
+
       if (newConfig.radial !== undefined) {
         this.setRadialMode(newConfig.radial)
       }
-      
+
       if (newConfig.enabled !== undefined) {
         this.enabled = newConfig.enabled
       }
-      
     } catch (error) {
       console.error('Failed to update chromatic aberration config:', error)
       // Revert to old configuration
@@ -202,10 +198,7 @@ export class ChromaticAberrationFilter extends ShaderFilterBase {
    */
   private applyConfigToUniforms(): void {
     this.material.uniforms.uOffset.value = this.config.offset
-    this.material.uniforms.uDirection.value.set(
-      this.config.direction[0], 
-      this.config.direction[1]
-    )
+    this.material.uniforms.uDirection.value.set(this.config.direction[0], this.config.direction[1])
     this.material.uniforms.uRadial.value = this.config.radial
   }
 
@@ -215,8 +208,6 @@ export class ChromaticAberrationFilter extends ShaderFilterBase {
   public getConfig(): ChromaticAberrationConfig {
     return { ...this.config }
   }
-
-
 
   /**
    * Log successful disposal

@@ -3,15 +3,15 @@
  * Handles saving and loading game progress to/from localStorage
  */
 
-import type {
-  WorldState,
-  SaveSlotMetadata,
-  PlayerProgress,
-  SerializedPhoto,
-  SerializedCameraState,
-  WorldSettings,
-} from './world-state-types'
 import { GAME_CONFIG } from '@core/constants'
+import type {
+  PlayerProgress,
+  SaveSlotMetadata,
+  SerializedCameraState,
+  SerializedPhoto,
+  WorldSettings,
+  WorldState,
+} from './world-state-types'
 
 const STORAGE_PREFIX = 'aisnap_save_'
 const METADATA_KEY = 'aisnap_save_metadata'

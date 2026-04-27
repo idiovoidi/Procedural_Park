@@ -5,9 +5,9 @@
 
 import type { CameraController } from '@systems/camera'
 import type { UIManager } from '@ui/managers'
+import type * as THREE from 'three'
 import type { SubsystemStateManager } from './subsystem-state-manager'
-import type { CameraState, UIState, CreatureState } from './subsystem-states'
-import * as THREE from 'three'
+import type { CameraState, CreatureState, UIState } from './subsystem-states'
 
 /**
  * Camera State Synchronizer
@@ -16,11 +16,8 @@ import * as THREE from 'three'
 export class CameraStateSync {
   private camera: CameraController
   private stateManager: SubsystemStateManager
-  
-  constructor(
-    camera: CameraController,
-    stateManager: SubsystemStateManager
-  ) {
+
+  constructor(camera: CameraController, stateManager: SubsystemStateManager) {
     this.camera = camera
     this.stateManager = stateManager
   }
@@ -41,13 +38,9 @@ export class CameraStateSync {
    */
   public pullFromState(): void {
     const state = this.stateManager.getCameraState()
-    
+
     // Update camera position
-    this.camera.camera.position.set(
-      state.position.x,
-      state.position.y,
-      state.position.z
-    )
+    this.camera.camera.position.set(state.position.x, state.position.y, state.position.z)
   }
 
   /**
@@ -69,11 +62,8 @@ export class CameraStateSync {
 export class UIStateSync {
   private ui: UIManager
   private stateManager: SubsystemStateManager
-  
-  constructor(
-    ui: UIManager,
-    stateManager: SubsystemStateManager
-  ) {
+
+  constructor(ui: UIManager, stateManager: SubsystemStateManager) {
     this.ui = ui
     this.stateManager = stateManager
     this.setupListeners()
@@ -116,7 +106,7 @@ export class UIStateSync {
  */
 export class CreatureStateSync {
   private stateManager: SubsystemStateManager
-  
+
   constructor(stateManager: SubsystemStateManager) {
     this.stateManager = stateManager
   }
@@ -198,19 +188,14 @@ export class CreatureStateSync {
   /**
    * Update creature behavior
    */
-  public updateCreatureBehavior(
-    id: string,
-    behaviorState: CreatureState['behaviorState']
-  ): void {
+  public updateCreatureBehavior(id: string, behaviorState: CreatureState['behaviorState']): void {
     this.updateCreature(id, { behaviorState })
   }
 
   /**
    * Batch update all creatures
    */
-  public batchUpdateCreatures(
-    updates: Map<string, Partial<CreatureState>>
-  ): void {
+  public batchUpdateCreatures(updates: Map<string, Partial<CreatureState>>): void {
     const creatures = this.stateManager.getCreaturesState().creatures
     const newCreatures = new Map(creatures)
 
@@ -245,7 +230,7 @@ export class CreatureStateSync {
  */
 export class MultiplayerStateSync {
   private stateManager: SubsystemStateManager
-  
+
   constructor(stateManager: SubsystemStateManager) {
     this.stateManager = stateManager
   }
@@ -258,7 +243,7 @@ export class MultiplayerStateSync {
     const fullState = this.stateManager.getState()
     const delta: any = {}
 
-    dirtySubsystems.forEach(subsystem => {
+    dirtySubsystems.forEach((subsystem) => {
       delta[subsystem] = fullState[subsystem]
     })
 

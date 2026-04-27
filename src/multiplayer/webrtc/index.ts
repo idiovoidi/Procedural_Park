@@ -3,5 +3,5 @@
  * Handles peer-to-peer connections and UI
  */
 
-export { WebRTCPeer } from './WebRTCPeer'
 export { ConnectionUI } from './ConnectionUI'
+export { WebRTCPeer } from './WebRTCPeer'

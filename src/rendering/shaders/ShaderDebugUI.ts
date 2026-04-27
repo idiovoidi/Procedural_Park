@@ -1,6 +1,6 @@
 import {
-  INSCRYPTION_SHADER_DEFAULTS,
   DEVELOPMENT_PRESETS,
+  INSCRYPTION_SHADER_DEFAULTS,
   SHADER_QUALITY_PRESETS,
 } from './InscryptionShaderConfig'
 import type { ShaderConfig, ShaderDebugCallbacks } from './types'
@@ -48,7 +48,7 @@ export class ShaderDebugUI {
     // Ensure all properties are defined by merging with defaults
     this.currentConfig = {
       ...INSCRYPTION_SHADER_DEFAULTS,
-      ...initialConfig
+      ...initialConfig,
     }
     this.panel = this.createPanel()
     this.setupEventListeners()
@@ -501,58 +501,49 @@ export class ShaderDebugUI {
 
     // Setup slider-input pairs with proper synchronization
     this.setupSliderInputPair(
-      this.luminanceSlider, 
-      this.luminanceInput, 
+      this.luminanceSlider,
+      this.luminanceInput,
       'luminanceThreshold',
       (value) => this.callbacks.onConfigChange({ luminanceThreshold: value })
     )
 
     this.setupSliderInputPair(
-      this.colorStepsSlider, 
-      this.colorStepsInput, 
+      this.colorStepsSlider,
+      this.colorStepsInput,
       'colorSteps',
       (value) => this.callbacks.onConfigChange({ colorSteps: value }),
       true // isInteger
     )
 
-    this.setupSliderInputPair(
-      this.intensitySlider, 
-      this.intensityInput, 
-      'intensity',
-      (value) => this.callbacks.onConfigChange({ intensity: value })
+    this.setupSliderInputPair(this.intensitySlider, this.intensityInput, 'intensity', (value) =>
+      this.callbacks.onConfigChange({ intensity: value })
+    )
+
+    this.setupSliderInputPair(this.darknessSlider, this.darknessInput, 'darknessBias', (value) =>
+      this.callbacks.onConfigChange({ darknessBias: value })
+    )
+
+    this.setupSliderInputPair(this.grittinessSlider, this.grittinessInput, 'grittiness', (value) =>
+      this.callbacks.onConfigChange({ grittiness: value })
     )
 
     this.setupSliderInputPair(
-      this.darknessSlider, 
-      this.darknessInput, 
-      'darknessBias',
-      (value) => this.callbacks.onConfigChange({ darknessBias: value })
-    )
-
-    this.setupSliderInputPair(
-      this.grittinessSlider, 
-      this.grittinessInput, 
-      'grittiness',
-      (value) => this.callbacks.onConfigChange({ grittiness: value })
-    )
-
-    this.setupSliderInputPair(
-      this.filmGrainSlider, 
-      this.filmGrainInput, 
+      this.filmGrainSlider,
+      this.filmGrainInput,
       'filmGrainIntensity',
       (value) => this.callbacks.onConfigChange({ filmGrainIntensity: value })
     )
 
     this.setupSliderInputPair(
-      this.vignetteSlider, 
-      this.vignetteInput, 
+      this.vignetteSlider,
+      this.vignetteInput,
       'vignetteStrength',
       (value) => this.callbacks.onConfigChange({ vignetteStrength: value })
     )
 
     this.setupSliderInputPair(
-      this.ditheringSlider, 
-      this.ditheringInput, 
+      this.ditheringSlider,
+      this.ditheringInput,
       'ditheringIntensity',
       (value) => {
         console.log('Dithering slider changed to:', value)
@@ -560,28 +551,21 @@ export class ShaderDebugUI {
       }
     )
 
-    this.setupSliderInputPair(
-      this.pixelSizeSlider, 
-      this.pixelSizeInput, 
-      'pixelSize',
-      (value) => {
-        console.log('Pixel Size slider changed to:', value)
-        this.callbacks.onConfigChange({ pixelSize: value })
-      }
-    )
-
-
+    this.setupSliderInputPair(this.pixelSizeSlider, this.pixelSizeInput, 'pixelSize', (value) => {
+      console.log('Pixel Size slider changed to:', value)
+      this.callbacks.onConfigChange({ pixelSize: value })
+    })
 
     this.setupSliderInputPair(
-      this.crtScanlinesSlider, 
-      this.crtScanlinesInput, 
+      this.crtScanlinesSlider,
+      this.crtScanlinesInput,
       'crtScanlines',
       (value) => this.callbacks.onConfigChange({ crtScanlines: value })
     )
 
     this.setupSliderInputPair(
-      this.crtPhosphorSlider, 
-      this.crtPhosphorInput, 
+      this.crtPhosphorSlider,
+      this.crtPhosphorInput,
       'crtPhosphor',
       (value) => this.callbacks.onConfigChange({ crtPhosphor: value })
     )
@@ -617,8 +601,8 @@ export class ShaderDebugUI {
   }
 
   private setupSliderInputPair(
-    slider: HTMLInputElement, 
-    input: HTMLInputElement, 
+    slider: HTMLInputElement,
+    input: HTMLInputElement,
     configKey: keyof ShaderConfig,
     onChange: (value: number) => void,
     isInteger: boolean = false
@@ -627,7 +611,7 @@ export class ShaderDebugUI {
     const handleSliderChange = () => {
       const value = isInteger ? parseInt(slider.value) : parseFloat(slider.value)
       if (!isNaN(value)) {
-        (this.currentConfig as any)[configKey] = value
+        ;(this.currentConfig as any)[configKey] = value
         input.value = value.toString()
         onChange(value)
       }
@@ -638,7 +622,7 @@ export class ShaderDebugUI {
       const value = isInteger ? parseInt(input.value) : parseFloat(input.value)
       const minValue = isInteger ? parseInt(input.min) : parseFloat(input.min)
       const maxValue = isInteger ? parseInt(input.max) : parseFloat(input.max)
-      
+
       if (!isNaN(value)) {
         // Clamp value to valid range
         const clampedValue = Math.max(minValue, Math.min(maxValue, value))
@@ -654,7 +638,7 @@ export class ShaderDebugUI {
     slider.addEventListener('change', handleSliderChange)
     input.addEventListener('input', handleInputChange)
     input.addEventListener('change', handleInputChange)
-    
+
     // Handle Enter key for immediate application
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
@@ -777,21 +761,71 @@ export class ShaderDebugUI {
     // Note: Auto-performance state is managed separately from shader config
 
     // Update slider-input pairs
-    this.updateSliderInputPair(this.luminanceSlider, this.luminanceInput, this.currentConfig.luminanceThreshold)
-    this.updateSliderInputPair(this.colorStepsSlider, this.colorStepsInput, this.currentConfig.colorSteps, true)
-    this.updateSliderInputPair(this.intensitySlider, this.intensityInput, this.currentConfig.intensity)
-    this.updateSliderInputPair(this.darknessSlider, this.darknessInput, this.currentConfig.darknessBias)
-    this.updateSliderInputPair(this.grittinessSlider, this.grittinessInput, this.currentConfig.grittiness)
-    this.updateSliderInputPair(this.filmGrainSlider, this.filmGrainInput, this.currentConfig.filmGrainIntensity)
-    this.updateSliderInputPair(this.vignetteSlider, this.vignetteInput, this.currentConfig.vignetteStrength)
-    this.updateSliderInputPair(this.ditheringSlider, this.ditheringInput, this.currentConfig.ditheringIntensity)
-    this.updateSliderInputPair(this.pixelSizeSlider, this.pixelSizeInput, this.currentConfig.pixelSize)
+    this.updateSliderInputPair(
+      this.luminanceSlider,
+      this.luminanceInput,
+      this.currentConfig.luminanceThreshold
+    )
+    this.updateSliderInputPair(
+      this.colorStepsSlider,
+      this.colorStepsInput,
+      this.currentConfig.colorSteps,
+      true
+    )
+    this.updateSliderInputPair(
+      this.intensitySlider,
+      this.intensityInput,
+      this.currentConfig.intensity
+    )
+    this.updateSliderInputPair(
+      this.darknessSlider,
+      this.darknessInput,
+      this.currentConfig.darknessBias
+    )
+    this.updateSliderInputPair(
+      this.grittinessSlider,
+      this.grittinessInput,
+      this.currentConfig.grittiness
+    )
+    this.updateSliderInputPair(
+      this.filmGrainSlider,
+      this.filmGrainInput,
+      this.currentConfig.filmGrainIntensity
+    )
+    this.updateSliderInputPair(
+      this.vignetteSlider,
+      this.vignetteInput,
+      this.currentConfig.vignetteStrength
+    )
+    this.updateSliderInputPair(
+      this.ditheringSlider,
+      this.ditheringInput,
+      this.currentConfig.ditheringIntensity
+    )
+    this.updateSliderInputPair(
+      this.pixelSizeSlider,
+      this.pixelSizeInput,
+      this.currentConfig.pixelSize
+    )
 
-    this.updateSliderInputPair(this.crtScanlinesSlider, this.crtScanlinesInput, this.currentConfig.crtScanlines)
-    this.updateSliderInputPair(this.crtPhosphorSlider, this.crtPhosphorInput, this.currentConfig.crtPhosphor)
+    this.updateSliderInputPair(
+      this.crtScanlinesSlider,
+      this.crtScanlinesInput,
+      this.currentConfig.crtScanlines
+    )
+    this.updateSliderInputPair(
+      this.crtPhosphorSlider,
+      this.crtPhosphorInput,
+      this.currentConfig.crtPhosphor
+    )
   }
 
-  private updateSliderInputPair(slider: HTMLInputElement, input: HTMLInputElement, value: number | undefined, isInteger: boolean = false): void {
+  private updateSliderInputPair(
+    slider: HTMLInputElement,
+    input: HTMLInputElement,
+    value: number | undefined,
+    isInteger: boolean = false
+  ): void {
     // Handle undefined values by using default values
     const safeValue = value ?? 0
     const stringValue = isInteger ? safeValue.toString() : safeValue.toFixed(2)
@@ -804,19 +838,19 @@ export class ShaderDebugUI {
       const exportData = {
         name: `Shader Settings ${new Date().toLocaleDateString()}`,
         timestamp: new Date().toISOString(),
-        config: { ...this.currentConfig }
+        config: { ...this.currentConfig },
       }
 
       const dataStr = JSON.stringify(exportData, null, 2)
       const dataBlob = new Blob([dataStr], { type: 'application/json' })
-      
+
       const link = document.createElement('a')
       link.href = URL.createObjectURL(dataBlob)
       link.download = `shader-settings-${Date.now()}.json`
       link.click()
-      
+
       URL.revokeObjectURL(link.href)
-      
+
       this.showNotification('Settings exported successfully!', 'success')
     } catch (error) {
       console.error('Failed to export settings:', error)
@@ -828,7 +862,7 @@ export class ShaderDebugUI {
     try {
       const text = await file.text()
       const importData = JSON.parse(text)
-      
+
       // Validate the imported data
       if (!importData.config || typeof importData.config !== 'object') {
         throw new Error('Invalid settings file format')
@@ -836,9 +870,19 @@ export class ShaderDebugUI {
 
       // Validate required properties
       const requiredProps: (keyof ShaderConfig)[] = [
-        'enabled', 'luminanceThreshold', 'colorSteps', 'intensity', 
-        'darknessBias', 'grittiness', 'filmGrainIntensity', 'vignetteStrength',
-        'ditheringIntensity', 'pixelSize', 'crtCurvature', 'crtScanlines', 'crtPhosphor'
+        'enabled',
+        'luminanceThreshold',
+        'colorSteps',
+        'intensity',
+        'darknessBias',
+        'grittiness',
+        'filmGrainIntensity',
+        'vignetteStrength',
+        'ditheringIntensity',
+        'pixelSize',
+        'crtCurvature',
+        'crtScanlines',
+        'crtPhosphor',
       ]
 
       for (const prop of requiredProps) {
@@ -851,10 +895,9 @@ export class ShaderDebugUI {
       this.currentConfig = { ...importData.config }
       this.updateUI()
       this.callbacks.onPresetLoad(this.currentConfig)
-      
+
       const name = importData.name || 'Imported Settings'
       this.showNotification(`${name} loaded successfully!`, 'success')
-      
     } catch (error) {
       console.error('Failed to import settings:', error)
       this.showNotification('Failed to import settings: Invalid file format', 'error')
@@ -868,7 +911,7 @@ export class ShaderDebugUI {
     const colors = {
       success: '#22c55e',
       error: '#dc2626',
-      info: '#3b82f6'
+      info: '#3b82f6',
     }
 
     const notification = document.createElement('div')

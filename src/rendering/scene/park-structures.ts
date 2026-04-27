@@ -1,5 +1,5 @@
-import * as THREE from 'three'
 import { TAU } from '@core/constants'
+import * as THREE from 'three'
 
 export class ParkStructures {
   private scene: THREE.Scene
@@ -204,7 +204,7 @@ export class ParkStructures {
       // Horizontal rails (3 rails per section)
       for (let rail = 0; rail < 3; rail++) {
         const railY = (rail + 1) * (fenceHeight / 4)
-        const railLength = Math.sqrt(Math.pow(nextX - x, 2) + Math.pow(nextZ - z, 2))
+        const railLength = Math.sqrt((nextX - x) ** 2 + (nextZ - z) ** 2)
 
         const railGeometry = new THREE.CylinderGeometry(0.08, 0.08, railLength, 8)
         const railMesh = new THREE.Mesh(railGeometry, railMaterial)

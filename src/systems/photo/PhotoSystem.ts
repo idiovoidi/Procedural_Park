@@ -1,8 +1,13 @@
-import * as THREE from 'three'
 import type { CreatureInstance } from '@systems/creatures'
-import { scoreCreature, generateCreatureName, getPhotoQualityDescription, getScoreBreakdown } from './scoring'
-import type { PhotoResult, PhotoCallbacks, ScoreBreakdown } from './types'
+import * as THREE from 'three'
 import { CreatureCardExporter } from './CreatureCardExporter'
+import {
+  generateCreatureName,
+  getPhotoQualityDescription,
+  getScoreBreakdown,
+  scoreCreature,
+} from './scoring'
+import type { PhotoCallbacks, PhotoResult, ScoreBreakdown } from './types'
 
 export class PhotoSystem {
   private raycaster = new THREE.Raycaster()
@@ -105,7 +110,10 @@ export class PhotoSystem {
     camera: THREE.Camera,
     scene: THREE.Scene,
     worldSeed: number
-  ): Promise<{ metadata: import('./CreatureCardExporter').CreatureCardMetadata; thumbnail: string } | null> {
+  ): Promise<{
+    metadata: import('./CreatureCardExporter').CreatureCardMetadata
+    thumbnail: string
+  } | null> {
     console.log('🔍 PhotoSystem.exportCreatureCard - Starting search')
     console.log('Total creatures:', creatures.length)
 

@@ -613,11 +613,12 @@ export class ConnectionUI {
           icon.textContent = '🔄'
           text.textContent = 'Multiplayer: Connecting...'
           break
-        case 'connected':
+        case 'connected': {
           icon.textContent = '✅'
           const latency = status.latency !== undefined ? ` (${status.latency}ms)` : ''
           text.textContent = `Multiplayer: Connected${latency}`
           break
+        }
         case 'error':
           icon.textContent = '❌'
           text.textContent = `Multiplayer: Error`

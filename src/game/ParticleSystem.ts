@@ -1,5 +1,5 @@
-import * as THREE from 'three'
 import { ObjectPool } from '@core/utils'
+import * as THREE from 'three'
 
 export type ParticleType = 'dust' | 'splash' | 'sparkle' | 'leaf' | 'feather'
 
@@ -65,7 +65,7 @@ export class Particle {
 
     // Update position
     this.mesh.position.addScaledVector(this.velocity, dt)
-    
+
     // Apply gravity
     this.velocity.y += this.gravity * dt
 

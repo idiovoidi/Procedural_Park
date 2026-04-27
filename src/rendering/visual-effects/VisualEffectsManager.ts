@@ -1,11 +1,23 @@
 import * as THREE from 'three'
-import { LowResolutionRenderer, type LowResConfig } from './LowResolutionRenderer'
-import { ChromaticAberrationFilter, type ChromaticAberrationConfig } from '../shaders/ChromaticAberrationFilter'
-import { FilmGrainFilter, type FilmGrainConfig } from '../shaders/FilmGrainFilter'
-import { CRTFilter, type CRTConfig } from '../shaders/CRTFilter'
-import { PerformanceMonitor, type PerformanceMetrics, type PerformanceThresholds, type QualityLevel } from './PerformanceMonitor'
-import { PerformanceOptimizer, type DeviceCapabilities, type MemoryUsage } from './PerformanceOptimizer'
+import {
+  type ChromaticAberrationConfig,
+  ChromaticAberrationFilter,
+} from '../shaders/ChromaticAberrationFilter'
+import { type CRTConfig, CRTFilter } from '../shaders/CRTFilter'
+import { type FilmGrainConfig, FilmGrainFilter } from '../shaders/FilmGrainFilter'
 import { ErrorHandler, type ErrorReport, type FallbackConfig } from './ErrorHandler'
+import { type LowResConfig, LowResolutionRenderer } from './LowResolutionRenderer'
+import {
+  type PerformanceMetrics,
+  PerformanceMonitor,
+  type PerformanceThresholds,
+  type QualityLevel,
+} from './PerformanceMonitor'
+import {
+  type DeviceCapabilities,
+  type MemoryUsage,
+  PerformanceOptimizer,
+} from './PerformanceOptimizer'
 
 export interface EffectsConfig {
   lowRes: LowResConfig & { enabled: boolean }
@@ -25,13 +37,13 @@ export class VisualEffectsManager {
   private gameScene: THREE.Scene
   private gameCamera: THREE.Camera
   private config: EffectsConfig
-  
+
   // Core components
   private lowResRenderer: LowResolutionRenderer | null = null
   private chromaticAberrationFilter: ChromaticAberrationFilter | null = null
   private crtFilter: CRTFilter | null = null
   private filmGrainFilter: FilmGrainFilter | null = null
-  
+
   // Filter pipeline management
   private filters: Array<{
     name: string
@@ -39,11 +51,11 @@ export class VisualEffectsManager {
     enabled: boolean
     order: number
   }> = []
-  
+
   // Render targets for filter chain
   private renderTargets: THREE.WebGLRenderTarget[] = []
   private currentTargetIndex: number = 0
-  
+
   // Performance monitoring and optimization
   private performanceMonitor: PerformanceMonitor
   private performanceOptimizer: PerformanceOptimizer
@@ -64,17 +76,17 @@ export class VisualEffectsManager {
     this.gameScene = gameScene
     this.gameCamera = gameCamera
     this.config = { ...config }
-    
+
     // Initialize performance monitor with automatic quality adjustment
     this.performanceMonitor = new PerformanceMonitor(
       performanceThresholds,
       (qualityLevel) => this.handleQualityChange(qualityLevel),
       (metrics) => this.handlePerformanceWarning(metrics)
     )
-    
+
     // Initialize performance optimizer for device-specific optimizations
     this.performanceOptimizer = new PerformanceOptimizer(renderer)
-    
+
     // Initialize error handler for comprehensive error handling and recovery
     this.errorHandler = new ErrorHandler(
       renderer,
@@ -82,7 +94,7 @@ export class VisualEffectsManager {
       (error) => this.handleError(error),
       (recovery) => this.handleRecovery(recovery)
     )
-    
+
     this.initializeEffects()
     this.setupFilterPipeline()
     this.createRenderTargets()
@@ -164,7 +176,7 @@ export class VisualEffectsManager {
         name: 'chromatic',
         filter: this.chromaticAberrationFilter,
         enabled: this.config.chromatic.enabled,
-        order: 1
+        order: 1,
       })
     }
 
@@ -173,7 +185,7 @@ export class VisualEffectsManager {
         name: 'crt',
         filter: this.crtFilter,
         enabled: this.config.crt.enabled,
-        order: 2
+        order: 2,
       })
     }
 
@@ -182,7 +194,7 @@ export class VisualEffectsManager {
         name: 'grain',
         filter: this.filmGrainFilter,
         enabled: this.config.grain.enabled,
-        order: 3
+        order: 3,
       })
     }
 
@@ -197,7 +209,7 @@ export class VisualEffectsManager {
    */
   private createRenderTargets(): void {
     const size = this.renderer.getSize(new THREE.Vector2())
-    
+
     // Create two render targets for ping-pong rendering with optimized settings
     for (let i = 0; i < 2; i++) {
       try {
@@ -210,7 +222,7 @@ export class VisualEffectsManager {
         this.renderTargets.push(renderTarget)
       } catch (error) {
         console.error(`Failed to create render target ${i}:`, error)
-        
+
         // Try fallback render target creation
         const fallbackTarget = this.errorHandler.handleRenderTargetError(
           size.x,
@@ -220,11 +232,11 @@ export class VisualEffectsManager {
             magFilter: THREE.LinearFilter,
             format: THREE.RGBAFormat,
             type: THREE.UnsignedByteType,
-            generateMipmaps: false
+            generateMipmaps: false,
           },
           error
         )
-        
+
         if (fallbackTarget) {
           this.renderTargets.push(fallbackTarget)
           console.log(`Created fallback render target ${i}`)
@@ -233,7 +245,7 @@ export class VisualEffectsManager {
         }
       }
     }
-    
+
     console.log(`Created ${this.renderTargets.length} render targets for ${size.x}x${size.y}`)
   }
 
@@ -281,11 +293,11 @@ export class VisualEffectsManager {
       }
 
       // Step 2: Apply filter pipeline if any filters are enabled
-      const enabledFilters = this.filters.filter(f => f.enabled)
-      
+      const enabledFilters = this.filters.filter((f) => f.enabled)
+
       if (enabledFilters.length > 0) {
         currentTexture = this.applyFilterPipeline(currentTexture, enabledFilters)
-        
+
         // Render final filtered result to screen
         this.renderTextureToScreen(currentTexture)
       } else if (this.lowResRenderer && this.config.lowRes.enabled) {
@@ -295,7 +307,6 @@ export class VisualEffectsManager {
         // No effects enabled - render final texture to screen
         this.renderTextureToScreen(currentTexture)
       }
-
     } catch (error) {
       console.error('Failed to render visual effects:', error)
       this.handleRenderError(error)
@@ -317,11 +328,11 @@ export class VisualEffectsManager {
     try {
       // Get the low-resolution render target from the renderer
       const lowResTexture = this.getLowResolutionTexture()
-      
+
       return lowResTexture
     } catch (error) {
       console.error('Failed to render with low-resolution:', error)
-      
+
       // Fallback to direct scene rendering
       console.warn('Falling back to direct scene rendering')
       return this.renderSceneToTexture()
@@ -344,17 +355,13 @@ export class VisualEffectsManager {
     )
 
     // Create a render target for the low-resolution rendering with optimized settings
-    const lowResTarget = new THREE.WebGLRenderTarget(
-      optimizedSize.width,
-      optimizedSize.height,
-      {
-        minFilter: THREE.NearestFilter, // Point filtering for sharp pixels
-        magFilter: THREE.NearestFilter, // Point filtering for upscaling
-        format: THREE.RGBAFormat,
-        type: THREE.UnsignedByteType,
-        generateMipmaps: false
-      }
-    )
+    const lowResTarget = new THREE.WebGLRenderTarget(optimizedSize.width, optimizedSize.height, {
+      minFilter: THREE.NearestFilter, // Point filtering for sharp pixels
+      magFilter: THREE.NearestFilter, // Point filtering for upscaling
+      format: THREE.RGBAFormat,
+      type: THREE.UnsignedByteType,
+      generateMipmaps: false,
+    })
 
     // Store current render target and size
     const originalTarget = this.renderer.getRenderTarget()
@@ -375,10 +382,10 @@ export class VisualEffectsManager {
       // Ensure we restore the render state even on error
       this.renderer.setRenderTarget(originalTarget)
       this.renderer.setSize(originalSize.x, originalSize.y, false)
-      
+
       // Dispose the render target on error
       lowResTarget.dispose()
-      
+
       throw error
     }
   }
@@ -388,17 +395,17 @@ export class VisualEffectsManager {
    */
   private renderSceneToTexture(): THREE.Texture {
     const renderTarget = this.getNextRenderTarget()
-    
+
     // Store current render target
     const currentTarget = this.renderer.getRenderTarget()
-    
+
     // Render scene to texture
     this.renderer.setRenderTarget(renderTarget)
     this.renderer.render(this.gameScene, this.gameCamera)
-    
+
     // Restore previous render target
     this.renderer.setRenderTarget(currentTarget)
-    
+
     return renderTarget.texture
   }
 
@@ -416,51 +423,50 @@ export class VisualEffectsManager {
   ): THREE.Texture {
     let currentTexture = inputTexture
     const failedFilters: string[] = []
-    
+
     for (let i = 0; i < enabledFilters.length; i++) {
       const filterInfo = enabledFilters[i]
       const isLastFilter = i === enabledFilters.length - 1
-      
+
       try {
         // Start timing for this specific effect
         this.performanceMonitor.startEffectTiming(filterInfo.name)
-        
+
         // Get output target for filter chain
         const outputTarget = isLastFilter ? undefined : this.getNextRenderTarget()
-        
+
         // Apply filter with error handling
         const resultTarget = this.applyFilterWithErrorHandling(
           filterInfo,
           currentTexture,
           outputTarget
         )
-        
+
         // End timing for this effect
         this.performanceMonitor.endEffectTiming(filterInfo.name)
-        
+
         if (resultTarget) {
           currentTexture = resultTarget.texture
         } else {
           // Filter failed, continue with current texture
           failedFilters.push(filterInfo.name)
         }
-        
       } catch (error) {
         console.error(`Critical error applying ${filterInfo.name} filter:`, error)
         failedFilters.push(filterInfo.name)
-        
+
         // End timing even on error
         this.performanceMonitor.endEffectTiming(filterInfo.name)
-        
+
         // Continue with current texture on filter failure
       }
     }
-    
+
     // Log failed filters for debugging
     if (failedFilters.length > 0) {
       console.warn(`The following filters failed to apply: ${failedFilters.join(', ')}`)
     }
-    
+
     return currentTexture
   }
 
@@ -485,17 +491,16 @@ export class VisualEffectsManager {
 
       // Apply the filter
       const resultTarget = filterInfo.filter.apply(this.renderer, inputTexture, outputTarget)
-      
+
       // Validate result
       if (!resultTarget || !resultTarget.texture) {
         throw new Error(`Filter ${filterInfo.name} returned invalid result`)
       }
 
       return resultTarget
-      
     } catch (error) {
       console.error(`Failed to apply ${filterInfo.name} filter:`, error)
-      
+
       // Attempt recovery strategies
       return this.attemptFilterRecovery(filterInfo, inputTexture, outputTarget, error)
     }
@@ -520,24 +525,23 @@ export class VisualEffectsManager {
     try {
       // Strategy 1: Try to recreate the filter
       this.recreateFilter(filterInfo.name)
-      
+
       // Retry filter application once
       if (filterInfo.filter) {
         const resultTarget = filterInfo.filter.apply(this.renderer, inputTexture, outputTarget)
-        
+
         if (resultTarget && resultTarget.texture) {
           console.log(`Successfully recovered ${filterInfo.name} filter`)
           return resultTarget
         }
       }
-      
     } catch (recoveryError) {
       console.error(`Recovery attempt failed for ${filterInfo.name}:`, recoveryError)
     }
 
     // Strategy 2: Pass through input texture (graceful degradation)
     console.warn(`Using graceful degradation for ${filterInfo.name} filter`)
-    
+
     if (outputTarget) {
       // Copy input texture to output target
       try {
@@ -563,25 +567,25 @@ export class VisualEffectsManager {
         }
         this.chromaticAberrationFilter = new ChromaticAberrationFilter(this.config.chromatic)
         break
-        
+
       case 'crt':
         if (this.crtFilter) {
           this.crtFilter.dispose()
         }
         this.crtFilter = new CRTFilter(this.config.crt)
         break
-        
+
       case 'grain':
         if (this.filmGrainFilter) {
           this.filmGrainFilter.dispose()
         }
         this.filmGrainFilter = new FilmGrainFilter(this.config.grain)
         break
-        
+
       default:
         console.warn(`Unknown filter name for recreation: ${filterName}`)
     }
-    
+
     // Rebuild filter pipeline to include the recreated filter
     this.setupFilterPipeline()
   }
@@ -589,10 +593,13 @@ export class VisualEffectsManager {
   /**
    * Copy texture to a render target for fallback scenarios
    */
-  private copyTextureToTarget(inputTexture: THREE.Texture, outputTarget: THREE.WebGLRenderTarget): void {
+  private copyTextureToTarget(
+    inputTexture: THREE.Texture,
+    outputTarget: THREE.WebGLRenderTarget
+  ): void {
     const copyMaterial = new THREE.ShaderMaterial({
       uniforms: {
-        tDiffuse: { value: inputTexture }
+        tDiffuse: { value: inputTexture },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -607,7 +614,7 @@ export class VisualEffectsManager {
         void main() {
           gl_FragColor = texture2D(tDiffuse, vUv);
         }
-      `
+      `,
     })
 
     const copyScene = new THREE.Scene()
@@ -616,13 +623,13 @@ export class VisualEffectsManager {
     copyScene.add(copyQuad)
 
     const currentTarget = this.renderer.getRenderTarget()
-    
+
     try {
       this.renderer.setRenderTarget(outputTarget)
       this.renderer.render(copyScene, copyCamera)
     } finally {
       this.renderer.setRenderTarget(currentTarget)
-      
+
       // Cleanup
       copyMaterial.dispose()
       copyQuad.geometry.dispose()
@@ -636,7 +643,7 @@ export class VisualEffectsManager {
     // Create a simple copy material to render texture to screen
     const copyMaterial = new THREE.ShaderMaterial({
       uniforms: {
-        tDiffuse: { value: texture }
+        tDiffuse: { value: texture },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -651,7 +658,7 @@ export class VisualEffectsManager {
         void main() {
           gl_FragColor = texture2D(tDiffuse, vUv);
         }
-      `
+      `,
     })
 
     const copyScene = new THREE.Scene()
@@ -678,7 +685,7 @@ export class VisualEffectsManager {
       // Fallback: render scene directly without effects
       this.renderer.setRenderTarget(null)
       this.renderer.render(this.gameScene, this.gameCamera)
-      
+
       console.log('Successfully recovered with direct rendering')
     } catch (fallbackError) {
       console.error('Critical error: Failed to fallback to direct rendering:', fallbackError)
@@ -690,32 +697,34 @@ export class VisualEffectsManager {
    */
   private handleQualityChange(qualityLevel: QualityLevel): void {
     console.log(`Automatically adjusting quality to: ${qualityLevel.name}`)
-    
+
     try {
       // Apply quality settings to effects configuration
       const newConfig: Partial<EffectsConfig> = {}
-      
+
       // Low-resolution settings
-      if (qualityLevel.lowRes.enabled !== this.config.lowRes.enabled ||
-          qualityLevel.lowRes.width !== this.config.lowRes.width ||
-          qualityLevel.lowRes.height !== this.config.lowRes.height) {
+      if (
+        qualityLevel.lowRes.enabled !== this.config.lowRes.enabled ||
+        qualityLevel.lowRes.width !== this.config.lowRes.width ||
+        qualityLevel.lowRes.height !== this.config.lowRes.height
+      ) {
         newConfig.lowRes = {
           ...this.config.lowRes,
           enabled: qualityLevel.lowRes.enabled,
           width: qualityLevel.lowRes.width,
-          height: qualityLevel.lowRes.height
+          height: qualityLevel.lowRes.height,
         }
       }
-      
+
       // Chromatic aberration settings
       if (qualityLevel.chromatic.enabled !== this.config.chromatic.enabled) {
         newConfig.chromatic = {
           ...this.config.chromatic,
           enabled: qualityLevel.chromatic.enabled,
-          offset: qualityLevel.chromatic.intensity
+          offset: qualityLevel.chromatic.intensity,
         }
       }
-      
+
       // CRT settings
       if (qualityLevel.crt.enabled !== this.config.crt.enabled) {
         newConfig.crt = {
@@ -724,41 +733,40 @@ export class VisualEffectsManager {
           // Adjust CRT complexity based on quality level
           scanlines: {
             ...this.config.crt.scanlines,
-            enabled: qualityLevel.crt.complexity >= 1
+            enabled: qualityLevel.crt.complexity >= 1,
           },
           curvature: {
             ...this.config.crt.curvature,
-            enabled: qualityLevel.crt.complexity >= 2
+            enabled: qualityLevel.crt.complexity >= 2,
           },
           phosphor: {
             ...this.config.crt.phosphor,
-            enabled: qualityLevel.crt.complexity >= 3
+            enabled: qualityLevel.crt.complexity >= 3,
           },
           noise: {
             ...this.config.crt.noise,
-            enabled: qualityLevel.crt.complexity >= 3
+            enabled: qualityLevel.crt.complexity >= 3,
           },
           flicker: {
             ...this.config.crt.flicker,
-            enabled: qualityLevel.crt.complexity >= 3
-          }
+            enabled: qualityLevel.crt.complexity >= 3,
+          },
         }
       }
-      
+
       // Film grain settings
       if (qualityLevel.grain.enabled !== this.config.grain.enabled) {
         newConfig.grain = {
           ...this.config.grain,
           enabled: qualityLevel.grain.enabled,
-          intensity: qualityLevel.grain.intensity
+          intensity: qualityLevel.grain.intensity,
         }
       }
-      
+
       // Apply configuration changes
       if (Object.keys(newConfig).length > 0) {
         this.updateConfig(newConfig)
       }
-      
     } catch (error) {
       console.error('Failed to apply automatic quality adjustment:', error)
     }
@@ -771,9 +779,9 @@ export class VisualEffectsManager {
     console.warn('Performance warning detected:', {
       fps: metrics.averageFPS.toFixed(1),
       frameTime: metrics.averageFrameTime.toFixed(2) + 'ms',
-      memoryUsage: (metrics.memoryUsage / 1024 / 1024).toFixed(1) + 'MB'
+      memoryUsage: (metrics.memoryUsage / 1024 / 1024).toFixed(1) + 'MB',
     })
-    
+
     // Log effect impacts to help identify performance bottlenecks
     if (metrics.effectImpact.size > 0) {
       console.warn('Effect performance impact:')
@@ -839,7 +847,7 @@ export class VisualEffectsManager {
    */
   public updateConfig(newConfig: Partial<EffectsConfig>): void {
     const oldConfig = JSON.parse(JSON.stringify(this.config)) // Deep copy for rollback
-    
+
     try {
       // Update low-resolution renderer configuration
       if (newConfig.lowRes !== undefined) {
@@ -867,11 +875,11 @@ export class VisualEffectsManager {
       console.log('Visual effects configuration updated successfully')
     } catch (error) {
       console.error('Failed to update visual effects configuration:', error)
-      
+
       // Rollback to old configuration
       this.config = oldConfig
       this.rebuildFilterPipelineIfNeeded(this.config, oldConfig)
-      
+
       throw error
     }
   }
@@ -881,10 +889,10 @@ export class VisualEffectsManager {
    */
   private updateLowResConfig(newLowResConfig: Partial<EffectsConfig['lowRes']>): void {
     const wasEnabled = this.config.lowRes.enabled
-    
+
     // Update configuration
     this.config.lowRes = { ...this.config.lowRes, ...newLowResConfig }
-    
+
     // Handle enable/disable state changes
     if (newLowResConfig.enabled !== undefined) {
       if (newLowResConfig.enabled && !wasEnabled) {
@@ -906,15 +914,15 @@ export class VisualEffectsManager {
         }
       }
     }
-    
+
     // Update existing low-res renderer parameters
     if (this.lowResRenderer && this.config.lowRes.enabled) {
       // Extract only the LowResConfig properties (excluding 'enabled')
       const { enabled, ...lowResParams } = this.config.lowRes
-      
+
       // Check if any parameters other than 'enabled' were changed
-      const hasParameterChanges = Object.keys(newLowResConfig).some(key => key !== 'enabled')
-      
+      const hasParameterChanges = Object.keys(newLowResConfig).some((key) => key !== 'enabled')
+
       if (hasParameterChanges) {
         this.lowResRenderer.updateResolution(lowResParams)
       }
@@ -926,10 +934,10 @@ export class VisualEffectsManager {
    */
   private updateChromaticConfig(newChromaticConfig: Partial<EffectsConfig['chromatic']>): void {
     const wasEnabled = this.config.chromatic.enabled
-    
+
     // Update configuration
     this.config.chromatic = { ...this.config.chromatic, ...newChromaticConfig }
-    
+
     // Handle enable/disable state changes
     if (newChromaticConfig.enabled !== undefined) {
       if (newChromaticConfig.enabled && !wasEnabled) {
@@ -945,15 +953,15 @@ export class VisualEffectsManager {
         }
       }
     }
-    
+
     // Update existing filter parameters
     if (this.chromaticAberrationFilter && this.config.chromatic.enabled) {
       // Extract only the ChromaticAberrationConfig properties (excluding 'enabled')
       const { enabled, ...chromaticParams } = this.config.chromatic
-      
+
       // Check if any parameters other than 'enabled' were changed
-      const hasParameterChanges = Object.keys(newChromaticConfig).some(key => key !== 'enabled')
-      
+      const hasParameterChanges = Object.keys(newChromaticConfig).some((key) => key !== 'enabled')
+
       if (hasParameterChanges) {
         this.chromaticAberrationFilter.updateConfig(chromaticParams)
       }
@@ -965,10 +973,10 @@ export class VisualEffectsManager {
    */
   private updateCRTConfig(newCRTConfig: Partial<EffectsConfig['crt']>): void {
     const wasEnabled = this.config.crt.enabled
-    
+
     // Update configuration
     this.config.crt = { ...this.config.crt, ...newCRTConfig }
-    
+
     // Handle enable/disable state changes
     if (newCRTConfig.enabled !== undefined) {
       if (newCRTConfig.enabled && !wasEnabled) {
@@ -984,15 +992,15 @@ export class VisualEffectsManager {
         }
       }
     }
-    
+
     // Update existing filter parameters
     if (this.crtFilter && this.config.crt.enabled) {
       // Extract only the CRTConfig properties (excluding 'enabled')
       const { enabled, ...crtParams } = this.config.crt
-      
+
       // Check if any parameters other than 'enabled' were changed
-      const hasParameterChanges = Object.keys(newCRTConfig).some(key => key !== 'enabled')
-      
+      const hasParameterChanges = Object.keys(newCRTConfig).some((key) => key !== 'enabled')
+
       if (hasParameterChanges) {
         this.crtFilter.updateConfig(crtParams)
       }
@@ -1004,10 +1012,10 @@ export class VisualEffectsManager {
    */
   private updateGrainConfig(newGrainConfig: Partial<EffectsConfig['grain']>): void {
     const wasEnabled = this.config.grain.enabled
-    
+
     // Update configuration
     this.config.grain = { ...this.config.grain, ...newGrainConfig }
-    
+
     // Handle enable/disable state changes
     if (newGrainConfig.enabled !== undefined) {
       if (newGrainConfig.enabled && !wasEnabled) {
@@ -1023,15 +1031,15 @@ export class VisualEffectsManager {
         }
       }
     }
-    
+
     // Update existing filter parameters
     if (this.filmGrainFilter && this.config.grain.enabled) {
       // Extract only the FilmGrainConfig properties (excluding 'enabled')
       const { enabled, ...grainParams } = this.config.grain
-      
+
       // Check if any parameters other than 'enabled' were changed
-      const hasParameterChanges = Object.keys(newGrainConfig).some(key => key !== 'enabled')
-      
+      const hasParameterChanges = Object.keys(newGrainConfig).some((key) => key !== 'enabled')
+
       if (hasParameterChanges) {
         this.filmGrainFilter.updateConfig(grainParams)
       }
@@ -1042,7 +1050,7 @@ export class VisualEffectsManager {
    * Rebuild filter pipeline if effects were enabled or disabled
    */
   private rebuildFilterPipelineIfNeeded(oldConfig: EffectsConfig, newConfig: EffectsConfig): void {
-    const needsRebuild = 
+    const needsRebuild =
       oldConfig.chromatic.enabled !== newConfig.chromatic.enabled ||
       oldConfig.crt.enabled !== newConfig.crt.enabled ||
       oldConfig.grain.enabled !== newConfig.grain.enabled
@@ -1230,16 +1238,16 @@ export class VisualEffectsManager {
    */
   private handleCriticalInitializationFailure(error: any): void {
     console.error('Critical initialization failure - entering safe mode')
-    
+
     // Disable all effects for safe mode
     this.config.lowRes.enabled = false
     this.config.chromatic.enabled = false
     this.config.crt.enabled = false
     this.config.grain.enabled = false
-    
+
     // Clear all filters
     this.filters = []
-    
+
     // Dispose any partially created resources
     if (this.lowResRenderer) {
       try {
@@ -1249,7 +1257,7 @@ export class VisualEffectsManager {
       }
       this.lowResRenderer = null
     }
-    
+
     if (this.chromaticAberrationFilter) {
       try {
         this.chromaticAberrationFilter.dispose()
@@ -1258,7 +1266,7 @@ export class VisualEffectsManager {
       }
       this.chromaticAberrationFilter = null
     }
-    
+
     if (this.crtFilter) {
       try {
         this.crtFilter.dispose()
@@ -1267,7 +1275,7 @@ export class VisualEffectsManager {
       }
       this.crtFilter = null
     }
-    
+
     if (this.filmGrainFilter) {
       try {
         this.filmGrainFilter.dispose()
@@ -1283,7 +1291,7 @@ export class VisualEffectsManager {
    */
   private handleError(error: ErrorReport): void {
     console.warn(`Visual Effects Error [${error.severity}]: ${error.message}`)
-    
+
     // Take action based on error severity
     if (error.severity === 'critical') {
       // For critical errors, consider disabling effects
@@ -1301,7 +1309,7 @@ export class VisualEffectsManager {
    */
   private handleRecovery(recovery: ErrorReport): void {
     console.log(`Visual Effects Recovery: ${recovery.message}`)
-    
+
     if (recovery.type === 'webgl_context') {
       // Context recovered - reinitialize effects
       console.log('WebGL context recovered - reinitializing visual effects')
@@ -1320,25 +1328,27 @@ export class VisualEffectsManager {
    */
   private handleMemoryPressure(): void {
     console.warn('Memory pressure detected - reducing effect complexity')
-    
+
     // Disable high-memory effects first
     if (this.config.crt.enabled) {
       this.config.crt.enabled = false
       console.log('Disabled CRT effects due to memory pressure')
     }
-    
+
     if (this.config.chromatic.enabled) {
       this.config.chromatic.enabled = false
       console.log('Disabled chromatic aberration due to memory pressure')
     }
-    
+
     // Reduce low-res resolution
     if (this.config.lowRes.enabled) {
       this.config.lowRes.width = Math.max(320, Math.floor(this.config.lowRes.width * 0.75))
       this.config.lowRes.height = Math.max(180, Math.floor(this.config.lowRes.height * 0.75))
-      console.log(`Reduced low-res resolution to ${this.config.lowRes.width}x${this.config.lowRes.height}`)
+      console.log(
+        `Reduced low-res resolution to ${this.config.lowRes.width}x${this.config.lowRes.height}`
+      )
     }
-    
+
     // Rebuild filter pipeline with reduced effects
     this.setupFilterPipeline()
   }
@@ -1387,23 +1397,23 @@ export class VisualEffectsManager {
       {
         name: 'lowRes',
         enabled: this.config.lowRes.enabled,
-        description: 'Low-resolution rendering with pixelation'
+        description: 'Low-resolution rendering with pixelation',
       },
       {
         name: 'chromatic',
         enabled: this.config.chromatic.enabled,
-        description: 'Chromatic aberration for lens distortion'
+        description: 'Chromatic aberration for lens distortion',
       },
       {
         name: 'crt',
         enabled: this.config.crt.enabled,
-        description: 'CRT monitor simulation with scanlines and curvature'
+        description: 'CRT monitor simulation with scanlines and curvature',
       },
       {
         name: 'grain',
         enabled: this.config.grain.enabled,
-        description: 'Film grain and noise for texture'
-      }
+        description: 'Film grain and noise for texture',
+      },
     ]
   }
 
@@ -1417,13 +1427,13 @@ export class VisualEffectsManager {
         width: 480,
         height: 270,
         upscaleWidth: 1920,
-        upscaleHeight: 1080
+        upscaleHeight: 1080,
       },
       chromatic: {
         enabled: false,
         offset: 0.002,
         direction: [1.0, 0.0],
-        radial: false
+        radial: false,
       },
       crt: {
         enabled: false,
@@ -1431,35 +1441,35 @@ export class VisualEffectsManager {
           enabled: true,
           intensity: 0.3,
           spacing: 2.0,
-          thickness: 0.5
+          thickness: 0.5,
         },
         curvature: {
           enabled: true,
           amount: 0.02,
-          corners: 0.3
+          corners: 0.3,
         },
         phosphor: {
           enabled: true,
           intensity: 0.2,
-          persistence: 1.5
+          persistence: 1.5,
         },
         noise: {
           enabled: false,
           intensity: 0.02,
-          speed: 1.0
+          speed: 1.0,
         },
         flicker: {
           enabled: false,
           intensity: 0.05,
-          frequency: 2.0
-        }
+          frequency: 2.0,
+        },
       },
       grain: {
         enabled: true,
         intensity: 0.05,
         animated: true,
-        speed: 1.0
-      }
+        speed: 1.0,
+      },
     }
 
     this.updateConfig(defaultConfig)
@@ -1474,23 +1484,38 @@ export class VisualEffectsManager {
 
     // Validate low-res configuration
     if (config.lowRes) {
-      if (config.lowRes.width !== undefined && (config.lowRes.width <= 0 || config.lowRes.width > 2048)) {
+      if (
+        config.lowRes.width !== undefined &&
+        (config.lowRes.width <= 0 || config.lowRes.width > 2048)
+      ) {
         errors.push('Low-res width must be between 1 and 2048')
       }
-      if (config.lowRes.height !== undefined && (config.lowRes.height <= 0 || config.lowRes.height > 2048)) {
+      if (
+        config.lowRes.height !== undefined &&
+        (config.lowRes.height <= 0 || config.lowRes.height > 2048)
+      ) {
         errors.push('Low-res height must be between 1 and 2048')
       }
-      if (config.lowRes.upscaleWidth !== undefined && (config.lowRes.upscaleWidth <= 0 || config.lowRes.upscaleWidth > 8192)) {
+      if (
+        config.lowRes.upscaleWidth !== undefined &&
+        (config.lowRes.upscaleWidth <= 0 || config.lowRes.upscaleWidth > 8192)
+      ) {
         errors.push('Upscale width must be between 1 and 8192')
       }
-      if (config.lowRes.upscaleHeight !== undefined && (config.lowRes.upscaleHeight <= 0 || config.lowRes.upscaleHeight > 8192)) {
+      if (
+        config.lowRes.upscaleHeight !== undefined &&
+        (config.lowRes.upscaleHeight <= 0 || config.lowRes.upscaleHeight > 8192)
+      ) {
         errors.push('Upscale height must be between 1 and 8192')
       }
     }
 
     // Validate chromatic aberration configuration
     if (config.chromatic) {
-      if (config.chromatic.offset !== undefined && (config.chromatic.offset < 0 || config.chromatic.offset > 0.1)) {
+      if (
+        config.chromatic.offset !== undefined &&
+        (config.chromatic.offset < 0 || config.chromatic.offset > 0.1)
+      ) {
         errors.push('Chromatic aberration offset must be between 0 and 0.1')
       }
       if (config.chromatic.direction !== undefined) {
@@ -1502,7 +1527,10 @@ export class VisualEffectsManager {
 
     // Validate film grain configuration
     if (config.grain) {
-      if (config.grain.intensity !== undefined && (config.grain.intensity < 0 || config.grain.intensity > 1)) {
+      if (
+        config.grain.intensity !== undefined &&
+        (config.grain.intensity < 0 || config.grain.intensity > 1)
+      ) {
         errors.push('Film grain intensity must be between 0 and 1')
       }
       if (config.grain.speed !== undefined && !isFinite(config.grain.speed)) {
@@ -1513,15 +1541,24 @@ export class VisualEffectsManager {
     // Validate CRT configuration
     if (config.crt) {
       if (config.crt.scanlines) {
-        if (config.crt.scanlines.intensity !== undefined && (config.crt.scanlines.intensity < 0 || config.crt.scanlines.intensity > 1)) {
+        if (
+          config.crt.scanlines.intensity !== undefined &&
+          (config.crt.scanlines.intensity < 0 || config.crt.scanlines.intensity > 1)
+        ) {
           errors.push('CRT scanline intensity must be between 0 and 1')
         }
-        if (config.crt.scanlines.spacing !== undefined && (config.crt.scanlines.spacing < 1 || config.crt.scanlines.spacing > 4)) {
+        if (
+          config.crt.scanlines.spacing !== undefined &&
+          (config.crt.scanlines.spacing < 1 || config.crt.scanlines.spacing > 4)
+        ) {
           errors.push('CRT scanline spacing must be between 1 and 4')
         }
       }
       if (config.crt.curvature) {
-        if (config.crt.curvature.amount !== undefined && (config.crt.curvature.amount < 0 || config.crt.curvature.amount > 0.1)) {
+        if (
+          config.crt.curvature.amount !== undefined &&
+          (config.crt.curvature.amount < 0 || config.crt.curvature.amount > 0.1)
+        ) {
           errors.push('CRT curvature amount must be between 0 and 0.1')
         }
       }
@@ -1529,7 +1566,7 @@ export class VisualEffectsManager {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     }
   }
 
@@ -1547,8 +1584,8 @@ export class VisualEffectsManager {
       lastFrameTime: this.lastFrameTime,
       averageFPS: this.averageFPS,
       frameCount: this.frameCount,
-      enabledFilters: this.filters.filter(f => f.enabled).map(f => f.name),
-      lowResEnabled: this.config.lowRes.enabled
+      enabledFilters: this.filters.filter((f) => f.enabled).map((f) => f.name),
+      lowResEnabled: this.config.lowRes.enabled,
     }
   }
 
@@ -1560,10 +1597,10 @@ export class VisualEffectsManager {
     enabled: boolean
     order: number
   }> {
-    return this.filters.map(f => ({
+    return this.filters.map((f) => ({
       name: f.name,
       enabled: f.enabled,
-      order: f.order
+      order: f.order,
     }))
   }
 
@@ -1573,21 +1610,21 @@ export class VisualEffectsManager {
   public handleResize(): void {
     try {
       // Dispose old render targets
-      this.renderTargets.forEach(target => target.dispose())
+      this.renderTargets.forEach((target) => target.dispose())
       this.renderTargets = []
-      
+
       // Create new render targets with updated size
       this.createRenderTargets()
-      
+
       // Update low-res renderer if enabled
       if (this.lowResRenderer && this.config.lowRes.enabled) {
         const size = this.renderer.getSize(new THREE.Vector2())
         this.lowResRenderer.updateResolution({
           upscaleWidth: size.x,
-          upscaleHeight: size.y
+          upscaleHeight: size.y,
         })
       }
-      
+
       console.log('Visual effects manager resized successfully')
     } catch (error) {
       console.error('Failed to handle resize:', error)
@@ -1633,7 +1670,7 @@ export class VisualEffectsManager {
       }
 
       // Dispose render targets
-      this.renderTargets.forEach(target => target.dispose())
+      this.renderTargets.forEach((target) => target.dispose())
       this.renderTargets = []
 
       // Clear filter pipeline

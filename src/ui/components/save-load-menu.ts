@@ -3,9 +3,9 @@
  * UI for managing save slots
  */
 
-import type { WorldStateManager, SaveSlotMetadata } from '@systems/state'
-import { formatPlayTime, formatSaveDate } from '@systems/state'
 import type { UICallbacks } from '@core/types'
+import type { SaveSlotMetadata, WorldStateManager } from '@systems/state'
+import { formatPlayTime, formatSaveDate } from '@systems/state'
 
 export interface SaveLoadCallbacks {
   onSave: (slotId: string) => void

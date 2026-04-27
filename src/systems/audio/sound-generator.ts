@@ -1,6 +1,6 @@
 import { TAU } from '@core/constants'
 import { randomCentered } from '@core/utils'
-import type { SoundEffect, AmbientSound } from './types'
+import type { AmbientSound, SoundEffect } from './types'
 
 type SampleGenerator = (t: number, i: number, sampleRate: number) => number
 
@@ -73,10 +73,7 @@ async function generateCameraFocus(
   soundBuffers.set('camera_focus', buffer)
 }
 
-async function generateUIClick(
-  audioContext: AudioContext,
-  soundBuffers: Map<string, AudioBuffer>
-) {
+async function generateUIClick(audioContext: AudioContext, soundBuffers: Map<string, AudioBuffer>) {
   const buffer = createSoundBuffer(audioContext, 0.1, (t) => {
     const envelope = Math.exp(-t * 30)
     return Math.sin(t * 1200 * Math.PI) * envelope * 0.4
@@ -84,10 +81,7 @@ async function generateUIClick(
   soundBuffers.set('ui_click', buffer)
 }
 
-async function generateUIHover(
-  audioContext: AudioContext,
-  soundBuffers: Map<string, AudioBuffer>
-) {
+async function generateUIHover(audioContext: AudioContext, soundBuffers: Map<string, AudioBuffer>) {
   const buffer = createSoundBuffer(audioContext, 0.15, (t) => {
     const envelope = Math.exp(-t * 15) * (1 - Math.exp(-t * 50))
     return Math.sin(t * 600 * Math.PI) * envelope * 0.2

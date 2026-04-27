@@ -1,13 +1,17 @@
 :root {
   color-scheme: dark;
-  --hud-bg: rgba(0,0,0,0.45);
+  --hud-bg: rgba(0, 0, 0, 0.45);
   --hud-text: #e8e8e8;
   --accent: #6cf;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body, #app {
+html,
+body,
+#app {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -17,11 +21,25 @@ html, body, #app {
 body {
   overflow: hidden;
   background: #0b0f16;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Ubuntu,
+    Cantarell,
+    Noto Sans,
+    Helvetica Neue,
+    Arial,
+    "Apple Color Emoji",
+    "Segoe UI Emoji";
   color: var(--hud-text);
 }
 
-canvas { display: block; }
+canvas {
+  display: block;
+}
 
 #hud {
   position: fixed;
@@ -78,7 +96,7 @@ canvas { display: block; }
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.9);
   z-index: 2;
 }
 
@@ -86,14 +104,21 @@ canvas { display: block; }
   position: absolute;
   width: 40px;
   height: 40px;
-  border: 2px solid rgba(255,255,255,0.6);
+  border: 2px solid rgba(255, 255, 255, 0.6);
   border-radius: 50%;
   animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.1); opacity: 0.3; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.3;
+  }
 }
 
 #help {
@@ -125,7 +150,7 @@ canvas { display: block; }
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .gallery-header h3 {
@@ -150,7 +175,9 @@ canvas { display: block; }
   border-radius: 8px;
   border: 1px solid #2a384a;
   cursor: pointer;
-  transition: transform 0.2s, border-color 0.2s;
+  transition:
+    transform 0.2s,
+    border-color 0.2s;
 }
 
 .gallery-content img:hover {
@@ -158,7 +185,9 @@ canvas { display: block; }
   border-color: var(--accent);
 }
 
-.hidden { display: none !important; }
+.hidden {
+  display: none !important;
+}
 
 /* Creature Info Panel */
 #creature-info {
@@ -190,11 +219,12 @@ canvas { display: block; }
 }
 
 @keyframes sprint-pulse {
-  0%, 100% { 
+  0%,
+  100% {
     transform: translateX(-50%) scale(1);
     opacity: 1;
   }
-  50% { 
+  50% {
     transform: translateX(-50%) scale(1.05);
     opacity: 0.9;
   }
@@ -206,7 +236,8 @@ canvas { display: block; }
   margin-bottom: 4px;
 }
 
-.creature-distance, .creature-rarity {
+.creature-distance,
+.creature-rarity {
   font-size: 0.9em;
   color: var(--hud-text);
   margin-bottom: 2px;
@@ -222,7 +253,7 @@ canvas { display: block; }
   border-radius: 12px;
   backdrop-filter: blur(8px);
   min-width: 300px;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   pointer-events: auto;
 }
 
@@ -231,7 +262,7 @@ canvas { display: block; }
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .panel-header h3 {
@@ -275,7 +306,7 @@ canvas { display: block; }
 }
 
 .close-btn:hover {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* Shortcuts Panel */
@@ -290,7 +321,7 @@ canvas { display: block; }
   min-width: 600px;
   max-width: 90vw;
   max-height: 85vh;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   pointer-events: auto;
 }
 
@@ -308,7 +339,7 @@ canvas { display: block; }
   margin: 0 0 12px 0;
   color: var(--accent);
   font-size: 1em;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 8px;
 }
 
@@ -326,11 +357,11 @@ canvas { display: block; }
   padding: 4px 10px;
   border-radius: 6px;
   border: 1px solid #2a384a;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 0.9em;
   min-width: 80px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .shortcut-item span {
@@ -345,7 +376,7 @@ canvas { display: block; }
   padding: 2px 6px;
   border-radius: 4px;
   border: 1px solid #2a384a;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 0.9em;
 }
 
@@ -353,7 +384,7 @@ canvas { display: block; }
 #loading {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -364,15 +395,19 @@ canvas { display: block; }
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(255,255,255,0.3);
+  border: 4px solid rgba(255, 255, 255, 0.3);
   border-top: 4px solid var(--accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-text {
@@ -385,12 +420,12 @@ canvas { display: block; }
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   padding: 12px 16px;
   border-radius: 12px;
   font-weight: 700;
   color: white;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 /* Mini-map */
@@ -401,7 +436,7 @@ canvas { display: block; }
   width: 150px;
   height: 150px;
   background: var(--hud-bg);
-  border: 2px solid rgba(255,255,255,0.2);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   backdrop-filter: blur(6px);
   pointer-events: auto;
@@ -804,8 +839,13 @@ canvas { display: block; }
 }
 
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
-  50% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.8); }
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+  }
 }
 
 .creature-info {

@@ -1,9 +1,9 @@
-import * as THREE from 'three'
-import { randomCenteredSeeded } from '@core/utils'
 import type { Random } from '@core/types'
+import { randomCenteredSeeded } from '@core/utils'
 import type { PatternType } from '@rendering/textures'
-import type { Anatomy, CreatureArchetype, BodyType } from './types'
 import { createRng } from '@systems/terrain/noise-utils'
+import * as THREE from 'three'
+import type { Anatomy, BodyType, CreatureArchetype } from './types'
 
 export function choose<T>(rand: Random, items: T[]): T {
   return items[Math.floor(rand() * items.length)]

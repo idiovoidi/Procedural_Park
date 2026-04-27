@@ -1,5 +1,5 @@
-import * as THREE from 'three'
 import type { CreatureInstance } from '@systems/creatures'
+import * as THREE from 'three'
 import { generateCreatureName } from './scoring'
 
 export interface CreatureCardMetadata {
@@ -127,7 +127,7 @@ export class CreatureCardExporter {
     console.log('Creating enhanced card with border and name...')
     const enhancedCanvas = this.createEnhancedCard(canvas, creatureName, creature.rarity)
     console.log(`Enhanced canvas size: ${enhancedCanvas.width}x${enhancedCanvas.height}`)
-    
+
     // Debug: Show enhanced canvas (always enabled)
     const debugCanvas = document.getElementById('creature-card-debug-canvas') as HTMLCanvasElement
     if (debugCanvas) {
@@ -146,7 +146,7 @@ export class CreatureCardExporter {
         }, 3000) // Show for 3 seconds
       }
     }
-    
+
     const dataUrl = enhancedCanvas.toDataURL('image/png')
 
     console.log(`Generated dataURL length: ${dataUrl.length} characters`)

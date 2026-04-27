@@ -3,7 +3,7 @@
  * Handles all keyboard, mouse, and pointer input with priority system
  */
 
-import type { InputAction, InputContext, InputBinding, InputState, InputCallback } from './types'
+import type { InputAction, InputBinding, InputCallback, InputContext, InputState } from './types'
 
 export class InputManager {
   private state: InputState

@@ -1,7 +1,7 @@
-import * as THREE from 'three'
 import { HALF_PI } from '@core/constants'
-import { getPooledVector3, releaseVector3, memoizedSin, memoizedCos } from '@core/utils'
+import { getPooledVector3, memoizedCos, memoizedSin, releaseVector3 } from '@core/utils'
 import type { InputManager } from '@systems/input'
+import * as THREE from 'three'
 import type { CameraMode } from './types'
 
 export class CameraController {
@@ -27,28 +27,28 @@ export class CameraController {
   private moveSpeed = 5.0
   private sprintSpeed = 12.0
   private freeRoamPosition = new THREE.Vector3(0, 1.6, 5)
-  
+
   // Jump controls
   private isJumping = false
   private jumpVelocity = 0
   private jumpSpeed = 8.0
   private gravity = 20.0
   private groundHeight = 1.6
-  
+
   private inputManager: InputManager | null = null
 
   constructor(curve: THREE.CatmullRomCurve3, inputManager?: InputManager) {
     this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 600)
     this.camera.position.set(0, 1.6, 5)
     this.curve = curve
-    
+
     if (inputManager) {
       this.setInputManager(inputManager)
     }
-    
+
     this.setupEventListeners()
   }
-  
+
   public setInputManager(inputManager: InputManager) {
     this.inputManager = inputManager
   }
@@ -65,7 +65,7 @@ export class CameraController {
     if (this.inputManager) {
       this.inputManager.setCanvas(canvas)
     }
-    
+
     // Ride mode: drag to look
     canvas.addEventListener('mousedown', (e) => {
       if (this.mode === 'ride') {
@@ -94,44 +94,49 @@ export class CameraController {
     if (this.inputManager) {
       this.updateFromInputManager()
     }
-    
+
     if (this.mode === 'ride') {
       this.updateRideMode(dtSeconds)
     } else {
       this.updateFreeRoamMode(dtSeconds)
     }
   }
-  
+
   private updateFromInputManager() {
     if (!this.inputManager) return
-    
+
     // Update movement keys
     this.moveForward = this.inputManager.isKeyDown('w')
     this.moveBackward = this.inputManager.isKeyDown('s')
     this.moveLeft = this.inputManager.isKeyDown('a')
     this.moveRight = this.inputManager.isKeyDown('d')
     this.isSprinting = this.inputManager.isKeyDown('Shift')
-    
+
     // Update look direction from mouse delta (in freeroam with pointer lock)
     if (this.mode === 'freeroam' && this.inputManager.isPointerLocked()) {
       const delta = this.inputManager.getMouseDelta()
       this.yawTarget -= delta.x * 0.002
-      this.pitchTarget = Math.max(-HALF_PI + 0.1, Math.min(HALF_PI - 0.1, this.pitchTarget - delta.y * 0.002))
+      this.pitchTarget = Math.max(
+        -HALF_PI + 0.1,
+        Math.min(HALF_PI - 0.1, this.pitchTarget - delta.y * 0.002)
+      )
     }
-    
+
     // Update look direction from mouse drag (in ride mode when dragging)
     if (this.mode === 'ride' && this.isDragging) {
       const delta = this.inputManager.getMouseDelta()
       this.yawTarget += delta.x * 0.0025
       this.pitchTarget = Math.max(-0.6, Math.min(0.6, this.pitchTarget + delta.y * 0.002))
     }
-    
+
     // Update look direction from arrow keys (in ride mode)
     if (this.mode === 'ride') {
-      if (this.inputManager.isKeyDown('ArrowLeft')) this.yawTarget -= 0.05 * (1/60)
-      if (this.inputManager.isKeyDown('ArrowRight')) this.yawTarget += 0.05 * (1/60)
-      if (this.inputManager.isKeyDown('ArrowUp')) this.pitchTarget = Math.min(this.pitchTarget + 0.04 * (1/60), 0.6)
-      if (this.inputManager.isKeyDown('ArrowDown')) this.pitchTarget = Math.max(this.pitchTarget - 0.04 * (1/60), -0.6)
+      if (this.inputManager.isKeyDown('ArrowLeft')) this.yawTarget -= 0.05 * (1 / 60)
+      if (this.inputManager.isKeyDown('ArrowRight')) this.yawTarget += 0.05 * (1 / 60)
+      if (this.inputManager.isKeyDown('ArrowUp'))
+        this.pitchTarget = Math.min(this.pitchTarget + 0.04 * (1 / 60), 0.6)
+      if (this.inputManager.isKeyDown('ArrowDown'))
+        this.pitchTarget = Math.max(this.pitchTarget - 0.04 * (1 / 60), -0.6)
     }
   }
 

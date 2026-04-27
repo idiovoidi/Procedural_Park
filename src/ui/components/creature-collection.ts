@@ -29,7 +29,7 @@ export class CreatureCollection {
     this.setupEventListeners()
     this.loadFromLocalStorage()
     this.render()
-    
+
     if (import.meta.env.DEV) {
       this.addTestCreature()
     }
@@ -74,12 +74,12 @@ export class CreatureCollection {
     console.log('🎨 CreatureCollection.addCreature called:', metadata.creatureName)
     console.log('📊 Current collection size:', this.capturedCreatures.length)
     console.log('🖼️ Thumbnail length:', thumbnail.length)
-    
+
     // Check if already captured
     const creatureId = this.getCreatureId(metadata)
     console.log('🆔 Creature ID:', creatureId)
-    
-    const exists = this.capturedCreatures.some(c => c.id === creatureId)
+
+    const exists = this.capturedCreatures.some((c) => c.id === creatureId)
     if (exists) {
       console.log('⚠️ Creature already in collection')
       return false
@@ -98,7 +98,7 @@ export class CreatureCollection {
       id: creatureId,
       metadata,
       thumbnail,
-      captureTime: Date.now()
+      captureTime: Date.now(),
     }
 
     this.capturedCreatures.push(captured)
@@ -266,7 +266,7 @@ export class CreatureCollection {
   }
 
   private removeCreature(id: string) {
-    const index = this.capturedCreatures.findIndex(c => c.id === id)
+    const index = this.capturedCreatures.findIndex((c) => c.id === id)
     if (index !== -1) {
       this.capturedCreatures.splice(index, 1)
       this.removeFromLocalStorage(id)
@@ -321,20 +321,20 @@ export class CreatureCollection {
 
   private addTestCreature() {
     console.log('🧪 Adding test creature...')
-    
+
     // Create a simple test image (red square)
     const canvas = document.createElement('canvas')
     canvas.width = 200
     canvas.height = 200
     const ctx = canvas.getContext('2d')!
-    
+
     // Draw a gradient background
     const gradient = ctx.createLinearGradient(0, 0, 200, 200)
     gradient.addColorStop(0, '#ff6b6b')
     gradient.addColorStop(1, '#4ecdc4')
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, 200, 200)
-    
+
     // Draw text
     ctx.fillStyle = '#fff'
     ctx.font = 'bold 24px Arial'
@@ -342,9 +342,9 @@ export class CreatureCollection {
     ctx.textBaseline = 'middle'
     ctx.fillText('TEST', 100, 80)
     ctx.fillText('CREATURE', 100, 120)
-    
+
     const testThumbnail = canvas.toDataURL('image/png')
-    
+
     const testMetadata: CreatureCardMetadata = {
       version: '1.0',
       creatureName: 'Test Creature',
@@ -355,9 +355,9 @@ export class CreatureCollection {
       } as any,
       rarity: 0.75,
       seed: 12345,
-      captureDate: new Date().toISOString()
+      captureDate: new Date().toISOString(),
     }
-    
+
     const result = this.addCreature(testMetadata, testThumbnail)
     console.log('🧪 Test creature added:', result)
   }

@@ -185,19 +185,27 @@ export class IntegratedStateManager {
     this.subsystemStateManager.updateUIState(updates)
   }
 
-  public updateCreaturesState(updates: Parameters<SubsystemStateManager['updateCreaturesState']>[0]) {
+  public updateCreaturesState(
+    updates: Parameters<SubsystemStateManager['updateCreaturesState']>[0]
+  ) {
     this.subsystemStateManager.updateCreaturesState(updates)
   }
 
-  public updateMultiplayerState(updates: Parameters<SubsystemStateManager['updateMultiplayerState']>[0]) {
+  public updateMultiplayerState(
+    updates: Parameters<SubsystemStateManager['updateMultiplayerState']>[0]
+  ) {
     this.subsystemStateManager.updateMultiplayerState(updates)
   }
 
-  public updatePhotoSystemState(updates: Parameters<SubsystemStateManager['updatePhotoSystemState']>[0]) {
+  public updatePhotoSystemState(
+    updates: Parameters<SubsystemStateManager['updatePhotoSystemState']>[0]
+  ) {
     this.subsystemStateManager.updatePhotoSystemState(updates)
   }
 
-  public updateAudioSystemState(updates: Parameters<SubsystemStateManager['updateAudioSystemState']>[0]) {
+  public updateAudioSystemState(
+    updates: Parameters<SubsystemStateManager['updateAudioSystemState']>[0]
+  ) {
     this.subsystemStateManager.updateAudioSystemState(updates)
   }
 

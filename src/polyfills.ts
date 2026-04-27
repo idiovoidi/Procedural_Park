@@ -4,9 +4,9 @@
  */
 
 import { Buffer } from 'buffer'
-import process from 'process'
-// @ts-ignore - EventEmitter is a Node.js module
+// @ts-expect-error - EventEmitter is a Node.js module
 import { EventEmitter } from 'events'
+import process from 'process'
 
 // Set up global polyfills for browser environment
 if (typeof window !== 'undefined') {
@@ -50,5 +50,3 @@ if (typeof window !== 'undefined') {
 
   console.log('[Polyfills] Browser polyfills initialized')
 }
-
-export {}

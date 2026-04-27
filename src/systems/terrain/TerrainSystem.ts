@@ -1,8 +1,8 @@
-import * as THREE from 'three'
 import { TAU } from '@core/constants'
-import type { BiomeType } from './types'
+import * as THREE from 'three'
 import { BIOME_CONFIGS, generateBiomeMap } from './biome-generator'
 import { noise2D } from './noise-utils'
+import type { BiomeType } from './types'
 
 export class TerrainSystem {
   private scene: THREE.Scene

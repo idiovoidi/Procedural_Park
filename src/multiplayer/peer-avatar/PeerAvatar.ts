@@ -17,19 +17,19 @@ export class PeerAvatar {
   constructor(scene: THREE.Scene, playerName: string = 'Player') {
     this.scene = scene
     this.group = new THREE.Group()
-    
+
     // Create avatar mesh with distinct visual style
     const avatarMesh = this.createAvatarMesh()
     this.group.add(avatarMesh)
-    
+
     // Create camera direction indicator
     this.cameraIndicator = this.createCameraIndicator()
     this.group.add(this.cameraIndicator)
-    
+
     // Create name label
     this.nameLabel = this.createNameLabel(playerName)
     this.group.add(this.nameLabel)
-    
+
     // Initially hidden
     this.group.visible = false
     this.scene.add(this.group)
@@ -40,7 +40,7 @@ export class PeerAvatar {
    */
   private createAvatarMesh(): THREE.Group {
     const avatarGroup = new THREE.Group()
-    
+
     // Main body - capsule shape (cylinder + spheres)
     const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 8)
     const bodyMaterial = new THREE.MeshStandardMaterial({
@@ -53,13 +53,13 @@ export class PeerAvatar {
     const body = new THREE.Mesh(bodyGeometry, bodyMaterial)
     body.position.y = 0.6
     avatarGroup.add(body)
-    
+
     // Head sphere
     const headGeometry = new THREE.SphereGeometry(0.25, 8, 8)
     const head = new THREE.Mesh(headGeometry, bodyMaterial)
     head.position.y = 1.4
     avatarGroup.add(head)
-    
+
     // Glowing outline effect using a slightly larger transparent mesh
     const outlineGeometry = new THREE.CylinderGeometry(0.35, 0.35, 1.3, 8)
     const outlineMaterial = new THREE.MeshBasicMaterial({
@@ -71,12 +71,12 @@ export class PeerAvatar {
     const outline = new THREE.Mesh(outlineGeometry, outlineMaterial)
     outline.position.y = 0.6
     avatarGroup.add(outline)
-    
+
     const headOutlineGeometry = new THREE.SphereGeometry(0.28, 8, 8)
     const headOutline = new THREE.Mesh(headOutlineGeometry, outlineMaterial)
     headOutline.position.y = 1.4
     avatarGroup.add(headOutline)
-    
+
     return avatarGroup
   }
 
@@ -85,7 +85,7 @@ export class PeerAvatar {
    */
   private createCameraIndicator(): THREE.Object3D {
     const indicatorGroup = new THREE.Group()
-    
+
     // Cone pointing forward (in the direction the peer is looking)
     const coneGeometry = new THREE.ConeGeometry(0.2, 0.6, 8)
     const coneMaterial = new THREE.MeshBasicMaterial({
@@ -94,14 +94,14 @@ export class PeerAvatar {
       opacity: 0.7,
     })
     const cone = new THREE.Mesh(coneGeometry, coneMaterial)
-    
+
     // Rotate cone to point forward (default points up)
     cone.rotation.x = Math.PI / 2
     cone.position.z = -0.5 // Position in front of avatar
     cone.position.y = 1.2 // At head height
-    
+
     indicatorGroup.add(cone)
-    
+
     return indicatorGroup
   }
 
@@ -114,7 +114,7 @@ export class PeerAvatar {
     const context = canvas.getContext('2d')!
     canvas.width = 256
     canvas.height = 64
-    
+
     // Draw text
     context.fillStyle = 'rgba(0, 0, 0, 0.6)'
     context.fillRect(0, 0, canvas.width, canvas.height)
@@ -123,16 +123,16 @@ export class PeerAvatar {
     context.textAlign = 'center'
     context.textBaseline = 'middle'
     context.fillText(name, canvas.width / 2, canvas.height / 2)
-    
+
     // Create texture and sprite
     const texture = new THREE.CanvasTexture(canvas)
     const spriteMaterial = new THREE.SpriteMaterial({ map: texture })
     const sprite = new THREE.Sprite(spriteMaterial)
-    
+
     // Position above avatar
     sprite.position.y = 2.2
     sprite.scale.set(1.5, 0.375, 1)
-    
+
     return sprite
   }
 
@@ -141,7 +141,7 @@ export class PeerAvatar {
    */
   public updateState(state: GameState): void {
     this.targetState = state
-    
+
     // Initialize current state if this is the first update
     if (!this.currentState) {
       this.currentState = { ...state }
@@ -156,7 +156,7 @@ export class PeerAvatar {
     if (!this.targetState || !this.currentState || !this.isVisible) {
       return
     }
-    
+
     this.interpolateToTarget(deltaTime)
   }
 
@@ -165,20 +165,26 @@ export class PeerAvatar {
    */
   private interpolateToTarget(deltaTime: number): void {
     if (!this.currentState || !this.targetState) return
-    
+
     // Interpolation factor (higher = faster, lower = smoother)
     const lerpFactor = Math.min(deltaTime * 10, 1)
-    
+
     // Interpolate position
-    this.currentState.position.x += (this.targetState.position.x - this.currentState.position.x) * lerpFactor
-    this.currentState.position.y += (this.targetState.position.y - this.currentState.position.y) * lerpFactor
-    this.currentState.position.z += (this.targetState.position.z - this.currentState.position.z) * lerpFactor
-    
+    this.currentState.position.x +=
+      (this.targetState.position.x - this.currentState.position.x) * lerpFactor
+    this.currentState.position.y +=
+      (this.targetState.position.y - this.currentState.position.y) * lerpFactor
+    this.currentState.position.z +=
+      (this.targetState.position.z - this.currentState.position.z) * lerpFactor
+
     // Interpolate rotation
-    this.currentState.rotation.x += (this.targetState.rotation.x - this.currentState.rotation.x) * lerpFactor
-    this.currentState.rotation.y += (this.targetState.rotation.y - this.currentState.rotation.y) * lerpFactor
-    this.currentState.rotation.z += (this.targetState.rotation.z - this.currentState.rotation.z) * lerpFactor
-    
+    this.currentState.rotation.x +=
+      (this.targetState.rotation.x - this.currentState.rotation.x) * lerpFactor
+    this.currentState.rotation.y +=
+      (this.targetState.rotation.y - this.currentState.rotation.y) * lerpFactor
+    this.currentState.rotation.z +=
+      (this.targetState.rotation.z - this.currentState.rotation.z) * lerpFactor
+
     // Apply interpolated state
     this.applyState(this.currentState)
   }
@@ -188,14 +194,16 @@ export class PeerAvatar {
    */
   private applyState(state: GameState): void {
     this.group.position.set(state.position.x, state.position.y, state.position.z)
-    
+
     // Apply rotation to camera indicator (shows where peer is looking)
     this.cameraIndicator.rotation.set(state.rotation.x, state.rotation.y, state.rotation.z)
-    
+
     // Make name label always face the camera
     if (this.scene.children.length > 0) {
       // Find the main camera (usually the first camera in the scene)
-      const camera = this.scene.children.find(child => child instanceof THREE.Camera) as THREE.Camera
+      const camera = this.scene.children.find(
+        (child) => child instanceof THREE.Camera
+      ) as THREE.Camera
       if (camera) {
         this.nameLabel.lookAt(camera.position)
       }
@@ -224,19 +232,19 @@ export class PeerAvatar {
   public dispose(): void {
     // Remove from scene
     this.scene.remove(this.group)
-    
+
     // Dispose of geometries and materials
     this.group.traverse((object) => {
       if (object instanceof THREE.Mesh) {
         object.geometry.dispose()
-        
+
         if (Array.isArray(object.material)) {
-          object.material.forEach(material => material.dispose())
+          object.material.forEach((material) => material.dispose())
         } else {
           object.material.dispose()
         }
       }
-      
+
       if (object instanceof THREE.Sprite) {
         if (object.material.map) {
           object.material.map.dispose()
@@ -244,7 +252,7 @@ export class PeerAvatar {
         object.material.dispose()
       }
     })
-    
+
     // Clear references
     this.currentState = null
     this.targetState = null

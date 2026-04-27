@@ -5,23 +5,23 @@
  */
 
 import type {
-  GameSubsystemState,
+  AudioSystemState,
   CameraState,
-  UIState,
   CreaturesState,
+  GameSubsystemState,
   MultiplayerState,
   PhotoSystemState,
-  AudioSystemState,
   StateChangeEvent,
+  UIState,
 } from './subsystem-states'
 import {
-  createDefaultGameSubsystemState,
+  createDefaultAudioSystemState,
   createDefaultCameraState,
-  createDefaultUIState,
   createDefaultCreaturesState,
+  createDefaultGameSubsystemState,
   createDefaultMultiplayerState,
   createDefaultPhotoSystemState,
-  createDefaultAudioSystemState,
+  createDefaultUIState,
 } from './subsystem-states'
 
 type SubsystemKey = keyof GameSubsystemState
@@ -164,8 +164,8 @@ export class SubsystemStateManager {
    */
   public batchUpdate(updates: Partial<GameSubsystemState>): void {
     const keys = Object.keys(updates) as SubsystemKey[]
-    
-    keys.forEach(key => {
+
+    keys.forEach((key) => {
       if (updates[key]) {
         this.updateSubsystem(key, updates[key] as any)
       }
@@ -206,7 +206,7 @@ export class SubsystemStateManager {
       'audio',
     ]
 
-    subsystems.forEach(subsystem => {
+    subsystems.forEach((subsystem) => {
       const event: StateChangeEvent = {
         subsystem,
         previousState: (previousState as any)[subsystem],
@@ -257,7 +257,7 @@ export class SubsystemStateManager {
     // Notify subsystem-specific callbacks
     const callbacks = this.changeCallbacks.get(subsystem)
     if (callbacks) {
-      callbacks.forEach(callback => {
+      callbacks.forEach((callback) => {
         try {
           callback(event)
         } catch (error) {
@@ -267,7 +267,7 @@ export class SubsystemStateManager {
     }
 
     // Notify global callbacks
-    this.globalCallbacks.forEach(callback => {
+    this.globalCallbacks.forEach((callback) => {
       try {
         callback(event)
       } catch (error) {
@@ -315,9 +315,7 @@ export class SubsystemStateManager {
    * Get recent changes for specific subsystem
    */
   public getSubsystemHistory(subsystem: SubsystemKey, limit: number = 10): StateChangeEvent[] {
-    return this.stateHistory
-      .filter(event => event.subsystem === subsystem)
-      .slice(-limit)
+    return this.stateHistory.filter((event) => event.subsystem === subsystem).slice(-limit)
   }
 
   /**
@@ -347,7 +345,7 @@ export class SubsystemStateManager {
   public deserialize(json: string): void {
     try {
       const parsed = JSON.parse(json)
-      
+
       // Restore Map for creatures
       if (parsed.creatures?.creatures) {
         parsed.creatures.creatures = new Map(parsed.creatures.creatures)

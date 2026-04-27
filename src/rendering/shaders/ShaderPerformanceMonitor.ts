@@ -1,5 +1,5 @@
 import { SHADER_QUALITY_PRESETS } from './InscryptionShaderConfig'
-import type { ShaderConfig, PerformanceMetrics, PerformanceCallbacks } from './types'
+import type { PerformanceCallbacks, PerformanceMetrics, ShaderConfig } from './types'
 
 export class ShaderPerformanceMonitor {
   private callbacks: PerformanceCallbacks
@@ -10,7 +10,7 @@ export class ShaderPerformanceMonitor {
   private isMonitoring: boolean = false
   private adjustmentCooldown: number = 0
   private currentQualityLevel: keyof typeof SHADER_QUALITY_PRESETS = 'high'
-  
+
   // Performance thresholds
   private readonly TARGET_FPS = 60
   private readonly MIN_ACCEPTABLE_FPS = 30
@@ -39,18 +39,18 @@ export class ShaderPerformanceMonitor {
 
     const currentTime = performance.now()
     const frameTime = currentTime - this.lastFrameTime
-    
+
     // Record frame time
     this.frameHistory.push(frameTime)
-    
+
     // Keep history size manageable
     if (this.frameHistory.length > this.FRAME_HISTORY_SIZE) {
       this.frameHistory.shift()
     }
-    
+
     this.frameCount++
     this.lastFrameTime = currentTime
-    
+
     // Check performance periodically
     if (currentTime - this.startTime > this.PERFORMANCE_CHECK_INTERVAL) {
       this.checkPerformance()
@@ -60,15 +60,15 @@ export class ShaderPerformanceMonitor {
 
   private checkPerformance(): void {
     if (this.frameHistory.length < 30) return // Need enough samples
-    
+
     const metrics = this.calculateMetrics()
-    
+
     // Check if we need to adjust quality
     const currentTime = performance.now()
     if (currentTime - this.adjustmentCooldown > this.ADJUSTMENT_COOLDOWN) {
       this.considerQualityAdjustment(metrics)
     }
-    
+
     // Check for performance warnings
     if (metrics.averageFPS < this.MIN_ACCEPTABLE_FPS) {
       this.callbacks.onPerformanceWarning(
@@ -82,7 +82,7 @@ export class ShaderPerformanceMonitor {
     const recentFrames = this.frameHistory.slice(-60) // Last 1 second
     const averageFrameTime = recentFrames.reduce((sum, time) => sum + time, 0) / recentFrames.length
     const averageFPS = 1000 / averageFrameTime
-    
+
     return {
       averageFPS,
       frameTime: averageFrameTime,
@@ -94,14 +94,14 @@ export class ShaderPerformanceMonitor {
 
   private considerQualityAdjustment(metrics: PerformanceMetrics): void {
     const targetQuality = this.getOptimalQualityLevel(metrics.averageFPS)
-    
+
     if (targetQuality !== this.currentQualityLevel) {
       const newConfig = SHADER_QUALITY_PRESETS[targetQuality]
       const reason = this.getAdjustmentReason(metrics.averageFPS, targetQuality)
-      
+
       this.currentQualityLevel = targetQuality
       this.adjustmentCooldown = performance.now()
-      
+
       this.callbacks.onQualityAdjustment(newConfig, reason)
     }
   }
@@ -148,16 +148,23 @@ export class ShaderPerformanceMonitor {
   public getPerformanceReport(): string {
     const metrics = this.getCurrentMetrics()
     if (!metrics) return 'Insufficient data for performance report'
-    
+
     const quality = this.currentQualityLevel
-    const fpsStatus = metrics.averageFPS >= this.TARGET_FPS ? 'Excellent' : 
-                     metrics.averageFPS >= 45 ? 'Good' : 
-                     metrics.averageFPS >= 30 ? 'Acceptable' : 'Poor'
-    
-    return `Performance: ${fpsStatus} (${metrics.averageFPS.toFixed(1)} fps)\n` +
-           `Frame Time: ${metrics.frameTime.toFixed(2)}ms\n` +
-           `Quality Level: ${quality}\n` +
-           `Frames Analyzed: ${this.frameHistory.length}`
+    const fpsStatus =
+      metrics.averageFPS >= this.TARGET_FPS
+        ? 'Excellent'
+        : metrics.averageFPS >= 45
+          ? 'Good'
+          : metrics.averageFPS >= 30
+            ? 'Acceptable'
+            : 'Poor'
+
+    return (
+      `Performance: ${fpsStatus} (${metrics.averageFPS.toFixed(1)} fps)\n` +
+      `Frame Time: ${metrics.frameTime.toFixed(2)}ms\n` +
+      `Quality Level: ${quality}\n` +
+      `Frames Analyzed: ${this.frameHistory.length}`
+    )
   }
 
   public dispose(): void {

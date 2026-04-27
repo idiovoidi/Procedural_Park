@@ -39,7 +39,7 @@ export class ObjectPool<T> {
       if (this.resetFn) {
         this.resetFn(obj)
       }
-      
+
       // Only keep up to maxSize objects in pool
       if (this.available.length < this.maxSize) {
         this.available.push(obj)
@@ -48,7 +48,7 @@ export class ObjectPool<T> {
   }
 
   releaseAll(): void {
-    this.inUse.forEach(obj => {
+    this.inUse.forEach((obj) => {
       if (this.resetFn) {
         this.resetFn(obj)
       }

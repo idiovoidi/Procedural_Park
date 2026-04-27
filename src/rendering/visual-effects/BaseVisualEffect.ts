@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import type * as THREE from 'three'
 
 /**
  * Base class for visual effects with common disposal patterns

@@ -3,8 +3,8 @@
  * Defines the structure of saveable game state
  */
 
-import type { CreatureArchetype, BodyType, BehaviorState } from '@systems/creatures'
 import type { PatternType } from '@rendering/textures'
+import type { BehaviorState, BodyType, CreatureArchetype } from '@systems/creatures'
 
 /**
  * Serializable creature data (without Three.js objects)
@@ -15,7 +15,7 @@ export interface SerializedCreature {
   anchor: { x: number; y: number; z: number }
   timeOffset: number
   rarity: number
-  
+
   // Anatomy (simplified)
   anatomy: {
     archetype: CreatureArchetype
@@ -48,7 +48,7 @@ export interface SerializedCreature {
     size: string
     temperament: string
   }
-  
+
   // Behavior state
   behaviorState: BehaviorState
   behaviorTimer: number
@@ -111,23 +111,23 @@ export interface WorldSettings {
 export interface WorldState {
   version: string // For migration support
   saveDate: number // timestamp
-  
+
   // World generation
   worldSeed: number
-  
+
   // Creatures (only if we want to preserve exact creature positions)
   creatures?: SerializedCreature[]
   experimentCreature?: SerializedCreature
-  
+
   // Player progress
   progress: PlayerProgress
-  
+
   // Camera state
   camera: SerializedCameraState
-  
+
   // Gallery
   photos: SerializedPhoto[]
-  
+
   // Settings
   settings: WorldSettings
 }

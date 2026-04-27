@@ -28,7 +28,10 @@ export class Toast {
   public show(text: string, duration?: number) {
     this.toastEl.textContent = text
     this.toastEl.classList.remove('hidden')
-    setTimeout(() => this.toastEl.classList.add('hidden'), duration || GAME_CONFIG.TOAST_DURATION_MS)
+    setTimeout(
+      () => this.toastEl.classList.add('hidden'),
+      duration || GAME_CONFIG.TOAST_DURATION_MS
+    )
   }
 
   public showScore(score: number) {

@@ -3,8 +3,8 @@
  * Manages in-game currency (play money) for purchases
  */
 
-import type { Currency, Transaction, PurchaseResult } from './types'
 import { GAME_CONFIG } from '@core/constants'
+import type { Currency, PurchaseResult, Transaction } from './types'
 
 export class CurrencyManager {
   private currency: Currency
@@ -120,18 +120,14 @@ export class CurrencyManager {
    * Get total earned
    */
   public getTotalEarned(): number {
-    return this.transactions
-      .filter((t) => t.type === 'earn')
-      .reduce((sum, t) => sum + t.amount, 0)
+    return this.transactions.filter((t) => t.type === 'earn').reduce((sum, t) => sum + t.amount, 0)
   }
 
   /**
    * Get total spent
    */
   public getTotalSpent(): number {
-    return this.transactions
-      .filter((t) => t.type === 'spend')
-      .reduce((sum, t) => sum + t.amount, 0)
+    return this.transactions.filter((t) => t.type === 'spend').reduce((sum, t) => sum + t.amount, 0)
   }
 
   /**

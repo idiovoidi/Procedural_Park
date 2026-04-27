@@ -1,7 +1,7 @@
+import { TAU } from '@core/constants'
+import type { Random } from '@core/types'
 import * as THREE from 'three'
 import type { Anatomy, BehaviorState, CreatureInstance } from './types'
-import type { Random } from '@core/types'
-import { TAU } from '@core/constants'
 
 export interface BehaviorContext {
   group: THREE.Group
@@ -140,7 +140,7 @@ function handleSocialBehaviors(
   if (nearbyCreatures.length === 0) return
 
   switch (anatomy.temperament) {
-    case 'territorial':
+    case 'territorial': {
       const intruders = nearbyCreatures.filter(
         (c) =>
           territoryCenter && c.group.position.distanceTo(territoryCenter) < (territoryRadius || 8)
@@ -153,14 +153,16 @@ function handleSocialBehaviors(
         behaviorState.timer = 3 + rand() * 2
       }
       break
+    }
 
-    case 'playful':
+    case 'playful': {
       const playmates = nearbyCreatures.filter((c) => c.anatomy.temperament === 'playful')
       if (playmates.length > 0 && rand() > 0.7) {
         behaviorState.state = 'playing'
         behaviorState.timer = 5 + rand() * 5
       }
       break
+    }
 
     case 'curious':
       // Curious creatures might approach other creatures
@@ -285,10 +287,11 @@ export function updateMovement(
  */
 export function applyBehaviorEffects(state: BehaviorState, group: THREE.Group, tSec: number): void {
   switch (state) {
-    case 'wandering':
+    case 'wandering': {
       // Add slight bobbing motion while wandering
       const bobAmount = Math.sin(tSec * 3) * 0.15
       group.position.y += bobAmount
       break
+    }
   }
 }

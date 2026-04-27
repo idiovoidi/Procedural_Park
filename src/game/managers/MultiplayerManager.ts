@@ -3,14 +3,14 @@
  * Manages multiplayer connections and state synchronization
  */
 
-import * as THREE from 'three'
+import { GAME_CONFIG } from '@core/constants'
+import { DEFAULT_CONFIG, type GameEvent, type GameState } from '@multiplayer/types'
 import { WebRTCMultiplayer } from '@multiplayer/WebRTCMultiplayer'
-import { DEFAULT_CONFIG, type GameState, type GameEvent } from '@multiplayer/types'
-import type { IntegratedStateManager, createStateSyncHelpers } from '@systems/state'
-import type { UIManager } from '@ui/managers'
 import type { AudioManager } from '@systems/audio'
 import type { CameraController } from '@systems/camera'
-import { GAME_CONFIG } from '@core/constants'
+import type { createStateSyncHelpers, IntegratedStateManager } from '@systems/state'
+import type { UIManager } from '@ui/managers'
+import type * as THREE from 'three'
 
 export class MultiplayerManager {
   private multiplayer: WebRTCMultiplayer

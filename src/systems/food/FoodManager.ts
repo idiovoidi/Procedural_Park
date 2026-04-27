@@ -3,10 +3,10 @@
  * Manages food inventory and feeding interactions
  */
 
-import * as THREE from 'three'
 import type { CreatureInstance } from '@systems/creatures'
-import type { FoodItem, FeedingResult } from './types'
-import { FOOD_ITEMS, DEFAULT_FOOD_INVENTORY } from './food-data'
+import type * as THREE from 'three'
+import { DEFAULT_FOOD_INVENTORY, FOOD_ITEMS } from './food-data'
+import type { FeedingResult, FoodItem } from './types'
 
 export class FoodManager {
   private inventory: FoodItem[] = []

@@ -6,11 +6,11 @@ import { InscryptionShader } from './InscryptionShader'
 import { INSCRYPTION_SHADER_DEFAULTS, validateShaderConfig } from './InscryptionShaderConfig'
 import { ShaderPerformanceMonitor } from './ShaderPerformanceMonitor'
 import type {
-  ShaderConfig,
   InscryptionShaderUniforms,
-  ShaderManagerCallbacks,
   PerformanceCallbacks,
   PerformanceMetrics,
+  ShaderConfig,
+  ShaderManagerCallbacks,
 } from './types'
 
 // Main shader manager class
@@ -30,8 +30,8 @@ export class ShaderManager {
   private autoPerformanceAdjustment: boolean = false
 
   constructor(
-    renderer: THREE.WebGLRenderer, 
-    scene: THREE.Scene, 
+    renderer: THREE.WebGLRenderer,
+    scene: THREE.Scene,
     camera: THREE.Camera,
     callbacks: ShaderManagerCallbacks = {}
   ) {
@@ -55,9 +55,9 @@ export class ShaderManager {
       onPerformanceWarning: (message, metrics) => {
         console.warn(`Shader performance warning: ${message}`)
         this.callbacks.onPerformanceWarning?.(message, metrics)
-      }
+      },
     }
-    
+
     this.performanceMonitor = new ShaderPerformanceMonitor(performanceCallbacks)
 
     try {
@@ -65,7 +65,7 @@ export class ShaderManager {
       this.setupWebGLContextHandlers()
       // Don't start monitoring by default - auto-adjustment is disabled
       // this.performanceMonitor.startMonitoring()
-      
+
       // Force update all uniforms to ensure they're properly initialized
       console.log('Initializing shader uniforms with config:', this.config)
       this.updateUniforms(this.config)
@@ -75,8 +75,6 @@ export class ShaderManager {
       this.config.enabled = false
     }
   }
-
-
 
   // Initialize post-processing pipeline with error handling
   private initializePostProcessing(): void {
@@ -134,15 +132,19 @@ export class ShaderManager {
   // Update shader uniforms
   private updateUniforms(config: Partial<ShaderConfig>): void {
     const uniforms = this.inscryptionPass.uniforms as InscryptionShaderUniforms
-    
+
     // Debug logging for new uniforms
-    if (config.ditheringIntensity !== undefined || config.crtScanlines !== undefined || 
-        config.crtPhosphor !== undefined || config.pixelSize !== undefined) {
+    if (
+      config.ditheringIntensity !== undefined ||
+      config.crtScanlines !== undefined ||
+      config.crtPhosphor !== undefined ||
+      config.pixelSize !== undefined
+    ) {
       console.log('Updating CRT/Pixel uniforms:', {
         ditheringIntensity: config.ditheringIntensity,
         pixelSize: config.pixelSize,
         crtScanlines: config.crtScanlines,
-        crtPhosphor: config.crtPhosphor
+        crtPhosphor: config.crtPhosphor,
       })
     }
 
@@ -185,10 +187,10 @@ export class ShaderManager {
   // Validate configuration parameters using centralized validation
   private validateConfig(config: Partial<ShaderConfig>): Partial<ShaderConfig> {
     const fullConfig = validateShaderConfig({ ...this.config, ...config })
-    
+
     // Return only the changed properties
     const validated: Partial<ShaderConfig> = {}
-    
+
     if (config.enabled !== undefined) {
       validated.enabled = fullConfig.enabled
     }
@@ -222,7 +224,7 @@ export class ShaderManager {
     try {
       const validatedConfig = this.validateConfig(newConfig)
       this.config = { ...this.config, ...validatedConfig }
-      
+
       // Update uniforms with error handling
       this.updateUniformsSafely(validatedConfig)
 
@@ -230,10 +232,9 @@ export class ShaderManager {
       if (validatedConfig.enabled !== undefined) {
         this.setEnabledSafely(validatedConfig.enabled)
       }
-      
     } catch (error) {
       console.error('Failed to update shader configuration:', error)
-      
+
       // Revert to last known good configuration
       try {
         this.updateUniformsSafely(this.config)
@@ -251,7 +252,7 @@ export class ShaderManager {
       if (!this.inscryptionPass || !this.inscryptionPass.uniforms) {
         throw new Error('Shader pass or uniforms not initialized')
       }
-      
+
       this.updateUniforms(config)
     } catch (error) {
       console.error('Failed to update shader uniforms:', error)
@@ -265,7 +266,7 @@ export class ShaderManager {
       if (!this.inscryptionPass) {
         throw new Error('Shader pass not initialized')
       }
-      
+
       this.inscryptionPass.enabled = enabled
     } catch (error) {
       console.error('Failed to set shader enabled state:', error)
@@ -279,13 +280,13 @@ export class ShaderManager {
     console.error('Configuration error, disabling shader:', error.message)
     this.hasShaderError = true
     this.config.enabled = false
-    
+
     // Notify callbacks about configuration failure
     const fallbackMetrics: PerformanceMetrics = {
       averageFPS: 0,
       frameTime: 0,
       memoryUsage: 0,
-      lastUpdateTime: performance.now()
+      lastUpdateTime: performance.now(),
     }
     this.callbacks.onPerformanceWarning?.(
       `Shader configuration failed: ${error.message}`,
@@ -306,14 +307,14 @@ export class ShaderManager {
         console.warn('Cannot resize: composer not initialized')
         return
       }
-      
+
       // Validate dimensions
       if (width <= 0 || height <= 0 || !isFinite(width) || !isFinite(height)) {
         throw new Error(`Invalid dimensions: ${width}x${height}`)
       }
-      
+
       this.composer.setSize(width, height)
-      
+
       // Update resolution uniform safely
       if (this.inscryptionPass && this.inscryptionPass.uniforms) {
         const uniforms = this.inscryptionPass.uniforms as InscryptionShaderUniforms
@@ -321,10 +322,9 @@ export class ShaderManager {
           uniforms.resolution.value.set(width, height)
         }
       }
-      
     } catch (error) {
       console.error('Failed to resize shader system:', error)
-      
+
       // Don't disable shader for resize errors, just log the issue
       console.warn('Shader resize failed, continuing with previous size')
     }
@@ -334,14 +334,12 @@ export class ShaderManager {
   render(deltaTime: number = 0): void {
     try {
       if (this.config.enabled && !this.hasShaderError && this.composer) {
-
-        
         // Update time uniform for potential animated effects
         const uniforms = this.inscryptionPass.uniforms as InscryptionShaderUniforms
         uniforms.time.value += deltaTime
 
         this.composer.render()
-        
+
         // Record frame for performance monitoring
         this.performanceMonitor.recordFrame()
       } else {
@@ -364,8 +362,6 @@ export class ShaderManager {
       console.error('Critical rendering error:', fallbackError)
     }
   }
-
-
 
   // Get current configuration
   getConfig(): ShaderConfig {
@@ -417,15 +413,13 @@ export class ShaderManager {
     return this.performanceMonitor.getCurrentQualityLevel()
   }
 
-
-
   // Dispose of resources with comprehensive error handling
   dispose(): void {
     console.log('Disposing shader manager resources...')
-    
+
     // Track disposal errors but continue cleanup
     const errors: Error[] = []
-    
+
     // Dispose performance monitor
     try {
       if (this.performanceMonitor) {
@@ -441,7 +435,10 @@ export class ShaderManager {
         const canvas = this.renderer?.domElement
         if (canvas) {
           canvas.removeEventListener('webglcontextlost', this.contextLostHandler as EventListener)
-          canvas.removeEventListener('webglcontextrestored', this.contextRestoredHandler as EventListener)
+          canvas.removeEventListener(
+            'webglcontextrestored',
+            this.contextRestoredHandler as EventListener
+          )
         }
         this.contextLostHandler = undefined
         this.contextRestoredHandler = undefined

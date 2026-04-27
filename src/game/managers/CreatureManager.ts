@@ -3,20 +3,20 @@
  * Manages creature spawning, updates, and lifecycle
  */
 
-import * as THREE from 'three'
-import {
-  createRng,
-  spawnCreatureNearPath,
-  spawnCreatureAt,
-  type CreatureInstance,
-  generateAnatomy,
-} from '@systems/creatures'
 import { GAME_CONFIG } from '@core/constants'
+import type { ParkStructures } from '@rendering/scene'
 import type { AudioManager } from '@systems/audio'
 import type { CameraController } from '@systems/camera'
-import type { UIManager } from '@ui/managers'
+import {
+  type CreatureInstance,
+  createRng,
+  generateAnatomy,
+  spawnCreatureAt,
+  spawnCreatureNearPath,
+} from '@systems/creatures'
 import type { IntegratedStateManager } from '@systems/state'
-import type { ParkStructures } from '@rendering/scene'
+import type { UIManager } from '@ui/managers'
+import type * as THREE from 'three'
 
 export class CreatureManager {
   private creatures: CreatureInstance[] = []
@@ -101,9 +101,7 @@ export class CreatureManager {
    * Get all creatures including experiment creature
    */
   public getAllCreatures(): CreatureInstance[] {
-    return this.experimentCreature
-      ? [...this.creatures, this.experimentCreature]
-      : this.creatures
+    return this.experimentCreature ? [...this.creatures, this.experimentCreature] : this.creatures
   }
 
   /**
@@ -204,7 +202,9 @@ export class CreatureManager {
 
     // Check experiment creature
     if (this.experimentCreature) {
-      const distance = this.camera.camera.position.distanceTo(this.experimentCreature.group.position)
+      const distance = this.camera.camera.position.distanceTo(
+        this.experimentCreature.group.position
+      )
       if (distance < GAME_CONFIG.CREATURE_INFO_DISTANCE && distance < closestDistance) {
         closestCreature = this.experimentCreature
       }

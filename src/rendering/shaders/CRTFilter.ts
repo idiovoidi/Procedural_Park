@@ -1,35 +1,39 @@
-import * as THREE from 'three'
 import { clampAndUpdate } from '@core/utils'
-import { ShaderFilterBase, FULLSCREEN_VERTEX_SHADER, createFilterFallbackTarget } from './filter-utils'
+import * as THREE from 'three'
+import {
+  createFilterFallbackTarget,
+  FULLSCREEN_VERTEX_SHADER,
+  ShaderFilterBase,
+} from './filter-utils'
 
 export interface CRTConfig {
   scanlines: {
-    enabled: boolean      // Enable scanline effect
-    intensity: number     // Scanline darkness (0.0 - 1.0)
-    spacing: number       // Lines per pixel (1.0 - 4.0)
-    thickness: number     // Line thickness (0.1 - 1.0)
+    enabled: boolean // Enable scanline effect
+    intensity: number // Scanline darkness (0.0 - 1.0)
+    spacing: number // Lines per pixel (1.0 - 4.0)
+    thickness: number // Line thickness (0.1 - 1.0)
   }
   curvature: {
-    enabled: boolean      // Enable screen curvature
-    amount: number        // Curvature intensity (0.0 - 0.1)
-    corners: number       // Corner darkening (0.0 - 1.0)
+    enabled: boolean // Enable screen curvature
+    amount: number // Curvature intensity (0.0 - 0.1)
+    corners: number // Corner darkening (0.0 - 1.0)
   }
   phosphor: {
-    enabled: boolean      // Enable phosphor glow
-    intensity: number     // Glow strength (0.0 - 1.0)
-    persistence: number   // Glow decay time (0.1 - 2.0)
+    enabled: boolean // Enable phosphor glow
+    intensity: number // Glow strength (0.0 - 1.0)
+    persistence: number // Glow decay time (0.1 - 2.0)
   }
   noise: {
-    enabled: boolean      // Enable CRT noise
-    intensity: number     // Static strength (0.0 - 0.1)
-    speed: number         // Noise animation speed (0.1 - 2.0)
+    enabled: boolean // Enable CRT noise
+    intensity: number // Static strength (0.0 - 0.1)
+    speed: number // Noise animation speed (0.1 - 2.0)
   }
   flicker: {
-    enabled: boolean      // Enable brightness flicker
-    intensity: number     // Flicker amount (0.0 - 0.1)
-    frequency: number     // Flicker rate (0.1 - 5.0)
+    enabled: boolean // Enable brightness flicker
+    intensity: number // Flicker amount (0.0 - 0.1)
+    frequency: number // Flicker rate (0.1 - 5.0)
   }
-  enabled: boolean        // Enable/disable the entire effect
+  enabled: boolean // Enable/disable the entire effect
 }
 
 export class CRTFilter extends ShaderFilterBase {
@@ -37,31 +41,27 @@ export class CRTFilter extends ShaderFilterBase {
   private time: number = 0
 
   constructor(config: CRTConfig) {
-    super(
-      FULLSCREEN_VERTEX_SHADER,
-      CRTFilter.getFragmentShader(),
-      {
-        tDiffuse: { value: null },
-        uResolution: { value: new THREE.Vector2(1920, 1080) },
-        uTime: { value: 0.0 },
-        uScanlinesEnabled: { value: config.scanlines.enabled },
-        uScanlineIntensity: { value: config.scanlines.intensity },
-        uScanlineSpacing: { value: config.scanlines.spacing },
-        uScanlineThickness: { value: config.scanlines.thickness },
-        uCurvatureEnabled: { value: config.curvature.enabled },
-        uCurvatureAmount: { value: config.curvature.amount },
-        uCornerDarkening: { value: config.curvature.corners },
-        uPhosphorEnabled: { value: config.phosphor.enabled },
-        uPhosphorIntensity: { value: config.phosphor.intensity },
-        uPhosphorPersistence: { value: config.phosphor.persistence },
-        uNoiseEnabled: { value: config.noise.enabled },
-        uNoiseIntensity: { value: config.noise.intensity },
-        uNoiseSpeed: { value: config.noise.speed },
-        uFlickerEnabled: { value: config.flicker.enabled },
-        uFlickerIntensity: { value: config.flicker.intensity },
-        uFlickerFrequency: { value: config.flicker.frequency }
-      }
-    )
+    super(FULLSCREEN_VERTEX_SHADER, CRTFilter.getFragmentShader(), {
+      tDiffuse: { value: null },
+      uResolution: { value: new THREE.Vector2(1920, 1080) },
+      uTime: { value: 0.0 },
+      uScanlinesEnabled: { value: config.scanlines.enabled },
+      uScanlineIntensity: { value: config.scanlines.intensity },
+      uScanlineSpacing: { value: config.scanlines.spacing },
+      uScanlineThickness: { value: config.scanlines.thickness },
+      uCurvatureEnabled: { value: config.curvature.enabled },
+      uCurvatureAmount: { value: config.curvature.amount },
+      uCornerDarkening: { value: config.curvature.corners },
+      uPhosphorEnabled: { value: config.phosphor.enabled },
+      uPhosphorIntensity: { value: config.phosphor.intensity },
+      uPhosphorPersistence: { value: config.phosphor.persistence },
+      uNoiseEnabled: { value: config.noise.enabled },
+      uNoiseIntensity: { value: config.noise.intensity },
+      uNoiseSpeed: { value: config.noise.speed },
+      uFlickerEnabled: { value: config.flicker.enabled },
+      uFlickerIntensity: { value: config.flicker.intensity },
+      uFlickerFrequency: { value: config.flicker.frequency },
+    })
     this.config = { ...config }
   }
 
@@ -220,14 +220,14 @@ export class CRTFilter extends ShaderFilterBase {
    */
   public set scanlines(value: Partial<CRTConfig['scanlines']>) {
     const oldConfig = { ...this.config.scanlines }
-    
+
     try {
       // Apply new configuration with validation
       if (value.enabled !== undefined) {
         this.config.scanlines.enabled = value.enabled
         this.material.uniforms.uScanlinesEnabled.value = value.enabled
       }
-      
+
       if (value.intensity !== undefined) {
         clampAndUpdate(
           value.intensity,
@@ -239,7 +239,7 @@ export class CRTFilter extends ShaderFilterBase {
           'Scanline intensity'
         )
       }
-      
+
       if (value.spacing !== undefined) {
         clampAndUpdate(
           value.spacing,
@@ -251,7 +251,7 @@ export class CRTFilter extends ShaderFilterBase {
           'Scanline spacing'
         )
       }
-      
+
       if (value.thickness !== undefined) {
         clampAndUpdate(
           value.thickness,
@@ -263,7 +263,6 @@ export class CRTFilter extends ShaderFilterBase {
           'Scanline thickness'
         )
       }
-      
     } catch (error) {
       console.error('Failed to update scanlines config:', error)
       // Revert to old configuration
@@ -285,13 +284,13 @@ export class CRTFilter extends ShaderFilterBase {
    */
   public set curvature(value: Partial<CRTConfig['curvature']>) {
     const oldConfig = { ...this.config.curvature }
-    
+
     try {
       if (value.enabled !== undefined) {
         this.config.curvature.enabled = value.enabled
         this.material.uniforms.uCurvatureEnabled.value = value.enabled
       }
-      
+
       if (value.amount !== undefined) {
         clampAndUpdate(
           value.amount,
@@ -303,7 +302,7 @@ export class CRTFilter extends ShaderFilterBase {
           'Curvature amount'
         )
       }
-      
+
       if (value.corners !== undefined) {
         clampAndUpdate(
           value.corners,
@@ -315,7 +314,6 @@ export class CRTFilter extends ShaderFilterBase {
           'Corner darkening'
         )
       }
-      
     } catch (error) {
       console.error('Failed to update curvature config:', error)
       this.config.curvature = oldConfig
@@ -336,13 +334,13 @@ export class CRTFilter extends ShaderFilterBase {
    */
   public set phosphor(value: Partial<CRTConfig['phosphor']>) {
     const oldConfig = { ...this.config.phosphor }
-    
+
     try {
       if (value.enabled !== undefined) {
         this.config.phosphor.enabled = value.enabled
         this.material.uniforms.uPhosphorEnabled.value = value.enabled
       }
-      
+
       if (value.intensity !== undefined) {
         clampAndUpdate(
           value.intensity,
@@ -354,7 +352,7 @@ export class CRTFilter extends ShaderFilterBase {
           'Phosphor intensity'
         )
       }
-      
+
       if (value.persistence !== undefined) {
         clampAndUpdate(
           value.persistence,
@@ -366,7 +364,6 @@ export class CRTFilter extends ShaderFilterBase {
           'Phosphor persistence'
         )
       }
-      
     } catch (error) {
       console.error('Failed to update phosphor config:', error)
       this.config.phosphor = oldConfig
@@ -387,13 +384,13 @@ export class CRTFilter extends ShaderFilterBase {
    */
   public set noise(value: Partial<CRTConfig['noise']>) {
     const oldConfig = { ...this.config.noise }
-    
+
     try {
       if (value.enabled !== undefined) {
         this.config.noise.enabled = value.enabled
         this.material.uniforms.uNoiseEnabled.value = value.enabled
       }
-      
+
       if (value.intensity !== undefined) {
         clampAndUpdate(
           value.intensity,
@@ -405,7 +402,7 @@ export class CRTFilter extends ShaderFilterBase {
           'Noise intensity'
         )
       }
-      
+
       if (value.speed !== undefined) {
         clampAndUpdate(
           value.speed,
@@ -417,7 +414,6 @@ export class CRTFilter extends ShaderFilterBase {
           'Noise speed'
         )
       }
-      
     } catch (error) {
       console.error('Failed to update noise config:', error)
       this.config.noise = oldConfig
@@ -438,13 +434,13 @@ export class CRTFilter extends ShaderFilterBase {
    */
   public set flicker(value: Partial<CRTConfig['flicker']>) {
     const oldConfig = { ...this.config.flicker }
-    
+
     try {
       if (value.enabled !== undefined) {
         this.config.flicker.enabled = value.enabled
         this.material.uniforms.uFlickerEnabled.value = value.enabled
       }
-      
+
       if (value.intensity !== undefined) {
         clampAndUpdate(
           value.intensity,
@@ -456,7 +452,7 @@ export class CRTFilter extends ShaderFilterBase {
           'Flicker intensity'
         )
       }
-      
+
       if (value.frequency !== undefined) {
         clampAndUpdate(
           value.frequency,
@@ -468,7 +464,6 @@ export class CRTFilter extends ShaderFilterBase {
           'Flicker frequency'
         )
       }
-      
     } catch (error) {
       console.error('Failed to update flicker config:', error)
       this.config.flicker = oldConfig
@@ -499,7 +494,7 @@ export class CRTFilter extends ShaderFilterBase {
       this.enabled = enabled
       return
     }
-    
+
     switch (component) {
       case 'scanlines':
         this.scanlines = { enabled }
@@ -526,33 +521,32 @@ export class CRTFilter extends ShaderFilterBase {
    */
   public updateConfig(newConfig: Partial<CRTConfig>): void {
     const oldConfig = { ...this.config }
-    
+
     try {
       // Apply new configuration with validation
       if (newConfig.scanlines !== undefined) {
         this.scanlines = newConfig.scanlines
       }
-      
+
       if (newConfig.curvature !== undefined) {
         this.curvature = newConfig.curvature
       }
-      
+
       if (newConfig.phosphor !== undefined) {
         this.phosphor = newConfig.phosphor
       }
-      
+
       if (newConfig.noise !== undefined) {
         this.noise = newConfig.noise
       }
-      
+
       if (newConfig.flicker !== undefined) {
         this.flicker = newConfig.flicker
       }
-      
+
       if (newConfig.enabled !== undefined) {
         this.enabled = newConfig.enabled
       }
-      
     } catch (error) {
       console.error('Failed to update CRT config:', error)
       // Revert to old configuration

@@ -1,6 +1,6 @@
 /**
  * Event Bus - Centralized pub/sub system for decoupled communication
- * 
+ *
  * Usage:
  *   EventBus.on('photoTaken', (data) => console.log(data))
  *   EventBus.emit('photoTaken', { score: 85, creature: 'Deer' })
@@ -12,43 +12,43 @@ export interface GameEvents {
   // Photo system
   photoTaken: { score: number; creature: string; dataUrl: string }
   photoScoreCalculated: { score: number; distance: number; framing: number; rarity: number }
-  
+
   // Camera
   cameraModeSwitched: { mode: 'ride' | 'free' }
   cameraSpeedChanged: { speed: number }
-  
+
   // Creatures
   creatureSpawned: { id: string; type: string; position: { x: number; y: number; z: number } }
   creatureNearby: { id: string; name: string; distance: number }
   creatureBehaviorChanged: { id: string; behavior: string }
-  
+
   // UI
   uiPanelToggled: { panel: string; visible: boolean }
   settingChanged: { key: string; value: any }
-  
+
   // Game state
   gameStarted: void
   gamePaused: void
   gameResumed: void
   rideRestarted: void
-  
+
   // Multiplayer
   peerConnected: { peerId: string }
   peerDisconnected: { peerId: string }
   peerStateReceived: { peerId: string; state: any }
-  
+
   // Visual effects
   shaderEnabled: { shader: string; enabled: boolean }
   effectIntensityChanged: { effect: string; intensity: number }
-  
+
   // Environment
   timeOfDayChanged: { mode: 'day' | 'night' }
   biomeEntered: { biome: string; position: { x: number; z: number } }
-  
+
   // Performance
   fpsChanged: { fps: number }
   performanceWarning: { message: string; severity: 'low' | 'medium' | 'high' }
-  
+
   // Audio
   audioPlayed: { type: string; volume: number }
   audioVolumeChanged: { category: string; volume: number }

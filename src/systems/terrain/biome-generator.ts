@@ -1,6 +1,6 @@
 import * as THREE from 'three'
-import type { BiomeType, BiomeConfig } from './types'
-import { noise2D, createRng } from './noise-utils'
+import { createRng, noise2D } from './noise-utils'
+import type { BiomeConfig, BiomeType } from './types'
 
 export const BIOME_CONFIGS: Record<BiomeType, BiomeConfig> = {
   forest: {

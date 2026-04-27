@@ -1,5 +1,5 @@
-import * as THREE from 'three'
 import type { CreatureInstance } from '@systems/creatures'
+import * as THREE from 'three'
 import type { ScoreBreakdown } from './types'
 
 interface ScoreComponents {
@@ -9,7 +9,10 @@ interface ScoreComponents {
   rarityBonus: number
 }
 
-function calculateScoreComponents(creature: CreatureInstance, camera: THREE.Camera): ScoreComponents {
+function calculateScoreComponents(
+  creature: CreatureInstance,
+  camera: THREE.Camera
+): ScoreComponents {
   const v = creature.group.position.clone().project(camera)
   const centerBonus = 1.0 - Math.min(1, v.distanceTo(new THREE.Vector3(0, 0, 0)))
 
@@ -37,7 +40,10 @@ export function scoreCreature(creature: CreatureInstance, camera: THREE.Camera):
 /**
  * Get detailed score breakdown for a creature
  */
-export function getScoreBreakdown(creature: CreatureInstance, camera: THREE.Camera): ScoreBreakdown {
+export function getScoreBreakdown(
+  creature: CreatureInstance,
+  camera: THREE.Camera
+): ScoreBreakdown {
   const { centerBonus, sizeBonus, facing, rarityBonus } = calculateScoreComponents(creature, camera)
 
   const centering = Math.round(centerBonus * 40 * rarityBonus)
@@ -50,7 +56,7 @@ export function getScoreBreakdown(creature: CreatureInstance, camera: THREE.Came
     size,
     facing: facingScore,
     rarity: Math.round(creature.rarity * 100),
-    total
+    total,
   }
 }
 
@@ -72,13 +78,24 @@ export function getPhotoQualityDescription(score: number): string {
  * Generate a fun creature name based on its properties
  */
 export function generateCreatureName(creature: CreatureInstance): string {
-  const prefixes = ['Sparkle', 'Fluffy', 'Crystal', 'Shadow', 'Mystic', 'Glowing', 'Swift', 'Gentle', 'Wild', 'Cosmic']
+  const prefixes = [
+    'Sparkle',
+    'Fluffy',
+    'Crystal',
+    'Shadow',
+    'Mystic',
+    'Glowing',
+    'Swift',
+    'Gentle',
+    'Wild',
+    'Cosmic',
+  ]
   const suffixes = ['wing', 'tail', 'eye', 'horn', 'fin', 'claw', 'beam', 'song', 'dance', 'spirit']
-  
+
   // Use creature's rarity and position to determine name
   const seed = Math.floor(creature.rarity * 1000) + Math.floor(creature.group.position.x * 10)
   const prefixIndex = seed % prefixes.length
   const suffixIndex = Math.floor(seed / prefixes.length) % suffixes.length
-  
+
   return `${prefixes[prefixIndex]}${suffixes[suffixIndex]}`
 }

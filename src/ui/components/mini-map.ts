@@ -1,5 +1,5 @@
-import * as THREE from 'three'
-import { GAME_CONFIG, BIOME_COLORS } from '@core/constants'
+import { BIOME_COLORS, GAME_CONFIG } from '@core/constants'
+import type * as THREE from 'three'
 
 export class MiniMap {
   private miniMapCanvas: HTMLCanvasElement

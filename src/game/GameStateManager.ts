@@ -17,7 +17,9 @@ export interface GameStateConfig {
 export class GameStateManager {
   private stateMachine: GameStateMachine
   private stateConfigs: Map<GameStateType, GameStateConfig> = new Map()
-  private onStateChangeCallbacks: Array<(state: GameStateType, previous: GameStateType | null) => void> = []
+  private onStateChangeCallbacks: Array<
+    (state: GameStateType, previous: GameStateType | null) => void
+  > = []
 
   constructor() {
     this.stateMachine = new GameStateMachine('loading')
@@ -194,14 +196,14 @@ export class GameStateManager {
   public setState(newState: GameStateType, force: boolean = false): boolean {
     const previousState = this.stateMachine.getPreviousState()
     const success = this.stateMachine.transition(newState, force)
-    
+
     if (success) {
       // Notify all callbacks
-      this.onStateChangeCallbacks.forEach(callback => {
+      this.onStateChangeCallbacks.forEach((callback) => {
         callback(newState, previousState)
       })
     }
-    
+
     return success
   }
 
@@ -292,7 +294,9 @@ export class GameStateManager {
   /**
    * Register a callback for state changes
    */
-  public onStateChange(callback: (state: GameStateType, previous: GameStateType | null) => void): void {
+  public onStateChange(
+    callback: (state: GameStateType, previous: GameStateType | null) => void
+  ): void {
     this.onStateChangeCallbacks.push(callback)
   }
 
