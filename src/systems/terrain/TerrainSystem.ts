@@ -258,10 +258,11 @@ export class TerrainSystem {
     const group = new THREE.Group()
 
     // Trunk
-    const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.3, 2 + rand() * 2)
+    const trunkHeight = 2 + rand() * 2
+    const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.3, trunkHeight)
     const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x4a3728 })
     const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial)
-    trunk.position.y = 1
+    trunk.position.y = trunkHeight / 2 // Position so base is at y=0
     group.add(trunk)
 
     // Foliage
@@ -269,28 +270,32 @@ export class TerrainSystem {
     const foliageColor = new THREE.Color().setHSL(0.3, 0.6 + rand() * 0.3, 0.3 + rand() * 0.2)
     const foliageMaterial = new THREE.MeshStandardMaterial({ color: foliageColor })
     const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial)
-    foliage.position.y = 2.5 + rand() * 1
+    foliage.position.y = trunkHeight + 0.5 + rand() * 1 // Position above trunk
     group.add(foliage)
 
     return group
   }
 
   private createGrass(rand: () => number): THREE.Mesh {
-    const geometry = new THREE.ConeGeometry(0.1, 0.5 + rand() * 0.5, 3)
+    const height = 0.5 + rand() * 0.5
+    const geometry = new THREE.ConeGeometry(0.1, height, 3)
     const material = new THREE.MeshStandardMaterial({
       color: new THREE.Color().setHSL(0.3, 0.7, 0.4 + rand() * 0.3),
     })
-    return new THREE.Mesh(geometry, material)
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.y = height / 2 // Position so base is at y=0
+    return mesh
   }
 
   private createWetlandPlant(rand: () => number): THREE.Group {
     const group = new THREE.Group()
 
     // Stem
-    const stemGeometry = new THREE.CylinderGeometry(0.05, 0.08, 1 + rand() * 1)
+    const stemHeight = 1 + rand() * 1
+    const stemGeometry = new THREE.CylinderGeometry(0.05, 0.08, stemHeight)
     const stemMaterial = new THREE.MeshStandardMaterial({ color: 0x2d5a2d })
     const stem = new THREE.Mesh(stemGeometry, stemMaterial)
-    stem.position.y = 0.5
+    stem.position.y = stemHeight / 2 // Position so base is at y=0
     group.add(stem)
 
     // Lily pad or flower
@@ -307,7 +312,8 @@ export class TerrainSystem {
   }
 
   private createCrystalFormation(rand: () => number): THREE.Mesh {
-    const geometry = new THREE.OctahedronGeometry(0.5 + rand() * 1)
+    const size = 0.5 + rand() * 1
+    const geometry = new THREE.OctahedronGeometry(size)
     const material = new THREE.MeshStandardMaterial({
       color: new THREE.Color().setHSL(0.6 + rand() * 0.3, 0.8, 0.7),
       transparent: true,
@@ -315,7 +321,9 @@ export class TerrainSystem {
       roughness: 0.1,
       metalness: 0.3,
     })
-    return new THREE.Mesh(geometry, material)
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.y = size / 2 // Position so base is at y=0
+    return mesh
   }
 
   private addSpecialFeatures(seed: number) {
