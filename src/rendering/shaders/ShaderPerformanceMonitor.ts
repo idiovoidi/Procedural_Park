@@ -9,6 +9,7 @@ export class ShaderPerformanceMonitor {
   private isMonitoring: boolean = false
   private adjustmentCooldown: number = 0
   private currentQualityLevel: keyof typeof SHADER_QUALITY_PRESETS = 'high'
+  private frameCount: number = 0
 
   // Performance thresholds
   private readonly TARGET_FPS = 60

@@ -3,6 +3,12 @@
  * Implements FPS tracking, performance impact measurement, and automatic quality adjustment
  */
 
+// Chrome-only performance memory API interface
+interface PerformanceMemory {
+  usedJSHeapSize: number
+  totalJSHeapSize: number
+}
+
 export interface PerformanceMetrics {
   fps: number
   averageFPS: number
@@ -37,11 +43,14 @@ export class PerformanceMonitor {
   private currentQualityLevel: number = 2 // Start at medium quality
 
   // Performance tracking
-  private frameStartTime: number = 0
   private frameTimes: number[] = []
-  private fpsHistory: number[] = []
+  private readonly maxFrameHistory = 60
   private effectTimings: Map<string, number[]> = new Map()
+  private effectStartTimes: Map<string, number> = new Map()
   private lastFrameTime: number = performance.now()
+  private frameStartTime: number = performance.now()
+  private frameCount: number = 0
+  private fpsHistory: number[] = []
 
   // Memory tracking
   private memoryCheckInterval: number = 5000 // Check every 5 seconds
@@ -172,15 +181,15 @@ export class PerformanceMonitor {
     if (!this.effectTimings.has(effectName)) {
       this.effectTimings.set(effectName, [])
     }
-    // Store start time in a temporary property
-    ;(this as any)[`${effectName}_startTime`] = performance.now()
+    // Store start time
+    this.effectStartTimes.set(effectName, performance.now())
   }
 
   /**
    * End timing for a specific effect and record impact
    */
   public endEffectTiming(effectName: string): void {
-    const startTime = (this as any)[`${effectName}_startTime`]
+    const startTime = this.effectStartTimes.get(effectName)
     if (startTime === undefined) {
       console.warn(`No start time recorded for effect: ${effectName}`)
       return
@@ -203,8 +212,8 @@ export class PerformanceMonitor {
     const averageImpact = timings.reduce((sum, time) => sum + time, 0) / timings.length
     this.metrics.effectImpact.set(effectName, averageImpact)
 
-    // Clean up temporary property
-    delete (this as any)[`${effectName}_startTime`]
+    // Clean up start time
+    this.effectStartTimes.delete(effectName)
   }
 
   /**
@@ -246,7 +255,7 @@ export class PerformanceMonitor {
 
     // Get memory usage if available
     if ('memory' in performance) {
-      const memInfo = (performance as any).memory
+      const memInfo = (performance as unknown as { memory: PerformanceMemory }).memory
       this.metrics.memoryUsage = memInfo.usedJSHeapSize || 0
     }
 

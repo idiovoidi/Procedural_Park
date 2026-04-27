@@ -25,7 +25,6 @@ import {
 } from './subsystem-states'
 
 type SubsystemKey = keyof GameSubsystemState
-// biome-ignore lint/suspicious/noExplicitAny: Generic callback type for state changes
 type StateChangeCallback<T = unknown> = (event: StateChangeEvent<T>) => void
 
 export class SubsystemStateManager {
@@ -138,7 +137,6 @@ export class SubsystemStateManager {
       return
     }
 
-    // biome-ignore lint/suspicious/noExplicitAny: Dynamic assignment to discriminated union
     this.state[subsystem] = newState as GameSubsystemState[typeof subsystem]
     this.state.timestamp = Date.now()
     this.isDirty.add(subsystem)
