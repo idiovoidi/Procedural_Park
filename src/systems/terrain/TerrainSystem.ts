@@ -273,6 +273,9 @@ export class TerrainSystem {
     foliage.position.y = trunkHeight + 0.5 + rand() * 1 // Position above trunk
     group.add(foliage)
 
+    // Store trunk height for proper scaling compensation
+    group.userData = { trunkHeight }
+
     return group
   }
 
@@ -405,9 +408,15 @@ export class TerrainSystem {
   }
 
   private addAncientTree(x: number, y: number, z: number, rand: () => number) {
+    const scale = 2 + rand() * 2
     const tree = this.createTree(rand)
-    tree.scale.setScalar(2 + rand() * 2)
-    tree.position.set(x, y, z)
+    tree.scale.setScalar(scale)
+    // Compensate for scaling: the tree's trunk is at y=trunkHeight/2 internally
+    // When scaled, this offset gets multiplied, so we need to subtract it
+    // to keep the trunk base at ground level
+    const trunkHeight = tree.userData.trunkHeight as number
+    const offset = (trunkHeight / 2) * (scale - 1)
+    tree.position.set(x, y - offset, z)
     this.terrainGroup.add(tree)
   }
 

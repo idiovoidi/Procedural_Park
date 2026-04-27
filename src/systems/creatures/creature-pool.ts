@@ -1,8 +1,8 @@
 import { ObjectPool } from '@core/utils'
 import { createRng } from '@systems/terrain/noise-utils'
 import type * as THREE from 'three'
-import { spawnCreatureAt } from './creature-builder'
-import { generateAnatomy } from './creature-generator'
+import { spawnCreatureAt } from './builder'
+import { generateAnatomy } from './generator'
 import type { CreatureInstance } from './types'
 
 /**
