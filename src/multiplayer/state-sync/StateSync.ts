@@ -102,30 +102,44 @@ export class StateSync {
     return buffer;
   }
 
+  private readMessageHeader(
+    data: ArrayBuffer,
+    minSize: number,
+    expectedType: MessageType,
+    typeName: string
+  ): { view: DataView; offset: number; timestamp: number } | null {
+    if (data.byteLength < minSize) {
+      console.error(`Invalid data size:`, data.byteLength);
+      return null;
+    }
+
+    const view = new DataView(data);
+    let offset = 0;
+
+    const messageType = view.getUint8(offset);
+    offset += 1;
+
+    if (messageType !== expectedType) {
+      console.error(`Invalid message type for ${typeName}:`, messageType);
+      return null;
+    }
+
+    const timestamp = view.getUint32(offset, true);
+    offset += 4;
+
+    return { view, offset, timestamp };
+  }
+
   /**
    * Deserialize binary data to GameState
    */
   public deserializeState(data: ArrayBuffer): GameState | null {
-    if (data.byteLength < STATE_MESSAGE_SIZE) {
-      console.error('Invalid state data size:', data.byteLength);
-      return null;
-    }
-    
-    const view = new DataView(data);
-    let offset = 0;
-    
-    // Verify message type
-    const messageType = view.getUint8(offset);
-    offset += 1;
-    
-    if (messageType !== MessageType.STATE_UPDATE) {
-      console.error('Invalid message type for state:', messageType);
-      return null;
-    }
-    
-    // Timestamp
-    const timestamp = view.getUint32(offset, true);
-    offset += 4;
+    const header = this.readMessageHeader(data, STATE_MESSAGE_SIZE, MessageType.STATE_UPDATE, 'state');
+    if (!header) return null;
+
+    const { view, offset: initialOffset } = header;
+    let offset = initialOffset;
+    const timestamp = header.timestamp;
     
     // Position
     const position = this.unpackVector3(view, offset);
@@ -184,37 +198,17 @@ export class StateSync {
    * Deserialize binary data to GameEvent
    */
   public deserializeEvent(data: ArrayBuffer): GameEvent | null {
-    if (data.byteLength < EVENT_MESSAGE_BASE_SIZE) {
-      console.error('Invalid event data size:', data.byteLength);
-      return null;
-    }
-    
-    const view = new DataView(data);
-    let offset = 0;
-    
-    // Verify message type
-    const messageType = view.getUint8(offset);
-    offset += 1;
-    
-    if (messageType !== MessageType.GAME_EVENT) {
-      console.error('Invalid message type for event:', messageType);
-      return null;
-    }
-    
-    // Timestamp
-    const timestamp = view.getUint32(offset, true);
-    offset += 4;
-    
+    const header = this.readMessageHeader(data, EVENT_MESSAGE_BASE_SIZE, MessageType.GAME_EVENT, 'event');
+    if (!header) return null;
+
+    const { view, offset } = header;
+    const { timestamp } = header;
+
     // Event type
     const eventTypeValue = view.getUint8(offset);
     const type = eventTypeValue === 0 ? 'photo' : 'creature_interaction';
-    
-    const event: GameEvent = {
-      type,
-      timestamp,
-    };
-    
-    return event;
+
+    return { type, timestamp };
   }
 
   /**

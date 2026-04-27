@@ -44,20 +44,19 @@ export class ShaderService {
     return { ...this.config }
   }
 
+  private applyConfig(): void {
+    if (this.shaderManager) {
+      this.shaderManager.updateConfig(this.config)
+    }
+    this.onConfigChangeCallback?.(this.config)
+  }
+
   /**
    * Update shader configuration
    */
   public updateConfig(updates: Partial<ShaderConfig>): void {
     this.config = { ...this.config, ...updates }
-    
-    if (this.shaderManager) {
-      this.shaderManager.updateConfig(this.config)
-    }
-
-    // Notify UI of config change
-    if (this.onConfigChangeCallback) {
-      this.onConfigChangeCallback(this.config)
-    }
+    this.applyConfig()
   }
 
   /**
@@ -65,16 +64,7 @@ export class ShaderService {
    */
   public toggle(): boolean {
     this.config.enabled = !this.config.enabled
-    
-    if (this.shaderManager) {
-      this.shaderManager.setEnabled(this.config.enabled)
-    }
-
-    // Notify UI of config change
-    if (this.onConfigChangeCallback) {
-      this.onConfigChangeCallback(this.config)
-    }
-    
+    this.applyConfig()
     return this.config.enabled
   }
 
@@ -83,15 +73,7 @@ export class ShaderService {
    */
   public enable(): void {
     this.config.enabled = true
-    
-    if (this.shaderManager) {
-      this.shaderManager.setEnabled(true)
-    }
-
-    // Notify UI of config change
-    if (this.onConfigChangeCallback) {
-      this.onConfigChangeCallback(this.config)
-    }
+    this.applyConfig()
   }
 
   /**
@@ -99,15 +81,7 @@ export class ShaderService {
    */
   public disable(): void {
     this.config.enabled = false
-    
-    if (this.shaderManager) {
-      this.shaderManager.setEnabled(false)
-    }
-
-    // Notify UI of config change
-    if (this.onConfigChangeCallback) {
-      this.onConfigChangeCallback(this.config)
-    }
+    this.applyConfig()
   }
 
   /**

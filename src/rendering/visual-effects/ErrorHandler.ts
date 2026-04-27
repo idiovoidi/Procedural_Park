@@ -191,6 +191,16 @@ export class ErrorHandler {
     }
   }
 
+  private trackRecoveryAttempt(recoveryKey: string, context: string): boolean {
+    const attempts = this.recoveryAttempts.get(recoveryKey) || 0
+    if (attempts >= this.config.maxRecoveryAttempts) {
+      console.error(`Max recovery attempts reached for ${context}`)
+      return false
+    }
+    this.recoveryAttempts.set(recoveryKey, attempts + 1)
+    return true
+  }
+
   /**
    * Handle shader compilation errors with fallback strategies
    */
@@ -212,14 +222,9 @@ export class ErrorHandler {
     }
     
     const recoveryKey = `shader_${shaderName}`
-    const attempts = this.recoveryAttempts.get(recoveryKey) || 0
-    
-    if (attempts >= this.config.maxRecoveryAttempts) {
-      console.error(`Max shader recovery attempts reached for ${shaderName}`)
+    if (!this.trackRecoveryAttempt(recoveryKey, `shader ${shaderName}`)) {
       return null
     }
-    
-    this.recoveryAttempts.set(recoveryKey, attempts + 1)
     
     try {
       // Strategy 1: Try with simplified shader
@@ -342,14 +347,9 @@ export class ErrorHandler {
     })
     
     const recoveryKey = `render_target_${width}x${height}`
-    const attempts = this.recoveryAttempts.get(recoveryKey) || 0
-    
-    if (attempts >= this.config.maxRecoveryAttempts) {
-      console.error(`Max render target recovery attempts reached for ${width}x${height}`)
+    if (!this.trackRecoveryAttempt(recoveryKey, `render target ${width}x${height}`)) {
       return null
     }
-    
-    this.recoveryAttempts.set(recoveryKey, attempts + 1)
     
     try {
       // Strategy 1: Try with reduced size
