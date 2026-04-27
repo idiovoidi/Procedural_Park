@@ -70,7 +70,7 @@ class EventBusClass {
     if (!this.events[event]) {
       this.events[event] = []
     }
-    this.events[event]!.push(handler)
+    this.events[event].push(handler)
 
     if (this.debugMode) {
       console.log(`[EventBus] Subscribed to '${String(event)}'`)

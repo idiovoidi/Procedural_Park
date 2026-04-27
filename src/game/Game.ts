@@ -161,8 +161,6 @@ export class Game {
       this.systems.camera,
       this.systems.state,
       this.systems.ui,
-      this.systems.video,
-      this.systems.scene,
       callbacks
     )
   }
