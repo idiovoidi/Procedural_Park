@@ -324,8 +324,7 @@ export class TerrainSystem {
       const x = (rand() - 0.5) * this.mapSize * 0.6
       const z = (rand() - 0.5) * this.mapSize * 0.6
 
-      const mapX = Math.floor(((x + this.mapSize / 2) / this.mapSize) * this.resolution)
-      const mapZ = Math.floor(((z + this.mapSize / 2) / this.mapSize) * this.resolution)
+      const { mapX, mapZ } = this.worldToMap(x, z)
 
       if (mapX >= 0 && mapX < this.resolution && mapZ >= 0 && mapZ < this.resolution) {
         const height = this.heightMap[mapX][mapZ]
@@ -482,9 +481,14 @@ export class TerrainSystem {
     return h0 * (1 - fz) + h1 * fz
   }
 
-  public getBiomeAt(x: number, z: number): BiomeType {
+  private worldToMap(x: number, z: number): { mapX: number; mapZ: number } {
     const mapX = Math.floor(((x + this.mapSize / 2) / this.mapSize) * this.resolution)
     const mapZ = Math.floor(((z + this.mapSize / 2) / this.mapSize) * this.resolution)
+    return { mapX, mapZ }
+  }
+
+  public getBiomeAt(x: number, z: number): BiomeType {
+    const { mapX, mapZ } = this.worldToMap(x, z)
 
     if (mapX >= 0 && mapX < this.resolution && mapZ >= 0 && mapZ < this.resolution) {
       return this.biomeMap[mapX][mapZ]

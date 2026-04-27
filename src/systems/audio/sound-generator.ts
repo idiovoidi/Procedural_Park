@@ -51,19 +51,12 @@ async function generateCameraShutter(
   audioContext: AudioContext,
   soundBuffers: Map<string, AudioBuffer>
 ) {
-  const sampleRate = audioContext.sampleRate
-  const duration = 0.3
-  const buffer = audioContext.createBuffer(1, sampleRate * duration, sampleRate)
-  const data = buffer.getChannelData(0)
-
-  for (let i = 0; i < data.length; i++) {
-    const t = i / sampleRate
+  const buffer = createSoundBuffer(audioContext, 0.3, (t) => {
     // Sharp click followed by mechanical whir
     const click = Math.exp(-t * 50) * Math.sin(t * 2000 * Math.PI) * 0.8
     const whir = Math.exp(-t * 8) * Math.sin(t * 800 * Math.PI) * 0.3 * Math.sin(t * 40 * Math.PI)
-    data[i] = (click + whir) * 0.5
-  }
-
+    return (click + whir) * 0.5
+  })
   soundBuffers.set('camera_shutter', buffer)
 }
 
@@ -71,19 +64,12 @@ async function generateCameraFocus(
   audioContext: AudioContext,
   soundBuffers: Map<string, AudioBuffer>
 ) {
-  const sampleRate = audioContext.sampleRate
-  const duration = 0.4
-  const buffer = audioContext.createBuffer(1, sampleRate * duration, sampleRate)
-  const data = buffer.getChannelData(0)
-
-  for (let i = 0; i < data.length; i++) {
-    const t = i / sampleRate
+  const buffer = createSoundBuffer(audioContext, 0.4, (t) => {
     // Gentle beep with frequency sweep
     const freq = 800 + Math.sin(t * 8) * 200
     const envelope = Math.exp(-t * 3) * (1 - Math.exp(-t * 20))
-    data[i] = Math.sin(t * freq * TAU) * envelope * 0.3
-  }
-
+    return Math.sin(t * freq * TAU) * envelope * 0.3
+  })
   soundBuffers.set('camera_focus', buffer)
 }
 

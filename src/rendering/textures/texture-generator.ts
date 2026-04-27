@@ -8,6 +8,14 @@ function colorToRGB(color: THREE.Color): string {
   return `rgb(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)})`
 }
 
+function createTextureFromCanvas(canvas: HTMLCanvasElement): THREE.CanvasTexture {
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.wrapS = THREE.RepeatWrapping
+  texture.wrapT = THREE.RepeatWrapping
+  texture.needsUpdate = true
+  return texture
+}
+
 export type PatternType =
   | 'solid'
   | 'spots'
@@ -167,12 +175,7 @@ export function createPatternTexture(
       break
   }
 
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.wrapS = THREE.RepeatWrapping
-  texture.wrapT = THREE.RepeatWrapping
-  texture.needsUpdate = true
-
-  return texture
+  return createTextureFromCanvas(canvas)
 }
 
 export function createBellyTexture(bellyColor: THREE.Color, baseColor: THREE.Color): THREE.Texture {
@@ -190,10 +193,5 @@ export function createBellyTexture(bellyColor: THREE.Color, baseColor: THREE.Col
   ctx.fillStyle = gradient
   ctx.fillRect(0, 0, 512, 512)
 
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.wrapS = THREE.RepeatWrapping
-  texture.wrapT = THREE.RepeatWrapping
-  texture.needsUpdate = true
-
-  return texture
+  return createTextureFromCanvas(canvas)
 }

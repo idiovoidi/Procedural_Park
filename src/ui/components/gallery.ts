@@ -18,17 +18,14 @@ export class Gallery {
     this.audioCallbacks = callbacks
   }
 
-  private setupEventListeners() {
-    this.toggleGalleryBtn?.addEventListener('click', () => {
-      this.audioCallbacks.onClick?.()
-      this.toggle()
-    })
+  private handleGalleryClick() {
+    this.audioCallbacks.onClick?.()
+    this.toggle()
+  }
 
-    // Gallery close button
-    this.galleryEl.querySelector('.close-btn')?.addEventListener('click', () => {
-      this.audioCallbacks.onClick?.()
-      this.toggle()
-    })
+  private setupEventListeners() {
+    this.toggleGalleryBtn?.addEventListener('click', () => this.handleGalleryClick())
+    this.galleryEl.querySelector('.close-btn')?.addEventListener('click', () => this.handleGalleryClick())
   }
 
   public toggle() {
