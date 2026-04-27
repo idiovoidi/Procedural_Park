@@ -213,38 +213,24 @@ export class SaveLoadMenu {
 
   private attachSlotListeners(): void {
     // Save buttons
-    this.container.querySelectorAll('.save-btn').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        this.audioCallbacks.onClick?.()
-        const slotId = (e.target as HTMLElement).dataset.slotId
-        if (slotId) this.handleSave(slotId)
-      })
-    })
+    this.setupButtonHandler('.save-btn', (slotId) => this.handleSave(slotId))
 
     // Load buttons
-    this.container.querySelectorAll('.load-btn').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        this.audioCallbacks.onClick?.()
-        const slotId = (e.target as HTMLElement).dataset.slotId
-        if (slotId) this.handleLoad(slotId)
-      })
-    })
+    this.setupButtonHandler('.load-btn', (slotId) => this.handleLoad(slotId))
 
     // Delete buttons
-    this.container.querySelectorAll('.delete-btn').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        this.audioCallbacks.onClick?.()
-        const slotId = (e.target as HTMLElement).dataset.slotId
-        if (slotId) this.handleDelete(slotId)
-      })
-    })
+    this.setupButtonHandler('.delete-btn', (slotId) => this.handleDelete(slotId))
 
     // Export buttons
-    this.container.querySelectorAll('.export-btn').forEach((btn) => {
+    this.setupButtonHandler('.export-btn', (slotId) => this.handleExport(slotId))
+  }
+
+  private setupButtonHandler(selector: string, handler: (slotId: string) => void): void {
+    this.container.querySelectorAll(selector).forEach((btn) => {
       btn.addEventListener('click', (e) => {
         this.audioCallbacks.onClick?.()
         const slotId = (e.target as HTMLElement).dataset.slotId
-        if (slotId) this.handleExport(slotId)
+        if (slotId) handler(slotId)
       })
     })
   }
