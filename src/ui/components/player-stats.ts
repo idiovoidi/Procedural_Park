@@ -403,6 +403,12 @@ export class PlayerStats extends UIComponentBase {
       return
     }
 
+    // Capture references for the closure
+    const mesh = this.avatarMesh
+    const scene = this.avatarScene
+    const camera = this.avatarCamera
+    const renderer = this.avatarRenderer
+
     const animate = () => {
       if (!this.isVisible) {
         this.animationId = null
@@ -410,12 +416,12 @@ export class PlayerStats extends UIComponentBase {
       }
 
       // Rotate avatar
-      this.avatarMesh?.rotation.y += 0.01
+      mesh.rotation.y += 0.01
 
       // Gentle bobbing animation
-      this.avatarMesh?.position.y = Math.sin(Date.now() * 0.001) * 0.05
+      mesh.position.y = Math.sin(Date.now() * 0.001) * 0.05
 
-      this.avatarRenderer?.render(this.avatarScene!, this.avatarCamera!)
+      renderer.render(scene, camera)
       this.animationId = requestAnimationFrame(animate)
     }
 
