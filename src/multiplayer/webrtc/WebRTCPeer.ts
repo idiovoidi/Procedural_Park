@@ -48,7 +48,7 @@ export class WebRTCPeer {
       const signalData = JSON.parse(offerData)
       this.peer?.signal(signalData)
     } catch (error) {
-      this.onError(new Error('Invalid offer data: ' + (error as Error).message))
+      this.onError(new Error(`Invalid offer data: ${(error as Error).message}`))
     }
   }
 
@@ -64,7 +64,7 @@ export class WebRTCPeer {
     try {
       this.peer.send(data)
     } catch (error) {
-      this.onError(new Error('Failed to send data: ' + (error as Error).message))
+      this.onError(new Error(`Failed to send data: ${(error as Error).message}`))
     }
   }
 
@@ -190,7 +190,7 @@ export class WebRTCPeer {
       const data = JSON.parse(signalData)
       this.peer.signal(data)
     } catch (error) {
-      this.onError(new Error('Invalid signal data: ' + (error as Error).message))
+      this.onError(new Error(`Invalid signal data: ${(error as Error).message}`))
     }
   }
 }

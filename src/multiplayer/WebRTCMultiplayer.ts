@@ -13,7 +13,7 @@
 import type * as THREE from 'three'
 import { PeerAvatar } from './peer-avatar'
 import { StateSync } from './state-sync'
-import type { ConnectionStatus, GameEvent, GameState, WebRTCConfig } from './types'
+import type { GameEvent, GameState, WebRTCConfig } from './types'
 import { MessageType } from './types'
 import { ConnectionUI, WebRTCPeer } from './webrtc'
 
@@ -23,7 +23,6 @@ export class WebRTCMultiplayer {
   private avatar: PeerAvatar | null = null
   private ui: ConnectionUI
   private scene: THREE.Scene
-  private config: WebRTCConfig
   private isHost: boolean = false
 
   // Latency measurement
@@ -40,7 +39,6 @@ export class WebRTCMultiplayer {
 
   constructor(scene: THREE.Scene, config: WebRTCConfig) {
     this.scene = scene
-    this.config = config
 
     // Initialize components
     this.peer = new WebRTCPeer(config)

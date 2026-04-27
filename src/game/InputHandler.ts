@@ -33,22 +33,16 @@ export interface InputHandlerCallbacks {
 
 export class InputHandler {
   private inputManager: InputManager
-  private _camera: CameraController
-  private _stateManager: IntegratedStateManager
-  private _uiManager: UIManager
   private callbacks: InputHandlerCallbacks
 
   constructor(
     inputManager: InputManager,
-    camera: CameraController,
-    stateManager: IntegratedStateManager,
-    uiManager: UIManager,
+    _camera: CameraController,
+    _stateManager: IntegratedStateManager,
+    _uiManager: UIManager,
     callbacks: InputHandlerCallbacks
   ) {
     this.inputManager = inputManager
-    this._camera = camera
-    this._stateManager = stateManager
-    this._uiManager = uiManager
     this.callbacks = callbacks
 
     this.setupInputBindings()
