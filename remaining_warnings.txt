@@ -1,0 +1,503 @@
+src\rendering\scene\environment-interactions.ts:22:51 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    20 Γöé   }
+    21 Γöé 
+  > 22 Γöé   public generateInteractionPoints(terrainSystem: any, seed: number = 123) {
+       Γöé                                                   ^^^
+    23 Γöé     this.clearInteractionPoints()
+    24 Γöé     const rand = this.createRng(seed)
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\scene\park-structures.ts:621:63 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    619 Γöé     if (mainGate) {
+    620 Γöé       mainGate.children.forEach((child) => {
+  > 621 Γöé         if (child instanceof THREE.Mesh && (child.material as any).emissive) {
+        Γöé                                                               ^^^
+    622 Γöé           const material = child.material as THREE.MeshStandardMaterial
+    623 Γöé           material.emissiveIntensity = 0.5 + Math.sin(time * 3) * 0.2
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\scene\park-structures.ts:611:61 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    609 Γöé       ?.children.find(
+    610 Γöé         (child) =>
+  > 611 Γöé           child instanceof THREE.Mesh && (child.material as any).color?.getHex() === 0x4488ff
+        Γöé                                                             ^^^
+    612 Γöé       )
+    613 Γöé     if (water) {
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\shaders\ShaderDebugUI.ts:614:33 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    612 Γöé       const value = isInteger ? parseInt(slider.value, 10) : parseFloat(slider.value)
+    613 Γöé       if (!Number.isNaN(value)) {
+  > 614 Γöé         ;(this.currentConfig as any)[configKey] = value
+        Γöé                                 ^^^
+    615 Γöé         input.value = value.toString()
+    616 Γöé         onChange(value)
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\shaders\ShaderDebugUI.ts:629:33 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    627 Γöé         // Clamp value to valid range
+    628 Γöé         const clampedValue = Math.max(minValue, Math.min(maxValue, value))
+  > 629 Γöé         ;(this.currentConfig as any)[configKey] = clampedValue
+        Γöé                                 ^^^
+    630 Γöé         slider.value = clampedValue.toString()
+    631 Γöé         input.value = clampedValue.toString()
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\shaders\ShaderManager.ts:458:38 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    456 Γöé       if (this.composer) {
+    457 Γöé         this.composer.dispose()
+  > 458 Γöé         this.composer = undefined as any
+        Γöé                                      ^^^
+    459 Γöé       }
+    460 Γöé     } catch (error) {
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\shaders\ShaderManager.ts:466:38 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    464 Γöé     // Clear references
+    465 Γöé     try {
+  > 466 Γöé       this.renderPass = undefined as any
+        Γöé                                      ^^^
+    467 Γöé       this.inscryptionPass = undefined as any
+    468 Γöé       this.hasShaderError = true
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\shaders\ShaderManager.ts:467:43 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    465 Γöé     try {
+    466 Γöé       this.renderPass = undefined as any
+  > 467 Γöé       this.inscryptionPass = undefined as any
+        Γöé                                           ^^^
+    468 Γöé       this.hasShaderError = true
+    469 Γöé       this.config.enabled = false
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\shaders\types.ts:27:27 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    25 Γöé // Shader uniforms interface
+    26 Γöé export interface InscryptionShaderUniforms {
+  > 27 Γöé   [key: string]: { value: any }
+       Γöé                           ^^^
+    28 Γöé   tDiffuse: { value: THREE.Texture | null }
+    29 Γöé   luminanceThreshold: { value: number }
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:425:21 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    423 Γöé       // Force garbage collection if available
+    424 Γöé       if ('gc' in window) {
+  > 425 Γöé         ;(window as any).gc()
+        Γöé                     ^^^
+    426 Γöé       }
+    427 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:19:13 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    17 Γöé   severity: 'low' | 'medium' | 'high' | 'critical'
+    18 Γöé   message: string
+  > 19 Γöé   details?: any
+       Γöé             ^^^
+    20 Γöé   stack?: string
+    21 Γöé   recovered: boolean
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:126:38 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    124 Γöé         severity: 'critical',
+    125 Γöé         message: 'WebGL context lost',
+  > 126 Γöé         details: { reason: (event as any).statusMessage || 'Unknown' },
+        Γöé                                      ^^^
+    127 Γöé       })
+    128 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:216:12 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    214 Γöé     vertexShader: string,
+    215 Γöé     fragmentShader: string,
+  > 216 Γöé     error: any
+        Γöé            ^^^
+    217 Γöé   ): THREE.ShaderMaterial | null {
+    218 Γöé     this.reportError({
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:346:12 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    344 Γöé     height: number,
+    345 Γöé     options: THREE.RenderTargetOptions,
+  > 346 Γöé     error: any
+        Γöé            ^^^
+    347 Γöé   ): THREE.WebGLRenderTarget | null {
+    348 Γöé     this.reportError({
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:410:54 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    408 Γöé    * Handle memory-related errors
+    409 Γöé    */
+  > 410 Γöé   public handleMemoryError(operation: string, error: any): boolean {
+        Γöé                                                      ^^^
+    411 Γöé     this.reportError({
+    412 Γöé       type: 'memory',
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\LowResolutionRenderer.ts:112:37 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    110 Γöé    * Handle render errors with appropriate fallback strategies
+    111 Γöé    */
+  > 112 Γöé   private handleRenderError(_error: any): void {
+        Γöé                                     ^^^
+    113 Γöé     console.warn('Attempting to recover from render error...')
+    114 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\PerformanceMonitor.ts:176:15 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    174 Γöé     }
+    175 Γöé     // Store start time in a temporary property
+  > 176 Γöé     ;(this as any)[`${effectName}_startTime`] = performance.now()
+        Γöé               ^^^
+    177 Γöé   }
+    178 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\PerformanceMonitor.ts:183:32 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    181 Γöé    */
+    182 Γöé   public endEffectTiming(effectName: string): void {
+  > 183 Γöé     const startTime = (this as any)[`${effectName}_startTime`]
+        Γöé                                ^^^
+    184 Γöé     if (startTime === undefined) {
+    185 Γöé       console.warn(`No start time recorded for effect: ${effectName}`)
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\PerformanceMonitor.ts:207:21 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    206 Γöé     // Clean up temporary property
+  > 207 Γöé     delete (this as any)[`${effectName}_startTime`]
+        Γöé                     ^^^
+    208 Γöé   }
+    209 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\PerformanceMonitor.ts:249:39 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    247 Γöé     // Get memory usage if available
+    248 Γöé     if ('memory' in performance) {
+  > 249 Γöé       const memInfo = (performance as any).memory
+        Γöé                                       ^^^
+    250 Γöé       this.metrics.memoryUsage = memInfo.usedJSHeapSize || 0
+    251 Γöé     }
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\PerformanceOptimizer.ts:122:32 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    120 Γöé     vertexShader: string,
+    121 Γöé     fragmentShader: string,
+  > 122 Γöé     uniforms: { [key: string]: any } = {}
+        Γöé                                ^^^
+    123 Γöé   ): ShaderProfile {
+    124 Γöé     const startTime = performance.now()
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\PerformanceOptimizer.ts:360:39 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    358 Γöé     // Add JS heap usage if available
+    359 Γöé     if ('memory' in performance) {
+  > 360 Γöé       const memInfo = (performance as any).memory
+        Γöé                                       ^^^
+    361 Γöé       memoryUsage.jsHeapUsed = memInfo.usedJSHeapSize
+    362 Γöé       memoryUsage.jsHeapTotal = memInfo.totalJSHeapSize
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\VisualEffectsManager.ts:514:21 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    512 Γöé     inputTexture: THREE.Texture,
+    513 Γöé     outputTarget: THREE.WebGLRenderTarget | undefined,
+  > 514 Γöé     _originalError: any
+        Γöé                     ^^^
+    515 Γöé   ): THREE.WebGLRenderTarget | null {
+    516 Γöé     console.warn(`Attempting recovery for ${filterInfo.name} filter...`)
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\VisualEffectsManager.ts:674:36 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    672 Γöé    * Handle render errors with appropriate fallback strategies
+    673 Γöé    */
+  > 674 Γöé   private handleRenderError(error: any): void {
+        Γöé                                    ^^^
+    675 Γöé     console.warn('Attempting to recover from render error...', error)
+    676 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\VisualEffectsManager.ts:1210:32 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    1208 Γöé     vertexShader: string,
+    1209 Γöé     fragmentShader: string,
+  > 1210 Γöé     uniforms: { [key: string]: any } = {}
+         Γöé                                ^^^
+    1211 Γöé   ) {
+    1212 Γöé     return this.performanceOptimizer.profileShader(name, vertexShader, fragmentShader, uniforms)
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\VisualEffectsManager.ts:1232:55 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    1230 Γöé    * Handle critical initialization failure
+    1231 Γöé    */
+  > 1232 Γöé   private handleCriticalInitializationFailure(_error: any): void {
+         Γöé                                                       ^^^
+    1233 Γöé     console.error('Critical initialization failure - entering safe mode')
+    1234 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\systems\creatures\types.ts:68:24 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    66 Γöé   territoryCenter?: THREE.Vector3
+    67 Γöé   territoryRadius?: number
+  > 68 Γöé   currentInteraction?: any
+       Γöé                        ^^^
+    69 Γöé   interactionStartTime?: number | null
+    70 Γöé   update: (
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\systems\state\subsystem-state-manager.ts:28:1 suppressions/unused ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Suppression comment has no effect. Remove the suppression or make sure you are suppressing the correct rule.
+  
+    27 Γöé type SubsystemKey = keyof GameSubsystemState
+  > 28 Γöé // biome-ignore lint/suspicious/noExplicitAny: Generic callback type for state changes
+       Γöé ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    29 Γöé type StateChangeCallback<T = unknown> = (event: StateChangeEvent<T>) => void
+    30 Γöé 
+  
+
+src\systems\state\subsystem-state-manager.ts:141:5 suppressions/unused ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Suppression comment has no effect. Remove the suppression or make sure you are suppressing the correct rule.
+  
+    139 Γöé     }
+    140 Γöé 
+  > 141 Γöé     // biome-ignore lint/suspicious/noExplicitAny: Dynamic assignment to discriminated union
+        Γöé     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    142 Γöé     this.state[subsystem] = newState as GameSubsystemState[typeof subsystem]
+    143 Γöé     this.state.timestamp = Date.now()
+  
+
+src\systems\state\subsystem-states.ts:127:39 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    125 Γöé  * State change event
+    126 Γöé  */
+  > 127 Γöé export interface StateChangeEvent<T = any> {
+        Γöé                                       ^^^
+    128 Γöé   subsystem: keyof GameSubsystemState
+    129 Γöé   previousState: T
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\systems\terrain\TerrainSystem.ts:275:21 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    273 Γöé     group.add(foliage)
+    274 Γöé 
+  > 275 Γöé     return group as any
+        Γöé                     ^^^
+    276 Γöé   }
+    277 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\systems\terrain\TerrainSystem.ts:306:21 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    304 Γöé     }
+    305 Γöé 
+  > 306 Γöé     return group as any
+        Γöé                     ^^^
+    307 Γöé   }
+    308 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\systems\state\state-sync-helpers.ts format ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ├ù Formatter would have printed the following content:
+  
+    282 282 Γöé      */ΓÉì
+    283 283 Γöé     public createSyncPacket(): {ΓÉì
+    284     Γöé - ┬╖┬╖┬╖┬╖camera:┬╖{┬╖position:┬╖{┬╖x:┬╖number;┬╖y:┬╖number;┬╖z:┬╖number┬╖};┬╖rotation:┬╖{┬╖yaw:┬╖number;┬╖pitch:┬╖number┬╖}┬╖}ΓÉì
+        284 Γöé + ┬╖┬╖┬╖┬╖camera:┬╖{ΓÉì
+        285 Γöé + ┬╖┬╖┬╖┬╖┬╖┬╖position:┬╖{┬╖x:┬╖number;┬╖y:┬╖number;┬╖z:┬╖number┬╖}ΓÉì
+        286 Γöé + ┬╖┬╖┬╖┬╖┬╖┬╖rotation:┬╖{┬╖yaw:┬╖number;┬╖pitch:┬╖number┬╖}ΓÉì
+        287 Γöé + ┬╖┬╖┬╖┬╖}ΓÉì
+    285 288 Γöé       ui: { photoCount: number; totalScore: number }ΓÉì
+    286 289 Γöé       timestamp: numberΓÉì
+  
+
+src\ui\components\mini-map.ts format ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ├ù Formatter would have printed the following content:
+  
+     66  66 Γöé     }ΓÉì
+     67  67 Γöé   ΓÉì
+     68     Γöé - ┬╖┬╖private┬╖drawBiomes(biomes:┬╖Map<string,┬╖string>,┬╖bounds:┬╖{┬╖minX:┬╖number;┬╖maxX:┬╖number;┬╖minZ:┬╖number;┬╖maxZ:┬╖number┬╖},┬╖mapSize:┬╖number)┬╖{ΓÉì
+         68 Γöé + ┬╖┬╖private┬╖drawBiomes(ΓÉì
+         69 Γöé + ┬╖┬╖┬╖┬╖biomes:┬╖Map<string,┬╖string>,ΓÉì
+         70 Γöé + ┬╖┬╖┬╖┬╖bounds:┬╖{┬╖minX:┬╖number;┬╖maxX:┬╖number;┬╖minZ:┬╖number;┬╖maxZ:┬╖number┬╖},ΓÉì
+         71 Γöé + ┬╖┬╖┬╖┬╖mapSize:┬╖numberΓÉì
+         72 Γöé + ┬╖┬╖)┬╖{ΓÉì
+     69  73 Γöé       if (!this.miniMapCtx) returnΓÉì
+     70  74 Γöé   ΓÉì
+    ┬╖┬╖┬╖┬╖┬╖┬╖┬╖ Γöé 
+     80  84 Γöé     }ΓÉì
+     81  85 Γöé   ΓÉì
+     82     Γöé - ┬╖┬╖private┬╖drawPath(pathPoints:┬╖THREE.Vector3[],┬╖bounds:┬╖{┬╖minX:┬╖number;┬╖maxX:┬╖number;┬╖minZ:┬╖number;┬╖maxZ:┬╖number┬╖},┬╖mapSize:┬╖number)┬╖{ΓÉì
+         86 Γöé + ┬╖┬╖private┬╖drawPath(ΓÉì
+         87 Γöé + ┬╖┬╖┬╖┬╖pathPoints:┬╖THREE.Vector3[],ΓÉì
+         88 Γöé + ┬╖┬╖┬╖┬╖bounds:┬╖{┬╖minX:┬╖number;┬╖maxX:┬╖number;┬╖minZ:┬╖number;┬╖maxZ:┬╖number┬╖},ΓÉì
+         89 Γöé + ┬╖┬╖┬╖┬╖mapSize:┬╖numberΓÉì
+         90 Γöé + ┬╖┬╖)┬╖{ΓÉì
+     83  91 Γöé       if (!this.miniMapCtx || pathPoints.length < 2) returnΓÉì
+     84  92 Γöé   ΓÉì
+    ┬╖┬╖┬╖┬╖┬╖┬╖┬╖ Γöé 
+    102 110 Γöé     }ΓÉì
+    103 111 Γöé   ΓÉì
+    104     Γöé - ┬╖┬╖private┬╖updatePlayerDot(playerPosition:┬╖{┬╖x:┬╖number;┬╖z:┬╖number┬╖},┬╖bounds:┬╖{┬╖minX:┬╖number;┬╖maxX:┬╖number;┬╖minZ:┬╖number;┬╖maxZ:┬╖number┬╖},┬╖mapSize:┬╖number)┬╖{ΓÉì
+        112 Γöé + ┬╖┬╖private┬╖updatePlayerDot(ΓÉì
+        113 Γöé + ┬╖┬╖┬╖┬╖playerPosition:┬╖{┬╖x:┬╖number;┬╖z:┬╖number┬╖},ΓÉì
+        114 Γöé + ┬╖┬╖┬╖┬╖bounds:┬╖{┬╖minX:┬╖number;┬╖maxX:┬╖number;┬╖minZ:┬╖number;┬╖maxZ:┬╖number┬╖},ΓÉì
+        115 Γöé + ┬╖┬╖┬╖┬╖mapSize:┬╖numberΓÉì
+        116 Γöé + ┬╖┬╖)┬╖{ΓÉì
+    105 117 Γöé       if (!this.playerDot) returnΓÉì
+    106 118 Γöé   ΓÉì
+  
+
+Checked 125 files in 83ms. No fixes applied.
+Found 2 errors.
+Found 32 warnings.
+check ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ├ù Some errors were emitted while running checks.
+  
+

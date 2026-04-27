@@ -354,7 +354,7 @@ export class CreatureCollection {
         archetype: 'terrestrial',
         size: 'medium',
         rarity: 0.75,
-      } as any,
+      } as unknown as import('@systems/creatures').Anatomy,
       rarity: 0.75,
       seed: 12345,
       captureDate: new Date().toISOString(),

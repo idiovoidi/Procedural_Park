@@ -85,8 +85,8 @@ export class UIStateSync {
    */
   public pushToState(): void {
     const updates: Partial<UIState> = {
-      photoCount: (this.ui as any).photoCount || 0,
-      totalScore: (this.ui as any).totalScore || 0,
+      photoCount: this.ui.getPhotoCount(),
+      totalScore: this.ui.getTotalScore(),
     }
     this.stateManager.updateUIState(updates)
   }
@@ -241,7 +241,7 @@ export class MultiplayerStateSync {
   public getStateDelta(): Partial<ReturnType<SubsystemStateManager['getState']>> {
     const dirtySubsystems = this.stateManager.getDirtySubsystems()
     const fullState = this.stateManager.getState()
-    const delta: any = {}
+    const delta: Record<string, unknown> = {}
 
     dirtySubsystems.forEach((subsystem) => {
       delta[subsystem] = fullState[subsystem]
@@ -281,7 +281,7 @@ export class MultiplayerStateSync {
    * Create lightweight sync packet (only essential data)
    */
   public createSyncPacket(): {
-    camera: { position: any; rotation: any }
+    camera: { position: { x: number; y: number; z: number }; rotation: { yaw: number; pitch: number } }
     ui: { photoCount: number; totalScore: number }
     timestamp: number
   } {

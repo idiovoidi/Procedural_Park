@@ -2,6 +2,12 @@ import type { CreatureInstance } from '@systems/creatures'
 import type { BiomeType } from '@systems/terrain'
 import * as THREE from 'three'
 
+// Minimal interface for terrain system dependency
+interface TerrainSystemInterface {
+  getHeightAt(x: number, z: number): number
+  getBiomeAt(x: number, z: number): BiomeType
+}
+
 export interface InteractionPoint {
   position: THREE.Vector3
   type: 'perch' | 'hide' | 'drink' | 'rest' | 'feed'
@@ -19,7 +25,7 @@ export class EnvironmentInteractions {
     this.scene = scene
   }
 
-  public generateInteractionPoints(terrainSystem: any, seed: number = 123) {
+  public generateInteractionPoints(terrainSystem: TerrainSystemInterface, seed: number = 123) {
     this.clearInteractionPoints()
     const rand = this.createRng(seed)
 

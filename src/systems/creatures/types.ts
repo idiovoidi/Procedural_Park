@@ -1,5 +1,6 @@
 import type { PatternType } from '@rendering/textures'
 import type * as THREE from 'three'
+import type { InteractionPoint } from '@rendering/scene/environment-interactions'
 
 export type CreatureArchetype = 'terrestrial' | 'aerial' | 'aquatic' | 'ethereal' | 'crystalline'
 
@@ -65,7 +66,7 @@ export type CreatureInstance = {
   socialGroup?: CreatureInstance[]
   territoryCenter?: THREE.Vector3
   territoryRadius?: number
-  currentInteraction?: any
+  currentInteraction?: InteractionPoint | null
   interactionStartTime?: number | null
   update: (
     dtSeconds: number,

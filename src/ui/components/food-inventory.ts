@@ -8,7 +8,7 @@ import { UIComponentBase } from './UIComponentBase'
 
 export class FoodInventory extends UIComponentBase {
   protected displayStyle = 'block'
-  private onFoodSelect?: (foodId: string) => void
+  private onFoodSelect?: (foodId: string | null) => void
   private selectedFoodId: string | null = null
 
   protected createContainer(): HTMLDivElement {
@@ -174,7 +174,7 @@ export class FoodInventory extends UIComponentBase {
     if (this.selectedFoodId === foodId) {
       // Deselect if clicking the same item
       this.selectedFoodId = null
-      this.onFoodSelect?.(null as any)
+      this.onFoodSelect?.(null)
     } else {
       this.selectedFoodId = foodId
       this.onFoodSelect?.(foodId)
@@ -185,7 +185,7 @@ export class FoodInventory extends UIComponentBase {
     this.selectedFoodId = foodId
   }
 
-  public setOnFoodSelect(callback: (foodId: string) => void): void {
+  public setOnFoodSelect(callback: (foodId: string | null) => void): void {
     this.onFoodSelect = callback
   }
 }

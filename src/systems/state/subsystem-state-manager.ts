@@ -25,11 +25,12 @@ import {
 } from './subsystem-states'
 
 type SubsystemKey = keyof GameSubsystemState
-type StateChangeCallback<T = any> = (event: StateChangeEvent<T>) => void
+// biome-ignore lint/suspicious/noExplicitAny: Generic callback type for state changes
+type StateChangeCallback<T = unknown> = (event: StateChangeEvent<T>) => void
 
 export class SubsystemStateManager {
   private state: GameSubsystemState
-  private changeCallbacks: Map<SubsystemKey, Set<StateChangeCallback>> = new Map()
+  private changeCallbacks: Map<SubsystemKey, Set<StateChangeCallback<unknown>>> = new Map()
   private globalCallbacks: Set<StateChangeCallback> = new Set()
   private stateHistory: StateChangeEvent[] = []
   private maxHistorySize = 100
@@ -137,7 +138,8 @@ export class SubsystemStateManager {
       return
     }
 
-    this.state[subsystem] = newState as any
+    // biome-ignore lint/suspicious/noExplicitAny: Dynamic assignment to discriminated union
+    this.state[subsystem] = newState as GameSubsystemState[typeof subsystem]
     this.state.timestamp = Date.now()
     this.isDirty.add(subsystem)
 
@@ -167,7 +169,7 @@ export class SubsystemStateManager {
 
     keys.forEach((key) => {
       if (updates[key]) {
-        this.updateSubsystem(key, updates[key] as any)
+        this.updateSubsystem(key, updates[key] as GameSubsystemState[typeof key])
       }
     })
   }
@@ -176,7 +178,7 @@ export class SubsystemStateManager {
    * Reset specific subsystem to default
    */
   public resetSubsystem(subsystem: SubsystemKey): void {
-    const defaults: Record<SubsystemKey, any> = {
+    const defaults: Record<SubsystemKey, GameSubsystemState[SubsystemKey]> = {
       camera: createDefaultCameraState(),
       ui: createDefaultUIState(),
       creatures: createDefaultCreaturesState(),
@@ -209,8 +211,8 @@ export class SubsystemStateManager {
     subsystems.forEach((subsystem) => {
       const event: StateChangeEvent = {
         subsystem,
-        previousState: (previousState as any)[subsystem],
-        newState: (this.state as any)[subsystem],
+        previousState: previousState[subsystem],
+        newState: this.state[subsystem],
         timestamp: this.state.timestamp,
       }
       this.notifyCallbacks(subsystem, event)
@@ -232,12 +234,12 @@ export class SubsystemStateManager {
     }
     const subsystemCallbacks = this.changeCallbacks.get(subsystem)
     if (subsystemCallbacks) {
-      subsystemCallbacks.add(callback)
+      subsystemCallbacks.add(callback as StateChangeCallback<unknown>)
     }
 
     // Return unsubscribe function
     return () => {
-      this.changeCallbacks.get(subsystem)?.delete(callback)
+      this.changeCallbacks.get(subsystem)?.delete(callback as StateChangeCallback<unknown>)
     }
   }
 

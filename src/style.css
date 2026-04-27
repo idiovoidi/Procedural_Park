@@ -871,6 +871,7 @@ canvas {
   flex-wrap: wrap;
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: Intentional ordering for component styling */
 .creature-actions button {
   flex: 1;
   min-width: 80px;

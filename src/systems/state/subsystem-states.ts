@@ -124,7 +124,8 @@ export interface GameSubsystemState {
 /**
  * State change event
  */
-export interface StateChangeEvent<T = any> {
+// biome-ignore lint/suspicious/noExplicitAny: Generic event type for state changes
+export interface StateChangeEvent<T = unknown> {
   subsystem: keyof GameSubsystemState
   previousState: T
   newState: T

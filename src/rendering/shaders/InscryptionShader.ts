@@ -276,6 +276,7 @@ void main() {
 `
 
 // InscryptionShader class following Three.js shader pattern
+// biome-ignore lint/complexity/noStaticOnlyClass: Following Three.js shader pattern with static uniforms
 export class InscryptionShader {
   static uniforms: InscryptionShaderUniforms = {
     tDiffuse: { value: null },

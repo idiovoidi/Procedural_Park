@@ -31,7 +31,7 @@ export class Game {
     this.initPromise = this.initialize()
 
     // Always expose game instance for debugging
-    ;(window as any).game = this
+    ;(window as unknown as { game: Game }).game = this
     console.log('🎮 AI Snap Game initialized')
     console.log('Environment:', import.meta.env.DEV ? 'Development' : 'Production')
     console.log('Game instance available as window.game')
@@ -325,7 +325,7 @@ export class Game {
   private toggleRecording(): void {
     const { video, ui } = this.systems
 
-    if ((video as any).isRecording) {
+    if (video.isCurrentlyRecording()) {
       video.stopRecording()
       ui.showToast('⏹ Recording stopped')
     } else {
@@ -437,7 +437,7 @@ export class Game {
   private updateRecordingIndicator(): void {
     if (!this.recordingIndicator) return
 
-    if ((this.systems.video as any).isRecording) {
+    if (this.systems.video.isCurrentlyRecording()) {
       this.recordingIndicator.classList.remove('hidden')
     } else {
       this.recordingIndicator.classList.add('hidden')

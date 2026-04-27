@@ -1,0 +1,299 @@
+
+> ai-snap@0.0.0 check
+> biome check src
+
+src\game\Game.ts:34:17 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    33 Γöé     // Always expose game instance for debugging
+  > 34 Γöé     ;(window as any).game = this
+       Γöé                 ^^^
+    35 Γöé     console.log('≡ƒÄ« AI Snap Game initialized')
+    36 Γöé     console.log('Environment:', import.meta.env.DEV ? 'Development' : 'Production')
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\game\Game.ts:328:19 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    326 Γöé     const { video, ui } = this.systems
+    327 Γöé 
+  > 328 Γöé     if ((video as any).isRecording) {
+        Γöé                   ^^^
+    329 Γöé       video.stopRecording()
+    330 Γöé       ui.showToast('ΓÅ╣ Recording stopped')
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\game\Game.ts:440:32 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    438 Γöé     if (!this.recordingIndicator) return
+    439 Γöé 
+  > 440 Γöé     if ((this.systems.video as any).isRecording) {
+        Γöé                                ^^^
+    441 Γöé       this.recordingIndicator.classList.remove('hidden')
+    442 Γöé     } else {
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\scene\environment-interactions.ts:22:51 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    20 Γöé   }
+    21 Γöé 
+  > 22 Γöé   public generateInteractionPoints(terrainSystem: any, seed: number = 123) {
+       Γöé                                                   ^^^
+    23 Γöé     this.clearInteractionPoints()
+    24 Γöé     const rand = this.createRng(seed)
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\shaders\InscryptionShader.ts:279:8 lint/complexity/noStaticOnlyClass ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Avoid classes that contain only static members.
+  
+    278 Γöé // InscryptionShader class following Three.js shader pattern
+  > 279 Γöé export class InscryptionShader {
+        Γöé        ^^^^^^^^^^^^^^^^^^^^^^^^^
+  > 280 Γöé   static uniforms: InscryptionShaderUniforms = {
+         ...
+  > 312 Γöé     })
+  > 313 Γöé   }
+  > 314 Γöé }
+        Γöé ^
+    315 Γöé 
+  
+  i Prefer using simple functions instead of classes with only static members.
+  
+
+src\rendering\shaders\types.ts:27:27 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    25 Γöé // Shader uniforms interface
+    26 Γöé export interface InscryptionShaderUniforms {
+  > 27 Γöé   [key: string]: { value: any }
+       Γöé                           ^^^
+    28 Γöé   tDiffuse: { value: THREE.Texture | null }
+    29 Γöé   luminanceThreshold: { value: number }
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:19:13 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    17 Γöé   severity: 'low' | 'medium' | 'high' | 'critical'
+    18 Γöé   message: string
+  > 19 Γöé   details?: any
+       Γöé             ^^^
+    20 Γöé   stack?: string
+    21 Γöé   recovered: boolean
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:126:38 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    124 Γöé         severity: 'critical',
+    125 Γöé         message: 'WebGL context lost',
+  > 126 Γöé         details: { reason: (event as any).statusMessage || 'Unknown' },
+        Γöé                                      ^^^
+    127 Γöé       })
+    128 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:216:12 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    214 Γöé     vertexShader: string,
+    215 Γöé     fragmentShader: string,
+  > 216 Γöé     error: any
+        Γöé            ^^^
+    217 Γöé   ): THREE.ShaderMaterial | null {
+    218 Γöé     this.reportError({
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:346:12 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    344 Γöé     height: number,
+    345 Γöé     options: THREE.RenderTargetOptions,
+  > 346 Γöé     error: any
+        Γöé            ^^^
+    347 Γöé   ): THREE.WebGLRenderTarget | null {
+    348 Γöé     this.reportError({
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:410:54 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    408 Γöé    * Handle memory-related errors
+    409 Γöé    */
+  > 410 Γöé   public handleMemoryError(operation: string, error: any): boolean {
+        Γöé                                                      ^^^
+    411 Γöé     this.reportError({
+    412 Γöé       type: 'memory',
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:425:21 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    423 Γöé       // Force garbage collection if available
+    424 Γöé       if ('gc' in window) {
+  > 425 Γöé         ;(window as any).gc()
+        Γöé                     ^^^
+    426 Γöé       }
+    427 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\LowResolutionRenderer.ts:112:37 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    110 Γöé    * Handle render errors with appropriate fallback strategies
+    111 Γöé    */
+  > 112 Γöé   private handleRenderError(_error: any): void {
+        Γöé                                     ^^^
+    113 Γöé     console.warn('Attempting to recover from render error...')
+    114 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\PerformanceMonitor.ts:176:15 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    174 Γöé     }
+    175 Γöé     // Store start time in a temporary property
+  > 176 Γöé     ;(this as any)[`${effectName}_startTime`] = performance.now()
+        Γöé               ^^^
+    177 Γöé   }
+    178 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\PerformanceMonitor.ts:183:32 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    181 Γöé    */
+    182 Γöé   public endEffectTiming(effectName: string): void {
+  > 183 Γöé     const startTime = (this as any)[`${effectName}_startTime`]
+        Γöé                                ^^^
+    184 Γöé     if (startTime === undefined) {
+    185 Γöé       console.warn(`No start time recorded for effect: ${effectName}`)
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\PerformanceMonitor.ts:207:21 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    206 Γöé     // Clean up temporary property
+  > 207 Γöé     delete (this as any)[`${effectName}_startTime`]
+        Γöé                     ^^^
+    208 Γöé   }
+    209 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\PerformanceMonitor.ts:249:39 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    247 Γöé     // Get memory usage if available
+    248 Γöé     if ('memory' in performance) {
+  > 249 Γöé       const memInfo = (performance as any).memory
+        Γöé                                       ^^^
+    250 Γöé       this.metrics.memoryUsage = memInfo.usedJSHeapSize || 0
+    251 Γöé     }
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\PerformanceOptimizer.ts:122:32 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    120 Γöé     vertexShader: string,
+    121 Γöé     fragmentShader: string,
+  > 122 Γöé     uniforms: { [key: string]: any } = {}
+        Γöé                                ^^^
+    123 Γöé   ): ShaderProfile {
+    124 Γöé     const startTime = performance.now()
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\PerformanceOptimizer.ts:360:39 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    358 Γöé     // Add JS heap usage if available
+    359 Γöé     if ('memory' in performance) {
+  > 360 Γöé       const memInfo = (performance as any).memory
+        Γöé                                       ^^^
+    361 Γöé       memoryUsage.jsHeapUsed = memInfo.usedJSHeapSize
+    362 Γöé       memoryUsage.jsHeapTotal = memInfo.totalJSHeapSize
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\style.css:874:1 lint/style/noDescendingSpecificity ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Descending specificity selector found. This selector specificity is (0, 1, 1)
+  
+    872 Γöé }
+    873 Γöé 
+  > 874 Γöé .creature-actions button {
+        Γöé ^^^^^^^^^^^^^^^^^^^^^^^^
+    875 Γöé   flex: 1;
+    876 Γöé   min-width: 80px;
+  
+  i This selector specificity is (1, 0, 1)
+  
+    76 Γöé }
+    77 Γöé 
+  > 78 Γöé #topbar button {
+       Γöé ^^^^^^^^^^^^^^
+    79 Γöé   pointer-events: auto;
+    80 Γöé   background: #1b2430;
+  
+  i Descending specificity selector may not be applied. Consider rearranging the order of the selectors. See MDN web docs for more details.
+  
+
+The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 34.
+Checked 125 files in 77ms. No fixes applied.
+Found 54 warnings.

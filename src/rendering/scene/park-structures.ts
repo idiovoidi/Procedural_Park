@@ -608,7 +608,8 @@ export class ParkStructures {
       .getObjectByName('EntrancePlaza')
       ?.children.find(
         (child) =>
-          child instanceof THREE.Mesh && (child.material as any).color?.getHex() === 0x4488ff
+          child instanceof THREE.Mesh &&
+          (child.material as THREE.MeshStandardMaterial).color?.getHex() === 0x4488ff
       )
     if (water) {
       water.position.y = 1.2 + Math.sin(time * 2) * 0.1
@@ -618,7 +619,7 @@ export class ParkStructures {
     const mainGate = this.structures.getObjectByName('MainGate')
     if (mainGate) {
       mainGate.children.forEach((child) => {
-        if (child instanceof THREE.Mesh && (child.material as any).emissive) {
+        if (child instanceof THREE.Mesh && (child.material as THREE.MeshStandardMaterial).emissive) {
           const material = child.material as THREE.MeshStandardMaterial
           material.emissiveIntensity = 0.5 + Math.sin(time * 3) * 0.2
         }

@@ -1112,7 +1112,7 @@ function buildCreature(
   if (head) group.add(head)
 
   const eyes = buildEyes(rand, anatomy, head)
-  const { mouth, lowerJaw } = buildMouth(rand, anatomy, head, palette)
+  const { mouth: _mouth, lowerJaw } = buildMouth(rand, anatomy, head, palette)
   const limbs = buildLimbs(rand, anatomy, palette, torso)
   const wings = buildWings(rand, anatomy, palette, torso)
   const tails = buildTails(rand, anatomy, palette, torso)
