@@ -49,7 +49,6 @@ export class PerformanceMonitor {
   private lastFrameTime: number = performance.now()
   private frameStartTime: number = performance.now()
   private fpsHistory: number[] = []
-  private frameCount: number = 0
 
   // Memory tracking
   private memoryCheckInterval: number = 5000 // Check every 5 seconds
@@ -170,7 +169,6 @@ export class PerformanceMonitor {
     this.checkPerformanceAndAdjustQuality(currentTime)
 
     this.lastFrameTime = currentTime
-    this.frameCount++
   }
 
   /**
