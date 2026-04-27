@@ -1,7 +1,6 @@
 import type { Random } from '@core/types'
 import { randomCenteredSeeded } from '@core/utils'
 import type { PatternType } from '@rendering/textures'
-import { createRng } from '@systems/terrain/noise-utils'
 import * as THREE from 'three'
 import type { Anatomy, BodyType, CreatureArchetype } from './types'
 

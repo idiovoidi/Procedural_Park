@@ -94,7 +94,7 @@ export class UIStateSync {
   /**
    * Update UI from state
    */
-  private updateUIFromState(state: UIState): void {
+  private updateUIFromState(_state: UIState): void {
     // Update UI elements - implementation depends on UIManager API
     // This is a placeholder for actual UI update logic
   }

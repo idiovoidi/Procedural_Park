@@ -181,10 +181,10 @@ export class PerformanceOptimizer {
       this.shaderProfiles.set(name, profile)
 
       console.log(`Shader profile for ${name}:`, {
-        compilationTime: compilationTime.toFixed(2) + 'ms',
-        executionTime: executionTime.toFixed(2) + 'ms',
+        compilationTime: `${compilationTime.toFixed(2)}ms`,
+        executionTime: `${executionTime.toFixed(2)}ms`,
         complexity,
-        memoryUsage: (memoryUsage / 1024).toFixed(1) + 'KB',
+        memoryUsage: `${(memoryUsage / 1024).toFixed(1)}KB`,
       })
 
       return profile
@@ -369,8 +369,8 @@ export class PerformanceOptimizer {
    * Optimize render target format based on device capabilities
    */
   public getOptimizedRenderTargetOptions(
-    width: number,
-    height: number,
+    _width: number,
+    _height: number,
     needsAlpha: boolean = true,
     needsDepth: boolean = false
   ): THREE.RenderTargetOptions {

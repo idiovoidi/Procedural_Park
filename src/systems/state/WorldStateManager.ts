@@ -8,7 +8,6 @@ import type {
   PlayerProgress,
   SaveSlotMetadata,
   SerializedCameraState,
-  SerializedPhoto,
   WorldSettings,
   WorldState,
 } from './world-state-types'

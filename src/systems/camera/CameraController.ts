@@ -67,7 +67,7 @@ export class CameraController {
     }
 
     // Ride mode: drag to look
-    canvas.addEventListener('mousedown', (e) => {
+    canvas.addEventListener('mousedown', (_e) => {
       if (this.mode === 'ride') {
         this.isDragging = true
       }

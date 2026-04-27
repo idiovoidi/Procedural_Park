@@ -249,7 +249,7 @@ export class ShaderManager {
   // Safely update uniforms with error handling
   private updateUniformsSafely(config: Partial<ShaderConfig>): void {
     try {
-      if (!this.inscryptionPass || !this.inscryptionPass.uniforms) {
+      if (!this.inscryptionPass?.uniforms) {
         throw new Error('Shader pass or uniforms not initialized')
       }
 
@@ -309,16 +309,16 @@ export class ShaderManager {
       }
 
       // Validate dimensions
-      if (width <= 0 || height <= 0 || !isFinite(width) || !isFinite(height)) {
+      if (width <= 0 || height <= 0 || !Number.isFinite(width) || !Number.isFinite(height)) {
         throw new Error(`Invalid dimensions: ${width}x${height}`)
       }
 
       this.composer.setSize(width, height)
 
       // Update resolution uniform safely
-      if (this.inscryptionPass && this.inscryptionPass.uniforms) {
+      if (this.inscryptionPass?.uniforms) {
         const uniforms = this.inscryptionPass.uniforms as InscryptionShaderUniforms
-        if (uniforms.resolution && uniforms.resolution.value) {
+        if (uniforms.resolution?.value) {
           uniforms.resolution.value.set(width, height)
         }
       }

@@ -1,5 +1,5 @@
 import { GAME_CONFIG } from '@core/constants'
-import type { SettingsCallbacks, UICallbacks } from '@core/types'
+import type { UICallbacks } from '@core/types'
 import type { ShaderConfig } from '@rendering/shaders'
 
 export class Settings {

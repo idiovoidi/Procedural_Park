@@ -1,0 +1,195 @@
+src\rendering\textures\texture-generator.ts:173:5 lint/complexity/noUselessSwitchCase  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  i Useless case clause.
+  
+    171 Γöé     }
+    172 Γöé 
+  > 173 Γöé     case 'solid':
+        Γöé     ^^^^^^^^^^^^^
+    174 Γöé     default:
+    175 Γöé       // Already filled with base color
+  
+  i because the default clause is present:
+  
+    173 Γöé     case 'solid':
+  > 174 Γöé     default:
+        Γöé     ^^^^^^^^
+  > 175 Γöé       // Already filled with base color
+  > 176 Γöé       break
+        Γöé       ^^^^^
+    177 Γöé   }
+    178 Γöé 
+  
+  i Unsafe fix: Remove the useless case.
+  
+    169 169 Γöé         ctx.fillRect(0, 0, 512, 512)ΓÉì
+    170 170 Γöé         breakΓÉì
+    171     Γöé - ┬╖┬╖┬╖┬╖}ΓÉì
+    172     Γöé - ΓÉì
+    173     Γöé - ┬╖┬╖┬╖┬╖case┬╖'solid':ΓÉì
+        171 Γöé + ┬╖┬╖┬╖┬╖}ΓÉì
+    174 172 Γöé       default:ΓÉì
+    175 173 Γöé         // Already filled with base colorΓÉì
+  
+
+src\rendering\scene\SceneManager.ts:29:9 lint/complexity/useOptionalChain  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Change to an optional chain.
+  
+    27 Γöé     // Clear any existing Three.js canvas to prevent WebGL context conflicts
+    28 Γöé     const existingCanvas = container.querySelector('canvas')
+  > 29 Γöé     if (existingCanvas && existingCanvas.getContext('webgl')) {
+       Γöé         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    30 Γöé       container.removeChild(existingCanvas)
+    31 Γöé     }
+  
+  i Unsafe fix: Change to an optional chain.
+  
+     27  27 Γöé       // Clear any existing Three.js canvas to prevent WebGL context conflictsΓÉì
+     28  28 Γöé       const existingCanvas = container.querySelector('canvas')ΓÉì
+     29     Γöé - ┬╖┬╖┬╖┬╖if┬╖(existingCanvas┬╖&&┬╖existingCanvas.getContext('webgl'))┬╖{ΓÉì
+         29 Γöé + ┬╖┬╖┬╖┬╖if┬╖(existingCanvas?.getContext('webgl'))┬╖{ΓÉì
+     30  30 Γöé         container.removeChild(existingCanvas)ΓÉì
+     31  31 Γöé       }ΓÉì
+  
+
+src\rendering\scene\environment-interactions.ts:22:51 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    20 Γöé   }
+    21 Γöé 
+  > 22 Γöé   public generateInteractionPoints(terrainSystem: any, seed: number = 123) {
+       Γöé                                                   ^^^
+    23 Γöé     this.clearInteractionPoints()
+    24 Γöé     const rand = this.createRng(seed)
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\scene\environment-interactions.ts:157:53 lint/correctness/noUnusedFunctionParameters  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This parameter is unused.
+  
+    155 Γöé   }
+    156 Γöé 
+  > 157 Γöé   public occupyInteraction(point: InteractionPoint, creature: CreatureInstance): boolean {
+        Γöé                                                     ^^^^^^^^
+    158 Γöé     if (!point.occupied) {
+    159 Γöé       point.occupied = true
+  
+  i Unused parameters might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: If this is intentional, prepend creature with an underscore.
+  
+    155 155 Γöé     }ΓÉì
+    156 156 Γöé   ΓÉì
+    157     Γöé - ┬╖┬╖public┬╖occupyInteraction(point:┬╖InteractionPoint,┬╖creature:┬╖CreatureInstance):┬╖boolean┬╖{ΓÉì
+        157 Γöé + ┬╖┬╖public┬╖occupyInteraction(point:┬╖InteractionPoint,┬╖_creature:┬╖CreatureInstance):┬╖boolean┬╖{ΓÉì
+    158 158 Γöé       if (!point.occupied) {ΓÉì
+    159 159 Γöé         point.occupied = trueΓÉì
+  
+
+src\rendering\shaders\InscryptionShader.ts:279:8 lint/complexity/noStaticOnlyClass ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Avoid classes that contain only static members.
+  
+    278 Γöé // InscryptionShader class following Three.js shader pattern
+  > 279 Γöé export class InscryptionShader {
+        Γöé        ^^^^^^^^^^^^^^^^^^^^^^^^^
+  > 280 Γöé   static uniforms: InscryptionShaderUniforms = {
+         ...
+  > 312 Γöé     })
+  > 313 Γöé   }
+  > 314 Γöé }
+        Γöé ^
+    315 Γöé 
+  
+  i Prefer using simple functions instead of classes with only static members.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:19:13 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    17 Γöé   severity: 'low' | 'medium' | 'high' | 'critical'
+    18 Γöé   message: string
+  > 19 Γöé   details?: any
+       Γöé             ^^^
+    20 Γöé   stack?: string
+    21 Γöé   recovered: boolean
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:126:38 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    124 Γöé         severity: 'critical',
+    125 Γöé         message: 'WebGL context lost',
+  > 126 Γöé         details: { reason: (event as any).statusMessage || 'Unknown' },
+        Γöé                                      ^^^
+    127 Γöé       })
+    128 Γöé 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:216:12 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    214 Γöé     vertexShader: string,
+    215 Γöé     fragmentShader: string,
+  > 216 Γöé     error: any
+        Γöé            ^^^
+    217 Γöé   ): THREE.ShaderMaterial | null {
+    218 Γöé     this.reportError({
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\rendering\visual-effects\ErrorHandler.ts:346:12 lint/suspicious/noExplicitAny ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Unexpected any. Specify a different type.
+  
+    344 Γöé     height: number,
+    345 Γöé     options: THREE.RenderTargetOptions,
+  > 346 Γöé     error: any
+        Γöé            ^^^
+    347 Γöé   ): THREE.WebGLRenderTarget | null {
+    348 Γöé     this.reportError({
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src\ui\managers\UIManager.ts:6:10 lint/correctness/noUnusedImports  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! Several of these imports are unused.
+  
+    4 Γöé import type { FoodItem } from '@systems/food'
+    5 Γöé import type * as THREE from 'three'
+  > 6 Γöé import { type CapturedCreature, CreatureCollection } from '../components/creature-collection'
+      Γöé          ^^^^^^^^^^^^^^^^^^^^^
+    7 Γöé import { CurrencyDisplay } from '../components/currency-display'
+    8 Γöé import { FoodInventory } from '../components/food-inventory'
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+    6 Γöé import┬╖{┬╖type┬╖CapturedCreature,┬╖CreatureCollection┬╖}┬╖from┬╖'../components/creature-collection'ΓÉì
+      Γöé          -----------------------                                                             
+
+The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 116.
+Checked 125 files in 82ms. No fixes applied.
+Found 2 errors.
+Found 108 warnings.
+Found 16 infos.
+check ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ├ù Some errors were emitted while running checks.
+  
+

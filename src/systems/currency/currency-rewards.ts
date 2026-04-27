@@ -47,7 +47,6 @@ export function calculateDiscoveryReward(rarity: string): number {
       return CURRENCY_REWARDS.DISCOVER_RARE
     case 'uncommon':
       return CURRENCY_REWARDS.DISCOVER_UNCOMMON
-    case 'common':
     default:
       return CURRENCY_REWARDS.DISCOVER_COMMON
   }

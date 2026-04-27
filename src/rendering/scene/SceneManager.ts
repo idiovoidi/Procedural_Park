@@ -26,7 +26,7 @@ export class SceneManager {
 
     // Clear any existing Three.js canvas to prevent WebGL context conflicts
     const existingCanvas = container.querySelector('canvas')
-    if (existingCanvas && existingCanvas.getContext('webgl')) {
+    if (existingCanvas?.getContext('webgl')) {
       container.removeChild(existingCanvas)
     }
 

@@ -3,7 +3,6 @@
  * Displays player statistics, avatar preview, and inventory
  */
 
-import type { UICallbacks } from '@core/types'
 import type { PlayerProgress } from '@systems/state'
 import * as THREE from 'three'
 import { UIComponentBase } from './UIComponentBase'
@@ -411,12 +410,12 @@ export class PlayerStats extends UIComponentBase {
       }
 
       // Rotate avatar
-      this.avatarMesh!.rotation.y += 0.01
+      this.avatarMesh?.rotation.y += 0.01
 
       // Gentle bobbing animation
-      this.avatarMesh!.position.y = Math.sin(Date.now() * 0.001) * 0.05
+      this.avatarMesh?.position.y = Math.sin(Date.now() * 0.001) * 0.05
 
-      this.avatarRenderer!.render(this.avatarScene!, this.avatarCamera!)
+      this.avatarRenderer?.render(this.avatarScene!, this.avatarCamera!)
       this.animationId = requestAnimationFrame(animate)
     }
 

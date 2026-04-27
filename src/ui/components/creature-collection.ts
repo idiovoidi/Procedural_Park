@@ -296,7 +296,7 @@ export class CreatureCollection {
           try {
             const creature = JSON.parse(data) as CapturedCreature
             this.capturedCreatures.push(creature)
-          } catch (e) {
+          } catch (_e) {
             console.error('Failed to parse captured creature:', key)
           }
         }

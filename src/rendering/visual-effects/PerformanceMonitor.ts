@@ -42,7 +42,6 @@ export class PerformanceMonitor {
   private fpsHistory: number[] = []
   private effectTimings: Map<string, number[]> = new Map()
   private lastFrameTime: number = performance.now()
-  private frameCount: number = 0
 
   // Memory tracking
   private memoryCheckInterval: number = 5000 // Check every 5 seconds

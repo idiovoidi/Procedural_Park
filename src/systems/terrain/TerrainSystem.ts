@@ -67,7 +67,7 @@ export class TerrainSystem {
     this.currentBiomes.clear()
   }
 
-  private generateHeightMap(seed: number) {
+  private generateHeightMap(_seed: number) {
     this.heightMap = []
 
     // Initialize with base noise

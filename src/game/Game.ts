@@ -20,7 +20,6 @@ import { type GameSystems, SystemsCoordinator } from './SystemsCoordinator'
 export class Game {
   private systems!: GameSystems
   private gameLoop!: GameLoop
-  private inputHandler!: InputHandler
   private worldStateManager!: WorldStateManager
   private recordingIndicator: HTMLElement | null = null
   private container: HTMLElement
@@ -105,7 +104,7 @@ export class Game {
   private setupUICallbacks(): void {
     const { ui, scene } = this.systems
 
-    ui.onRideSpeedChange = (speed) => {
+    ui.onRideSpeedChange = (_speed) => {
       // TODO: Implement ride speed change
     }
 
@@ -212,7 +211,7 @@ export class Game {
     const currentUI = state.getUIState()
     const newPhotoCount = currentUI.photoCount + 1
     const newTotalScore = currentUI.totalScore + result.score
-    const newBestScore = Math.max(currentUI.lastScore, result.score)
+    const _newBestScore = Math.max(currentUI.lastScore, result.score)
 
     state.updateUIState({
       photoCount: newPhotoCount,
@@ -636,7 +635,7 @@ export class Game {
     }
 
     if (selectedFood.quantity === 0) {
-      ui.showToast('❌ Out of ' + selectedFood.name)
+      ui.showToast(`❌ Out of ${selectedFood.name}`)
       return
     }
 
@@ -724,7 +723,7 @@ export class Game {
     saveLoadMenu.setCallbacks({
       onSave: (slotId) => this.handleSave(slotId),
       onLoad: (slotId) => this.handleLoad(slotId),
-      onDelete: (slotId) => {
+      onDelete: (_slotId) => {
         this.systems.ui.showToast('🗑️ Save deleted')
       },
       onExport: (slotId) => this.handleExport(slotId),

@@ -258,13 +258,6 @@ export class VisualEffectsManager {
   }
 
   /**
-   * Get the current render target
-   */
-  private getCurrentRenderTarget(): THREE.WebGLRenderTarget {
-    return this.renderTargets[this.currentTargetIndex]
-  }
-
-  /**
    * Main render method that combines low-res rendering with complete filter pipeline
    * Ensures proper render order and texture management with comprehensive error handling
    */
@@ -493,7 +486,7 @@ export class VisualEffectsManager {
       const resultTarget = filterInfo.filter.apply(this.renderer, inputTexture, outputTarget)
 
       // Validate result
-      if (!resultTarget || !resultTarget.texture) {
+      if (!resultTarget?.texture) {
         throw new Error(`Filter ${filterInfo.name} returned invalid result`)
       }
 
@@ -518,7 +511,7 @@ export class VisualEffectsManager {
     },
     inputTexture: THREE.Texture,
     outputTarget: THREE.WebGLRenderTarget | undefined,
-    originalError: any
+    _originalError: any
   ): THREE.WebGLRenderTarget | null {
     console.warn(`Attempting recovery for ${filterInfo.name} filter...`)
 
@@ -530,7 +523,7 @@ export class VisualEffectsManager {
       if (filterInfo.filter) {
         const resultTarget = filterInfo.filter.apply(this.renderer, inputTexture, outputTarget)
 
-        if (resultTarget && resultTarget.texture) {
+        if (resultTarget?.texture) {
           console.log(`Successfully recovered ${filterInfo.name} filter`)
           return resultTarget
         }
@@ -778,8 +771,8 @@ export class VisualEffectsManager {
   private handlePerformanceWarning(metrics: PerformanceMetrics): void {
     console.warn('Performance warning detected:', {
       fps: metrics.averageFPS.toFixed(1),
-      frameTime: metrics.averageFrameTime.toFixed(2) + 'ms',
-      memoryUsage: (metrics.memoryUsage / 1024 / 1024).toFixed(1) + 'MB',
+      frameTime: `${metrics.averageFrameTime.toFixed(2)}ms`,
+      memoryUsage: `${(metrics.memoryUsage / 1024 / 1024).toFixed(1)}MB`,
     })
 
     // Log effect impacts to help identify performance bottlenecks
@@ -1236,7 +1229,7 @@ export class VisualEffectsManager {
   /**
    * Handle critical initialization failure
    */
-  private handleCriticalInitializationFailure(error: any): void {
+  private handleCriticalInitializationFailure(_error: any): void {
     console.error('Critical initialization failure - entering safe mode')
 
     // Disable all effects for safe mode
@@ -1533,7 +1526,7 @@ export class VisualEffectsManager {
       ) {
         errors.push('Film grain intensity must be between 0 and 1')
       }
-      if (config.grain.speed !== undefined && !isFinite(config.grain.speed)) {
+      if (config.grain.speed !== undefined && !Number.isFinite(config.grain.speed)) {
         errors.push('Film grain speed must be a finite number')
       }
     }

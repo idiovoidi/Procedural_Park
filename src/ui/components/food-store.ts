@@ -4,7 +4,6 @@
  */
 
 import type { UICallbacks } from '@core/types'
-import type { FoodItem } from '@systems/food'
 
 export interface StoreItem {
   id: string
@@ -288,7 +287,7 @@ export class FoodStore {
     itemsContainer.querySelectorAll('.store-item').forEach((el) => {
       el.addEventListener('click', () => {
         const itemId = el.getAttribute('data-item-id')
-        const price = parseInt(el.getAttribute('data-price') || '0')
+        const price = parseInt(el.getAttribute('data-price') || '0', 10)
         if (itemId) {
           this.handlePurchase(itemId, price)
         }
@@ -322,7 +321,7 @@ export class FoodStore {
 
     itemElements.forEach((el) => {
       const id = el.getAttribute('data-item-id') || ''
-      const price = parseInt(el.getAttribute('data-price') || '0')
+      const price = parseInt(el.getAttribute('data-price') || '0', 10)
       const icon = el.querySelector('.store-item-icon')?.textContent || ''
       const name = el.querySelector('.store-item-name')?.textContent || ''
       const description = el.querySelector('.store-item-description')?.textContent || ''

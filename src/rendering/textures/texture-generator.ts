@@ -169,8 +169,6 @@ export function createPatternTexture(
       ctx.fillRect(0, 0, 512, 512)
       break
     }
-
-    case 'solid':
     default:
       // Already filled with base color
       break

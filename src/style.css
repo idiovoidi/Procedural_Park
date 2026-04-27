@@ -186,7 +186,7 @@ canvas {
 }
 
 .hidden {
-  display: none !important;
+  display: none;
 }
 
 /* Creature Info Panel */

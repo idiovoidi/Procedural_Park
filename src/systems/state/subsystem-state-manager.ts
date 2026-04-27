@@ -388,7 +388,7 @@ export class SubsystemStateManager {
     this.changeCallbacks.forEach((callbacks, subsystem) => {
       callbackCounts[subsystem] = callbacks.size
     })
-    callbackCounts['global'] = this.globalCallbacks.size
+    callbackCounts.global = this.globalCallbacks.size
 
     return {
       timestamp: this.state.timestamp,

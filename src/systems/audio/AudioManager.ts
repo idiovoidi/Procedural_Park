@@ -23,7 +23,7 @@ export class AudioManager {
 
   private async initializeAudioContext() {
     try {
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext!)()
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
       this.soundBuffers = await generateAllSounds(this.audioContext)
     } catch (error) {
       console.warn('Audio initialization failed:', error)

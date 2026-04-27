@@ -609,8 +609,8 @@ export class ShaderDebugUI {
   ): void {
     // Slider change handler
     const handleSliderChange = () => {
-      const value = isInteger ? parseInt(slider.value) : parseFloat(slider.value)
-      if (!isNaN(value)) {
+      const value = isInteger ? parseInt(slider.value, 10) : parseFloat(slider.value)
+      if (!Number.isNaN(value)) {
         ;(this.currentConfig as any)[configKey] = value
         input.value = value.toString()
         onChange(value)
@@ -619,11 +619,11 @@ export class ShaderDebugUI {
 
     // Input change handler
     const handleInputChange = () => {
-      const value = isInteger ? parseInt(input.value) : parseFloat(input.value)
-      const minValue = isInteger ? parseInt(input.min) : parseFloat(input.min)
-      const maxValue = isInteger ? parseInt(input.max) : parseFloat(input.max)
+      const value = isInteger ? parseInt(input.value, 10) : parseFloat(input.value)
+      const minValue = isInteger ? parseInt(input.min, 10) : parseFloat(input.min)
+      const maxValue = isInteger ? parseInt(input.max, 10) : parseFloat(input.max)
 
-      if (!isNaN(value)) {
+      if (!Number.isNaN(value)) {
         // Clamp value to valid range
         const clampedValue = Math.max(minValue, Math.min(maxValue, value))
         ;(this.currentConfig as any)[configKey] = clampedValue
@@ -676,7 +676,7 @@ export class ShaderDebugUI {
       // Number keys for presets
       if (e.key >= '1' && e.key <= '4') {
         e.preventDefault()
-        const presetIndex = parseInt(e.key) - 1
+        const presetIndex = parseInt(e.key, 10) - 1
 
         if (e.shiftKey) {
           // Quality presets with Shift

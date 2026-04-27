@@ -154,7 +154,7 @@ export class EnvironmentInteractions {
     }
   }
 
-  public occupyInteraction(point: InteractionPoint, creature: CreatureInstance): boolean {
+  public occupyInteraction(point: InteractionPoint, _creature: CreatureInstance): boolean {
     if (!point.occupied) {
       point.occupied = true
       point.lastUsed = performance.now()
@@ -365,7 +365,10 @@ export class EnvironmentInteractions {
 
   private createRng(seed: number): () => number {
     let state = seed >>> 0
-    return () => (state = (Math.imul(1664525, state) + 1013904223) >>> 0) / 0xffffffff
+    return () => {
+      state = (Math.imul(1664525, state) + 1013904223) >>> 0
+      return state / 0xffffffff
+    }
   }
 
   public getInteractionPoints(): InteractionPoint[] {

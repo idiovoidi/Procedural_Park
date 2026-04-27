@@ -3,7 +3,6 @@
  * Displays food items and allows selection for feeding
  */
 
-import type { UICallbacks } from '@core/types'
 import type { FoodItem } from '@systems/food'
 import { UIComponentBase } from './UIComponentBase'
 

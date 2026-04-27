@@ -50,7 +50,7 @@ function getSizeMultiplier(size: Anatomy['size']): number {
 function getArchetypeMaterial(
   archetype: CreatureArchetype,
   palette: { base: THREE.Color; accent: THREE.Color },
-  rand: Random,
+  _rand: Random,
   texture?: THREE.Texture
 ): THREE.MeshStandardMaterial {
   const baseProps = texture ? { map: texture } : { color: palette.base }
@@ -187,7 +187,7 @@ function buildTorso(
 }
 
 function buildHead(
-  rand: Random,
+  _rand: Random,
   anatomy: Anatomy,
   palette: { base: THREE.Color; accent: THREE.Color }
 ): THREE.Object3D | null {
@@ -201,7 +201,7 @@ function buildHead(
   })
 
   // Adjust head size based on body type
-  const bodyScale = getBodyTypeScale(anatomy.bodyType)
+  const _bodyScale = getBodyTypeScale(anatomy.bodyType)
   const headSizeMultiplier =
     anatomy.bodyType === 'chubby'
       ? 0.9
@@ -352,7 +352,7 @@ function buildEyes(rand: Random, anatomy: Anatomy, head: THREE.Object3D | null):
 }
 
 function buildMouth(
-  rand: Random,
+  _rand: Random,
   anatomy: Anatomy,
   head: THREE.Object3D | null,
   palette: { base: THREE.Color; accent: THREE.Color }
@@ -379,14 +379,14 @@ function buildMouth(
 }
 
 function buildLimbs(
-  rand: Random,
+  _rand: Random,
   anatomy: Anatomy,
   palette: { base: THREE.Color; accent: THREE.Color },
   torso: THREE.Object3D
 ): THREE.Object3D[] {
   const limbs: THREE.Object3D[] = []
   const sizeMultiplier = getSizeMultiplier(anatomy.size)
-  const bodyScale = getBodyTypeScale(anatomy.bodyType)
+  const _bodyScale = getBodyTypeScale(anatomy.bodyType)
 
   // Adjust limb thickness based on body type
   const limbThicknessMultiplier =
@@ -753,7 +753,7 @@ function buildAntennae(
 }
 
 function buildEars(
-  rand: Random,
+  _rand: Random,
   anatomy: Anatomy,
   palette: { base: THREE.Color; accent: THREE.Color },
   head: THREE.Object3D | null
@@ -821,7 +821,7 @@ function buildEars(
 }
 
 function buildHorns(
-  rand: Random,
+  _rand: Random,
   anatomy: Anatomy,
   palette: { base: THREE.Color; accent: THREE.Color },
   head: THREE.Object3D | null
@@ -923,7 +923,7 @@ function buildHorns(
 }
 
 function buildSpines(
-  rand: Random,
+  _rand: Random,
   anatomy: Anatomy,
   palette: { base: THREE.Color; accent: THREE.Color },
   torso: THREE.Object3D,

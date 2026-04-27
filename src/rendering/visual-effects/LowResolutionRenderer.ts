@@ -446,7 +446,7 @@ export class LowResolutionRenderer {
       }
 
       // Dispose display mesh geometry
-      if (this.displayMesh && this.displayMesh.geometry) {
+      if (this.displayMesh?.geometry) {
         this.displayMesh.geometry.dispose()
       }
 

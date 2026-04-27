@@ -209,7 +209,7 @@ export class FilmGrainFilter extends ShaderFilterBase {
    */
   public set speed(value: number) {
     // Validate speed value (allow negative for reverse animation)
-    if (typeof value !== 'number' || !isFinite(value)) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
       throw new Error('Animation speed must be a finite number')
     }
 
@@ -227,7 +227,7 @@ export class FilmGrainFilter extends ShaderFilterBase {
    * Set the intensity transition speed (transitions per second)
    */
   public set intensityTransitionSpeed(value: number) {
-    if (typeof value !== 'number' || !isFinite(value) || value < 0) {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
       throw new Error('Intensity transition speed must be a positive finite number')
     }
 

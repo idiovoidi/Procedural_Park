@@ -1,6 +1,5 @@
 import { TAU } from '@core/constants'
 import { randomCentered } from '@core/utils'
-import type { AmbientSound, SoundEffect } from './types'
 
 type SampleGenerator = (t: number, i: number, sampleRate: number) => number
 
@@ -177,7 +176,7 @@ async function generateWaterFlow(
   audioContext: AudioContext,
   soundBuffers: Map<string, AudioBuffer>
 ) {
-  const buffer = createSoundBuffer(audioContext, 3, (t, i, sampleRate) => {
+  const buffer = createSoundBuffer(audioContext, 3, (t, _i, _sampleRate) => {
     // Water flow with bubbles - need sampleRate for Math.random() seeding consistency
     const flow = randomCentered() * Math.sin(t * 2) * 0.2
     const bubbles = Math.sin(t * 400 * Math.PI) * Math.random() * 0.05

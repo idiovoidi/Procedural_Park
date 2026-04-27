@@ -1,11 +1,10 @@
 import { SHADER_QUALITY_PRESETS } from './InscryptionShaderConfig'
-import type { PerformanceCallbacks, PerformanceMetrics, ShaderConfig } from './types'
+import type { PerformanceCallbacks, PerformanceMetrics } from './types'
 
 export class ShaderPerformanceMonitor {
   private callbacks: PerformanceCallbacks
   private frameHistory: number[] = []
   private lastFrameTime: number = 0
-  private frameCount: number = 0
   private startTime: number = performance.now()
   private isMonitoring: boolean = false
   private adjustmentCooldown: number = 0
