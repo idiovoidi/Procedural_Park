@@ -9,7 +9,6 @@ export class ConnectionUI {
   private modal: HTMLElement | null = null
   private status: ConnectionStatus = { state: 'disconnected' }
   private statusIndicator: HTMLElement | null = null
-  private signalDataContainer: HTMLElement | null = null
   private notificationContainer: HTMLElement | null = null
 
   // Callbacks for user interactions
@@ -471,7 +470,9 @@ export class ConnectionUI {
     this.modal.querySelectorAll('[data-action]').forEach((element) => {
       element.addEventListener('click', (e) => {
         const action = (e.currentTarget as HTMLElement).dataset.action
-        this.handleAction(action!)
+        if (action) {
+          this.handleAction(action)
+        }
       })
     })
   }
@@ -539,7 +540,7 @@ export class ConnectionUI {
       // Validate JSON
       JSON.parse(offerData)
       this.onJoinSession(offerData)
-    } catch (error) {
+    } catch (_error) {
       this.showNotification('❌ Invalid offer code format', 3000)
     }
   }
@@ -562,7 +563,7 @@ export class ConnectionUI {
       // Validate JSON
       JSON.parse(answerData)
       this.onAnswerProvided(answerData)
-    } catch (error) {
+    } catch (_error) {
       this.showNotification('❌ Invalid answer code format', 3000)
     }
   }

@@ -41,7 +41,6 @@ const EVENT_MESSAGE_BASE_SIZE = 6 // 1 (type) + 4 (timestamp) + 1 (event type)
 const PING_MESSAGE_SIZE = 13 // 1 (type) + 4 (timestamp) + 8 (ping timestamp)
 
 export class StateSync {
-  private lastSentState: GameState | null = null
   private lastReceivedState: GameState | null = null
   private updateRate: number
   private lastUpdateTime: number = 0
@@ -96,8 +95,6 @@ export class StateSync {
 
     // Ride progress
     view.setFloat32(offset, state.rideProgress, true)
-
-    this.lastSentState = state
 
     return buffer
   }

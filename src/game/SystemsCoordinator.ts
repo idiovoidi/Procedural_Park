@@ -199,7 +199,7 @@ export class SystemsCoordinator {
    * Setup state change handlers
    */
   private setupStateHandlers(): void {
-    const { state, audio } = this.systems
+    const { state } = this.systems
 
     // Listen for flow state changes
     state.onFlowStateChange((newState, prevState) => {
@@ -208,7 +208,7 @@ export class SystemsCoordinator {
     })
 
     // Listen for subsystem state changes
-    state.onSubsystemChange('ui', (event) => {
+    state.onSubsystemChange('ui', (_event) => {
       // UI updates handled by sync helpers
     })
 
@@ -226,7 +226,7 @@ export class SystemsCoordinator {
   /**
    * Handle flow state changes
    */
-  private handleStateChange(newState: GameStateType, prevState: GameStateType | null): void {
+  private handleStateChange(_newState: GameStateType, _prevState: GameStateType | null): void {
     const { state, audio } = this.systems
     const config = state.getFlowStateManager().getCurrentConfig()
 

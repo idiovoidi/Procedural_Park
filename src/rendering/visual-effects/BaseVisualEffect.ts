@@ -21,7 +21,7 @@ export abstract class BaseVisualEffect {
       }
 
       // Dispose geometry
-      if (this.quad && this.quad.geometry) {
+      if (this.quad?.geometry) {
         this.quad.geometry.dispose()
         this.quad = null
       }

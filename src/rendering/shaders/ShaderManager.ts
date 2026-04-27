@@ -413,6 +413,10 @@ export class ShaderManager {
     return this.performanceMonitor.getCurrentQualityLevel()
   }
 
+  public getCamera(): THREE.Camera {
+    return this.camera
+  }
+
   // Dispose of resources with comprehensive error handling
   dispose(): void {
     console.log('Disposing shader manager resources...')

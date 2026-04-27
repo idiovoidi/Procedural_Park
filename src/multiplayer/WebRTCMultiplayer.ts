@@ -26,7 +26,6 @@ export class WebRTCMultiplayer {
   private isHost: boolean = false
 
   // Latency measurement
-  private lastPingTime: number = 0
   private latency: number = 0
   private pingInterval: NodeJS.Timeout | null = null
 
@@ -153,7 +152,6 @@ export class WebRTCMultiplayer {
     // Reset state
     this.isHost = false
     this.latency = 0
-    this.lastPingTime = 0
   }
 
   /**

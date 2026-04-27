@@ -19,7 +19,7 @@ export interface GameState {
 export interface GameEvent {
   type: 'photo' | 'creature_interaction'
   timestamp: number
-  data?: any
+  data?: unknown
 }
 
 /**

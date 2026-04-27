@@ -179,7 +179,7 @@ export class SceneManager {
 
   public render(camera: THREE.Camera, deltaTime: number = 0) {
     // Update shader manager's camera reference if needed
-    if (this.shaderManager && camera !== this.shaderManager['camera']) {
+    if (this.shaderManager && camera !== this.shaderManager.getCamera()) {
       this.updateShaderCamera(camera)
     }
 
