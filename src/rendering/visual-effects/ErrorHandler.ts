@@ -219,7 +219,11 @@ export class ErrorHandler {
       type: 'shader_compilation',
       severity: 'high',
       message: `Shader compilation failed for ${shaderName}`,
-      details: { error: error instanceof Error ? error.message : String(error), vertexShader, fragmentShader },
+      details: {
+        error: error instanceof Error ? error.message : String(error),
+        vertexShader,
+        fragmentShader,
+      },
     })
 
     if (!this.config.enableShaderFallbacks) {
@@ -349,7 +353,12 @@ export class ErrorHandler {
       type: 'render_target',
       severity: 'medium',
       message: 'Render target creation failed',
-      details: { width, height, options, error: error instanceof Error ? error.message : String(error) },
+      details: {
+        width,
+        height,
+        options,
+        error: error instanceof Error ? error.message : String(error),
+      },
     })
 
     const recoveryKey = `render_target_${width}x${height}`

@@ -24,7 +24,7 @@ export interface ShaderConfig {
 
 // Shader uniforms interface
 export interface InscryptionShaderUniforms {
-  [key: string]: { value: any }
+  [key: string]: { value: unknown }
   tDiffuse: { value: THREE.Texture | null }
   luminanceThreshold: { value: number }
   colorSteps: { value: number }

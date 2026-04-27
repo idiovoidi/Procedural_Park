@@ -1,6 +1,6 @@
+import type { InteractionPoint } from '@rendering/scene/environment-interactions'
 import type { PatternType } from '@rendering/textures'
 import type * as THREE from 'three'
-import type { InteractionPoint } from '@rendering/scene/environment-interactions'
 
 export type CreatureArchetype = 'terrestrial' | 'aerial' | 'aquatic' | 'ethereal' | 'crystalline'
 

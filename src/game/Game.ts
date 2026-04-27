@@ -25,6 +25,7 @@ export class Game {
   private container: HTMLElement
   private initPromise: Promise<void>
   private galleryPhotos: SerializedPhoto[] = []
+  private inputHandler!: InputHandler
 
   constructor(container: HTMLElement) {
     this.container = container

@@ -93,7 +93,7 @@ export class ChromaticAberrationFilter extends ShaderFilterBase {
       value,
       0.0,
       0.1,
-      this.config,
+      this.config as unknown as Record<string, unknown>,
       'offset',
       this.material.uniforms.uOffset,
       'Chromatic aberration offset'

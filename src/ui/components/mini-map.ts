@@ -65,7 +65,11 @@ export class MiniMap {
     this.updatePlayerDot(playerPosition, bounds, mapSize)
   }
 
-  private drawBiomes(biomes: Map<string, string>, bounds: { minX: number; maxX: number; minZ: number; maxZ: number }, mapSize: number) {
+  private drawBiomes(
+    biomes: Map<string, string>,
+    bounds: { minX: number; maxX: number; minZ: number; maxZ: number },
+    mapSize: number
+  ) {
     if (!this.miniMapCtx) return
 
     // Draw biome patches (simplified)
@@ -79,7 +83,11 @@ export class MiniMap {
     }
   }
 
-  private drawPath(pathPoints: THREE.Vector3[], bounds: { minX: number; maxX: number; minZ: number; maxZ: number }, mapSize: number) {
+  private drawPath(
+    pathPoints: THREE.Vector3[],
+    bounds: { minX: number; maxX: number; minZ: number; maxZ: number },
+    mapSize: number
+  ) {
     if (!this.miniMapCtx || pathPoints.length < 2) return
 
     this.miniMapCtx.strokeStyle = '#6cf'
@@ -101,7 +109,11 @@ export class MiniMap {
     this.miniMapCtx.stroke()
   }
 
-  private updatePlayerDot(playerPosition: { x: number; z: number }, bounds: { minX: number; maxX: number; minZ: number; maxZ: number }, mapSize: number) {
+  private updatePlayerDot(
+    playerPosition: { x: number; z: number },
+    bounds: { minX: number; maxX: number; minZ: number; maxZ: number },
+    mapSize: number
+  ) {
     if (!this.playerDot) return
 
     const screenX = ((playerPosition.x - bounds.minX) / (bounds.maxX - bounds.minX)) * mapSize

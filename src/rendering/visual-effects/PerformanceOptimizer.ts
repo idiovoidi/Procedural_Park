@@ -357,7 +357,9 @@ export class PerformanceOptimizer {
 
     // Add JS heap usage if available
     if ('memory' in performance) {
-      const memInfo = (performance as unknown as { memory: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory
+      const memInfo = (
+        performance as unknown as { memory: { usedJSHeapSize: number; totalJSHeapSize: number } }
+      ).memory
       memoryUsage.jsHeapUsed = memInfo.usedJSHeapSize
       memoryUsage.jsHeapTotal = memInfo.totalJSHeapSize
     }

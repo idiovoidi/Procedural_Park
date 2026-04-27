@@ -281,7 +281,10 @@ export class MultiplayerStateSync {
    * Create lightweight sync packet (only essential data)
    */
   public createSyncPacket(): {
-    camera: { position: { x: number; y: number; z: number }; rotation: { yaw: number; pitch: number } }
+    camera: {
+      position: { x: number; y: number; z: number }
+      rotation: { yaw: number; pitch: number }
+    }
     ui: { photoCount: number; totalScore: number }
     timestamp: number
   } {

@@ -20,7 +20,7 @@ export function clampAndUpdate(
   value: number,
   min: number,
   max: number,
-  configTarget: Record<string, number>,
+  configTarget: Record<string, unknown>,
   configKey: string,
   uniformTarget: { value: number },
   propertyName?: string

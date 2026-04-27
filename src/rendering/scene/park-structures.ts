@@ -619,7 +619,10 @@ export class ParkStructures {
     const mainGate = this.structures.getObjectByName('MainGate')
     if (mainGate) {
       mainGate.children.forEach((child) => {
-        if (child instanceof THREE.Mesh && (child.material as THREE.MeshStandardMaterial).emissive) {
+        if (
+          child instanceof THREE.Mesh &&
+          (child.material as THREE.MeshStandardMaterial).emissive
+        ) {
           const material = child.material as THREE.MeshStandardMaterial
           material.emissiveIntensity = 0.5 + Math.sin(time * 3) * 0.2
         }

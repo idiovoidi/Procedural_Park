@@ -455,7 +455,7 @@ export class ShaderManager {
     try {
       if (this.composer) {
         this.composer.dispose()
-        this.composer = undefined as any
+        this.composer = undefined as unknown as EffectComposer
       }
     } catch (error) {
       errors.push(new Error(`Composer disposal failed: ${error}`))
@@ -463,8 +463,8 @@ export class ShaderManager {
 
     // Clear references
     try {
-      this.renderPass = undefined as any
-      this.inscryptionPass = undefined as any
+      this.renderPass = undefined as unknown as RenderPass
+      this.inscryptionPass = undefined as unknown as ShaderPass
       this.hasShaderError = true
       this.config.enabled = false
     } catch (error) {
