@@ -22,20 +22,41 @@ export class Particle {
   public fadeOut: boolean
   public active: boolean = false
 
+  private static sharedGeometry: THREE.PlaneGeometry | null = null
+
+  public static getSharedGeometry(): THREE.PlaneGeometry {
+    if (!Particle.sharedGeometry) {
+      Particle.sharedGeometry = new THREE.PlaneGeometry(0.1, 0.1)
+    }
+    return Particle.sharedGeometry
+  }
+
+  public static disposeSharedGeometry(): void {
+    if (Particle.sharedGeometry) {
+      Particle.sharedGeometry.dispose()
+      Particle.sharedGeometry = null
+    }
+  }
+
   constructor() {
-    const geometry = new THREE.PlaneGeometry(0.1, 0.1)
     const material = new THREE.MeshBasicMaterial({
       transparent: true,
       opacity: 1,
       side: THREE.DoubleSide,
       depthWrite: false,
     })
-    this.mesh = new THREE.Mesh(geometry, material)
+    this.mesh = new THREE.Mesh(Particle.getSharedGeometry(), material)
     this.velocity = new THREE.Vector3()
     this.lifetime = 0
     this.maxLifetime = 1
     this.gravity = 0
     this.fadeOut = true
+  }
+
+  public dispose(): void {
+    if (this.mesh.material) {
+      ;(this.mesh.material as THREE.Material).dispose()
+    }
   }
 
   public init(config: ParticleConfig): void {
@@ -239,8 +260,12 @@ export class ParticleSystem {
   }
 
   public dispose(): void {
-    this.clear()
+    this.activeParticles.forEach((particle) => {
+      particle.dispose()
+    })
+    this.activeParticles.clear()
     this.particlePool.clear()
+    Particle.disposeSharedGeometry()
     this.scene.remove(this.particleGroup)
   }
 }

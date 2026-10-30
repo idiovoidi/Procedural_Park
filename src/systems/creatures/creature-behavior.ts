@@ -3,6 +3,13 @@ import type { Random } from '@core/types'
 import * as THREE from 'three'
 import type { Anatomy, BehaviorState, CreatureInstance } from './types'
 
+// Pre-allocated scratch vectors to eliminate allocations in animation frames
+const _scratchToCam = new THREE.Vector3()
+const _scratchClip = new THREE.Vector3()
+const _scratchDir = new THREE.Vector3()
+const _scratchToTarget = new THREE.Vector3()
+const _scratchSocial = new THREE.Vector3()
+
 export interface BehaviorContext {
   group: THREE.Group
   anchor: THREE.Vector3
@@ -69,19 +76,21 @@ function handleCameraInteractions(
 ): void {
   const { group, anchor, anatomy, rand } = context
 
-  const toCam = new THREE.Vector3().subVectors(camera.position, group.position)
-  const dist = toCam.length()
-  const clip = group.position.clone().project(camera)
-  const centered = Math.max(Math.abs(clip.x), Math.abs(clip.y)) < 0.25
+  _scratchToCam.subVectors(camera.position, group.position)
+  const dist = _scratchToCam.length()
+  _scratchClip.copy(group.position).project(camera)
+  const centered = Math.max(Math.abs(_scratchClip.x), Math.abs(_scratchClip.y)) < 0.25
 
   // Temperament-based reactions to camera
   switch (anatomy.temperament) {
     case 'shy':
       if (dist < 12) {
         behaviorState.state = 'shy'
-        // Set target position away from camera instead of teleporting
-        const away = new THREE.Vector3(-toCam.x, 0, -toCam.z).normalize()
-        behaviorState.targetPosition = anchor.clone().addScaledVector(away, 3)
+        _scratchDir.set(-_scratchToCam.x, 0, -_scratchToCam.z).normalize()
+        if (!behaviorState.targetPosition) {
+          behaviorState.targetPosition = new THREE.Vector3()
+        }
+        behaviorState.targetPosition.copy(anchor).addScaledVector(_scratchDir, 3)
         behaviorState.moveSpeed = 2.0 // Fast retreat
       }
       break
@@ -89,11 +98,14 @@ function handleCameraInteractions(
     case 'curious':
       if (centered && dist < 15) {
         behaviorState.state = 'curious'
-        behaviorState.targetYaw = Math.atan2(toCam.x, toCam.z)
+        behaviorState.targetYaw = Math.atan2(_scratchToCam.x, _scratchToCam.z)
         // Curious creatures might move slightly closer
         if (dist > 8 && rand() > 0.95) {
-          const toward = new THREE.Vector3(toCam.x, 0, toCam.z).normalize()
-          behaviorState.targetPosition = anchor.clone().addScaledVector(toward, 2)
+          _scratchDir.set(_scratchToCam.x, 0, _scratchToCam.z).normalize()
+          if (!behaviorState.targetPosition) {
+            behaviorState.targetPosition = new THREE.Vector3()
+          }
+          behaviorState.targetPosition.copy(anchor).addScaledVector(_scratchDir, 2)
           behaviorState.moveSpeed = 0.5 // Slow approach
         }
       }
@@ -102,7 +114,7 @@ function handleCameraInteractions(
     case 'aggressive':
       if (dist < 8) {
         behaviorState.state = 'territorial'
-        behaviorState.targetYaw = Math.atan2(toCam.x, toCam.z)
+        behaviorState.targetYaw = Math.atan2(_scratchToCam.x, _scratchToCam.z)
       }
       break
 
@@ -111,12 +123,11 @@ function handleCameraInteractions(
         behaviorState.state = 'playing'
         // Playful movement - set target instead of teleporting
         if (behaviorState.timer <= 0) {
-          const playDirection = new THREE.Vector3(
-            (rand() - 0.5) * 2,
-            0,
-            (rand() - 0.5) * 2
-          ).normalize()
-          behaviorState.targetPosition = anchor.clone().addScaledVector(playDirection, 4)
+          _scratchDir.set((rand() - 0.5) * 2, 0, (rand() - 0.5) * 2).normalize()
+          if (!behaviorState.targetPosition) {
+            behaviorState.targetPosition = new THREE.Vector3()
+          }
+          behaviorState.targetPosition.copy(anchor).addScaledVector(_scratchDir, 4)
           behaviorState.moveSpeed = 1.5 // Energetic movement
           behaviorState.timer = 2 + rand() * 3
         }
@@ -135,29 +146,47 @@ function handleSocialBehaviors(
 ): void {
   const { group, anatomy, rand, territoryCenter, territoryRadius, getDistanceTo } = context
 
-  const nearbyCreatures = allCreatures.filter((c) => c.group !== group && getDistanceTo(c) < 15)
+  let firstIntruder: CreatureInstance | null = null
+  let foundPlaymate = false
+  let randomCuriousTarget: CreatureInstance | null = null
+  let nearbyCount = 0
 
-  if (nearbyCreatures.length === 0) return
+  for (let i = 0; i < allCreatures.length; i++) {
+    const c = allCreatures[i]
+    if (c.group === group) continue
+    const dist = getDistanceTo(c)
+    if (dist < 15) {
+      nearbyCount++
+      if (
+        anatomy.temperament === 'territorial' &&
+        !firstIntruder &&
+        territoryCenter &&
+        c.group.position.distanceTo(territoryCenter) < (territoryRadius || 8)
+      ) {
+        firstIntruder = c
+      } else if (anatomy.temperament === 'playful' && c.anatomy.temperament === 'playful') {
+        foundPlaymate = true
+      } else if (anatomy.temperament === 'curious' && !randomCuriousTarget) {
+        randomCuriousTarget = c
+      }
+    }
+  }
+
+  if (nearbyCount === 0) return
 
   switch (anatomy.temperament) {
     case 'territorial': {
-      const intruders = nearbyCreatures.filter(
-        (c) =>
-          territoryCenter && c.group.position.distanceTo(territoryCenter) < (territoryRadius || 8)
-      )
-      if (intruders.length > 0) {
+      if (firstIntruder) {
         behaviorState.state = 'territorial'
-        const intruder = intruders[0]
-        const toIntruder = new THREE.Vector3().subVectors(intruder.group.position, group.position)
-        behaviorState.targetYaw = Math.atan2(toIntruder.x, toIntruder.z)
+        _scratchSocial.subVectors(firstIntruder.group.position, group.position)
+        behaviorState.targetYaw = Math.atan2(_scratchSocial.x, _scratchSocial.z)
         behaviorState.timer = 3 + rand() * 2
       }
       break
     }
 
     case 'playful': {
-      const playmates = nearbyCreatures.filter((c) => c.anatomy.temperament === 'playful')
-      if (playmates.length > 0 && rand() > 0.7) {
+      if (foundPlaymate && rand() > 0.7) {
         behaviorState.state = 'playing'
         behaviorState.timer = 5 + rand() * 5
       }
@@ -165,11 +194,9 @@ function handleSocialBehaviors(
     }
 
     case 'curious':
-      // Curious creatures might approach other creatures
-      if (rand() > 0.8) {
-        const target = nearbyCreatures[Math.floor(rand() * nearbyCreatures.length)]
-        const toTarget = new THREE.Vector3().subVectors(target.group.position, group.position)
-        behaviorState.targetYaw = Math.atan2(toTarget.x, toTarget.z)
+      if (rand() > 0.8 && randomCuriousTarget) {
+        _scratchSocial.subVectors(randomCuriousTarget.group.position, group.position)
+        behaviorState.targetYaw = Math.atan2(_scratchSocial.x, _scratchSocial.z)
         behaviorState.state = 'curious'
         behaviorState.timer = 2 + rand() * 3
       }
@@ -198,14 +225,13 @@ function handleIdleWandering(
     // Pick a random direction to wander
     const wanderAngle = rand() * TAU
     const wanderDistance = 3 + rand() * 8
-    const wanderDirection = new THREE.Vector3(
-      Math.cos(wanderAngle),
-      0,
-      Math.sin(wanderAngle)
-    ).normalize()
+    _scratchDir.set(Math.cos(wanderAngle), 0, Math.sin(wanderAngle)).normalize()
 
-    // Set target position instead of teleporting
-    behaviorState.targetPosition = anchor.clone().addScaledVector(wanderDirection, wanderDistance)
+    // Set target position without re-allocating if already present
+    if (!behaviorState.targetPosition) {
+      behaviorState.targetPosition = new THREE.Vector3()
+    }
+    behaviorState.targetPosition.copy(anchor).addScaledVector(_scratchDir, wanderDistance)
 
     // Face the direction we're wandering
     behaviorState.targetYaw = wanderAngle
@@ -267,8 +293,8 @@ export function updateMovement(
 ): void {
   if (!behaviorState.targetPosition) return
 
-  const toTarget = new THREE.Vector3().subVectors(behaviorState.targetPosition, anchor)
-  const distance = toTarget.length()
+  _scratchToTarget.subVectors(behaviorState.targetPosition, anchor)
+  const distance = _scratchToTarget.length()
 
   // If we're close enough, clear the target
   if (distance < 0.1) {
@@ -278,8 +304,8 @@ export function updateMovement(
 
   // Move toward target with smooth interpolation
   const moveDistance = Math.min(distance, behaviorState.moveSpeed * dt)
-  toTarget.normalize().multiplyScalar(moveDistance)
-  anchor.add(toTarget)
+  _scratchToTarget.normalize().multiplyScalar(moveDistance)
+  anchor.add(_scratchToTarget)
 }
 
 /**

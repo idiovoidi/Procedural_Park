@@ -417,6 +417,13 @@ export class ShaderManager {
     return this.camera
   }
 
+  public setCamera(camera: THREE.Camera): void {
+    this.camera = camera
+    if (this.renderPass) {
+      this.renderPass.camera = camera
+    }
+  }
+
   // Dispose of resources with comprehensive error handling
   dispose(): void {
     console.log('Disposing shader manager resources...')

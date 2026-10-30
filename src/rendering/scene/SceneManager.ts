@@ -1,4 +1,5 @@
 import { TAU } from '@core/constants'
+import { disposeThreeObject } from '@core/utils'
 import { type ShaderConfig, ShaderManager } from '@rendering/shaders'
 import { TerrainSystem } from '@systems/terrain'
 import * as THREE from 'three'
@@ -17,6 +18,8 @@ export class SceneManager {
   public sky: THREE.Mesh | null = null
   private shaderManager: ShaderManager
   private onShaderManagerRecreated: ((manager: ShaderManager) => void) | null = null
+  private currentDayNightMode: 'day' | 'night' = 'day'
+  private handleResizeBound: () => void
 
   constructor(container: HTMLElement) {
     // Scene setup
@@ -78,9 +81,8 @@ export class SceneManager {
     )
 
     // Handle window resize
-    window.addEventListener('resize', () => {
-      this.handleResize()
-    })
+    this.handleResizeBound = () => this.handleResize()
+    window.addEventListener('resize', this.handleResizeBound)
   }
 
   private setupLighting() {
@@ -98,7 +100,12 @@ export class SceneManager {
     this.scene.add(this.directionalLight, this.ambientLight)
   }
 
+  public getDayNightMode(): 'day' | 'night' {
+    return this.currentDayNightMode
+  }
+
   public setDayNightMode(mode: 'day' | 'night') {
+    this.currentDayNightMode = mode
     if (mode === 'day') {
       this.directionalLight.color.set(0xffffff)
       this.directionalLight.intensity = 2.2
@@ -178,9 +185,9 @@ export class SceneManager {
   // Removed createEnvironment() - now handled by TerrainSystem
 
   public render(camera: THREE.Camera, deltaTime: number = 0) {
-    // Update shader manager's camera reference if needed
+    // Update shader manager's camera reference without destroying pipeline
     if (this.shaderManager && camera !== this.shaderManager.getCamera()) {
-      this.updateShaderCamera(camera)
+      this.shaderManager.setCamera(camera)
     }
 
     // Use shader manager for rendering with post-processing
@@ -204,6 +211,9 @@ export class SceneManager {
 
   public onShaderManagerRecreate(callback: (manager: ShaderManager) => void): void {
     this.onShaderManagerRecreated = callback
+    if (this.shaderManager && this.onShaderManagerRecreated) {
+      this.onShaderManagerRecreated(this.shaderManager)
+    }
   }
 
   public capturePhoto(): string {
@@ -246,27 +256,6 @@ export class SceneManager {
 
   public getShaderQualityLevel(): string {
     return this.shaderManager.getCurrentQualityLevel()
-  }
-
-  private updateShaderCamera(camera: THREE.Camera): void {
-    // Recreate shader manager with new camera
-    const currentConfig = this.shaderManager.getConfig()
-    const autoPerformanceEnabled = this.shaderManager.isAutoPerformanceAdjustmentEnabled()
-    this.shaderManager.dispose()
-
-    this.shaderManager = new ShaderManager(
-      this.renderer,
-      this.scene,
-      camera,
-      this.createShaderCallbacks()
-    )
-    this.shaderManager.updateConfig(currentConfig)
-    this.shaderManager.setAutoPerformanceAdjustment(autoPerformanceEnabled)
-
-    // Notify callback if shader manager was recreated
-    if (this.onShaderManagerRecreated) {
-      this.onShaderManagerRecreated(this.shaderManager)
-    }
   }
 
   // Handle window resize with proper aspect ratio and pixel density management
@@ -313,8 +302,27 @@ export class SceneManager {
 
   // Cleanup method for proper resource disposal
   public dispose(): void {
+    window.removeEventListener('resize', this.handleResizeBound)
+
     if (this.shaderManager) {
       this.shaderManager.dispose()
+    }
+
+    if (this.terrainSystem) {
+      this.terrainSystem.dispose()
+    }
+
+    if (this.parkStructures) {
+      this.parkStructures.dispose()
+    }
+
+    disposeThreeObject(this.scene, false)
+
+    if (this.renderer) {
+      this.renderer.dispose()
+      if (this.renderer.domElement.parentElement) {
+        this.renderer.domElement.parentElement.removeChild(this.renderer.domElement)
+      }
     }
   }
 }

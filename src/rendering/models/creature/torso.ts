@@ -11,7 +11,6 @@ export function buildTorso(
   anatomy: Anatomy
 ): THREE.Object3D {
   const sizeMultiplier = getSizeMultiplier(anatomy.size)
-  const material = createCreatureMaterial(anatomy, { base: new THREE.Color(), accent: new THREE.Color() }, rand)
   const bodyScale = getBodyTypeScale(anatomy.bodyType)
 
   // Create proper palette for material

@@ -1,9 +1,9 @@
 import { HALF_PI, TAU } from '@core/constants'
 import type { Random } from '@core/types'
 import { normalish } from '@systems/creatures/generator'
-import type { Anatomy, CreatureArchetype } from '@systems/creatures/types'
+import type { Anatomy } from '@systems/creatures/types'
 import * as THREE from 'three'
-import { getHeadSizeMultiplier, getNeckHeight, getSizeMultiplier } from './body-types'
+import { getHeadSizeMultiplier, getNeckHeight } from './body-types'
 import type { CreaturePalette } from './palette'
 
 export function buildHead(

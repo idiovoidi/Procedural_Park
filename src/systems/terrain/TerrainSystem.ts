@@ -1,4 +1,5 @@
 import { TAU } from '@core/constants'
+import { disposeThreeObject } from '@core/utils'
 import * as THREE from 'three'
 import { BIOME_CONFIGS, generateBiomeMap } from './biome-generator'
 import { noise2D } from './noise-utils'
@@ -7,6 +8,7 @@ import type { BiomeType } from './types'
 export class TerrainSystem {
   private scene: THREE.Scene
   private terrainGroup: THREE.Group
+  private mountainGroup: THREE.Group | null = null
   private heightMap: number[][] = []
   private biomeMap: BiomeType[][] = []
   private currentBiomes: Set<BiomeType> = new Set()
@@ -53,18 +55,19 @@ export class TerrainSystem {
     while (this.terrainGroup.children.length > 0) {
       const child = this.terrainGroup.children[0]
       this.terrainGroup.remove(child)
-      if (child instanceof THREE.Mesh) {
-        child.geometry.dispose()
-        if (Array.isArray(child.material)) {
-          child.material.forEach((mat) => {
-            mat.dispose()
-          })
-        } else {
-          child.material.dispose()
-        }
-      }
+      disposeThreeObject(child)
     }
     this.currentBiomes.clear()
+  }
+
+  public dispose() {
+    this.clearTerrain()
+    if (this.mountainGroup) {
+      disposeThreeObject(this.mountainGroup)
+      this.scene.remove(this.mountainGroup)
+      this.mountainGroup = null
+    }
+    this.scene.remove(this.terrainGroup)
   }
 
   private generateHeightMap(_seed: number) {
@@ -556,6 +559,7 @@ export class TerrainSystem {
       this.createMountain(mountainGroup, x, z, 60, 70, 45, 45, 0.58, 0.18)
     })
 
+    this.mountainGroup = mountainGroup
     this.scene.add(mountainGroup)
   }
 

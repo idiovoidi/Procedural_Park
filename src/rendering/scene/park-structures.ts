@@ -1,4 +1,5 @@
 import { TAU } from '@core/constants'
+import { disposeThreeObject } from '@core/utils'
 import * as THREE from 'three'
 
 export class ParkStructures {
@@ -1096,5 +1097,14 @@ export class ParkStructures {
   public getFoodStorePosition(): THREE.Vector3 {
     const store = this.structures.getObjectByName('FoodStore')
     return store ? store.position.clone() : new THREE.Vector3(-25, 0, 40)
+  }
+
+  public dispose(): void {
+    if (this.labSignTexture) {
+      this.labSignTexture.dispose()
+      this.labSignTexture = null
+    }
+    disposeThreeObject(this.structures)
+    this.scene.remove(this.structures)
   }
 }

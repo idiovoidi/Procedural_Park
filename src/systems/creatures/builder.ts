@@ -1,6 +1,6 @@
 import { QUARTER_PI, TAU } from '@core/constants'
 import type { Random } from '@core/types'
-import { memoizedCos, memoizedSin, randomCenteredSeeded } from '@core/utils'
+import { memoizedCos, memoizedSin } from '@core/utils'
 import {
   buildAntennae,
   buildEars,
@@ -16,9 +16,14 @@ import {
   buildTorso,
   buildWings,
   makePalette,
-  type MouthParts,
 } from '@rendering/models/creature'
 import * as THREE from 'three'
+
+// Pre-allocated scratch objects to prevent allocations in eye tracking loop
+const _scratchEyeWorldPos = new THREE.Vector3()
+const _scratchDirToCam = new THREE.Vector3()
+const _scratchEyeQuat = new THREE.Quaternion()
+const _scratchLocalDir = new THREE.Vector3()
 import {
   applyBehaviorEffects,
   type BehaviorContext,
@@ -298,29 +303,23 @@ function buildCreature(
 
           if (pupil && iris && maxOffset) {
             // Get world position of eye
-            const eyeWorldPos = new THREE.Vector3()
-            eye.getWorldPosition(eyeWorldPos)
+            eye.getWorldPosition(_scratchEyeWorldPos)
 
             // Calculate direction to camera
-            const directionToCamera = new THREE.Vector3()
-              .subVectors(camera.position, eyeWorldPos)
-              .normalize()
+            _scratchDirToCam.subVectors(camera.position, _scratchEyeWorldPos).normalize()
 
             // Convert to local space of the eye
-            const eyeWorldQuaternion = new THREE.Quaternion()
-            eye.getWorldQuaternion(eyeWorldQuaternion)
-            const localDirection = directionToCamera
-              .clone()
-              .applyQuaternion(eyeWorldQuaternion.invert())
+            eye.getWorldQuaternion(_scratchEyeQuat)
+            _scratchLocalDir.copy(_scratchDirToCam).applyQuaternion(_scratchEyeQuat.invert())
 
             // Calculate offset for pupil (constrained to maxOffset)
             const offsetX = Math.max(
               -maxOffset,
-              Math.min(maxOffset, localDirection.x * maxOffset * 2)
+              Math.min(maxOffset, _scratchLocalDir.x * maxOffset * 2)
             )
             const offsetY = Math.max(
               -maxOffset,
-              Math.min(maxOffset, localDirection.y * maxOffset * 2)
+              Math.min(maxOffset, _scratchLocalDir.y * maxOffset * 2)
             )
 
             // Smoothly move pupil and iris

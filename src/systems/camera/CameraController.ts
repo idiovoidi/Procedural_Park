@@ -36,6 +36,32 @@ export class CameraController {
   private groundHeight = 1.6
 
   private inputManager: InputManager | null = null
+  private canvas: HTMLCanvasElement | null = null
+
+  private handleResize = () => {
+    this.camera.aspect = window.innerWidth / window.innerHeight
+    this.camera.updateProjectionMatrix()
+  }
+
+  private handleMouseDown = () => {
+    if (this.mode === 'ride') {
+      this.isDragging = true
+    }
+  }
+
+  private handleMouseUp = () => {
+    this.isDragging = false
+  }
+
+  private handleMouseLeave = () => {
+    this.isDragging = false
+  }
+
+  private handleClick = () => {
+    if (this.mode === 'freeroam' && this.inputManager && !this.inputManager.isPointerLocked()) {
+      this.inputManager.requestPointerLock()
+    }
+  }
 
   constructor(curve: THREE.CatmullRomCurve3, inputManager?: InputManager) {
     this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 600)
@@ -54,39 +80,24 @@ export class CameraController {
   }
 
   private setupEventListeners() {
-    window.addEventListener('resize', () => {
-      this.camera.aspect = window.innerWidth / window.innerHeight
-      this.camera.updateProjectionMatrix()
-    })
+    window.addEventListener('resize', this.handleResize)
   }
 
   public setupMouseControls(canvas: HTMLCanvasElement) {
+    this.canvas = canvas
+
     // Set canvas in input manager for pointer lock
     if (this.inputManager) {
       this.inputManager.setCanvas(canvas)
     }
 
     // Ride mode: drag to look
-    canvas.addEventListener('mousedown', (_e) => {
-      if (this.mode === 'ride') {
-        this.isDragging = true
-      }
-    })
-
-    canvas.addEventListener('mouseup', () => {
-      this.isDragging = false
-    })
-
-    canvas.addEventListener('mouseleave', () => {
-      this.isDragging = false
-    })
+    canvas.addEventListener('mousedown', this.handleMouseDown)
+    canvas.addEventListener('mouseup', this.handleMouseUp)
+    canvas.addEventListener('mouseleave', this.handleMouseLeave)
 
     // Click to enter pointer lock in free roam mode
-    canvas.addEventListener('click', () => {
-      if (this.mode === 'freeroam' && this.inputManager && !this.inputManager.isPointerLocked()) {
-        this.inputManager.requestPointerLock()
-      }
-    })
+    canvas.addEventListener('click', this.handleClick)
   }
 
   public update(dtSeconds: number) {
@@ -285,5 +296,37 @@ export class CameraController {
 
   public isSprint(): boolean {
     return this.isSprinting && this.mode === 'freeroam'
+  }
+
+  public reset(): void {
+    this.rideT = 0
+    this.yaw = 0
+    this.pitch = 0
+    this.yawTarget = 0
+    this.pitchTarget = 0
+    this.isDragging = false
+    this.isJumping = false
+    this.jumpVelocity = 0
+    this.setMode('ride')
+    const startPoint = this.curve.getPointAt(0)
+    this.camera.position.copy(startPoint)
+    this.camera.position.y += 1.6
+    this.freeRoamPosition.copy(this.camera.position)
+  }
+
+  public dispose(): void {
+    window.removeEventListener('resize', this.handleResize)
+
+    if (this.canvas) {
+      this.canvas.removeEventListener('mousedown', this.handleMouseDown)
+      this.canvas.removeEventListener('mouseup', this.handleMouseUp)
+      this.canvas.removeEventListener('mouseleave', this.handleMouseLeave)
+      this.canvas.removeEventListener('click', this.handleClick)
+      this.canvas = null
+    }
+
+    if (document.pointerLockElement) {
+      document.exitPointerLock()
+    }
   }
 }

@@ -4,6 +4,7 @@
  */
 
 import { GAME_CONFIG } from '@core/constants'
+import { disposeThreeObject } from '@core/utils'
 import type { ParkStructures } from '@rendering/scene'
 import type { AudioManager } from '@systems/audio'
 import type { CameraController } from '@systems/camera'
@@ -119,19 +120,27 @@ export class CreatureManager {
   }
 
   /**
-   * Clear all creatures from scene
+   * Clear all creatures from scene and dispose resources
    */
   public clearCreatures(): void {
     for (const creature of this.creatures) {
       this.scene.remove(creature.group)
-      // TODO: Dispose geometries and materials
+      disposeThreeObject(creature.group)
     }
     this.creatures = []
 
     if (this.experimentCreature) {
       this.scene.remove(this.experimentCreature.group)
+      disposeThreeObject(this.experimentCreature.group)
       this.experimentCreature = null
     }
+  }
+
+  /**
+   * Dispose all creature resources
+   */
+  public dispose(): void {
+    this.clearCreatures()
   }
 
   /**

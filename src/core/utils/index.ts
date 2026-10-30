@@ -26,3 +26,5 @@ export {
 } from './pooling'
 
 export { randomCentered, randomCenteredSeeded } from './random'
+
+export { disposeMaterial, disposeThreeObject } from './disposal'
