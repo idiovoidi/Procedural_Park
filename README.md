@@ -217,9 +217,12 @@ npm run dev          # Start development server with HMR
 npm run build        # Build for production
 npm run preview      # Preview production build
 npm run type-check   # Run TypeScript type checking
+npm run check        # Biome lint + format check
+npm test             # Run unit tests (Vitest)
+npm run test:watch   # Re-run tests on change
 npm run lint         # Lint TypeScript files
 npm run lint:fix     # Auto-fix linting issues
-npm run format       # Format code with Prettier
+npm run format       # Format code with Biome
 ```
 
 ### Debug Tools
@@ -232,6 +235,14 @@ npm run format       # Format code with Prettier
 - Leverage memoization for expensive calculations
 - Monitor debug panel for performance bottlenecks
 - Enable auto-performance adjustment in shader settings
+
+### Testing
+
+Unit tests use [Vitest](https://vitest.dev) and live next to the code as `*.test.ts`
+(for example `src/systems/currency/CurrencyManager.test.ts`). Tests run in Node;
+`tests/setup.ts` stubs `localStorage` and `window` timers and silences the logger.
+Aim tests at pure logic (state, economy, serialization, seeded generation) rather than
+Three.js rendering. Shared Vitest settings, including the path aliases, are in `vitest.config.ts`.
 
 ## 🤝 Contributing
 

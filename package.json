@@ -13,7 +13,9 @@
     "format": "biome format src --write",
     "check": "biome check src",
     "check:fix": "biome check src --write",
-    "jscpd": "jscpd --min-lines 5 --min-tokens 50 src/"
+    "jscpd": "jscpd --min-lines 5 --min-tokens 50 src/",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.13",
@@ -21,7 +23,8 @@
     "jscpd": "^4.0.5",
     "terser": "^5.36.0",
     "typescript": "^5.9.3",
-    "vite": "^7.1.12"
+    "vite": "^7.1.12",
+    "vitest": "^5.0.5"
   },
   "dependencies": {
     "@types/simple-peer": "^9.11.9",

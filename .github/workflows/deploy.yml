@@ -32,7 +32,7 @@ jobs:
         run: npm ci
 
       - name: Check
-        run: npm run check && npm run type-check
+        run: npm run check && npm run type-check && npm test
 
       - name: Build
         run: npm run build
