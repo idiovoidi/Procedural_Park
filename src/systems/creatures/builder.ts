@@ -24,6 +24,7 @@ const _scratchEyeWorldPos = new THREE.Vector3()
 const _scratchDirToCam = new THREE.Vector3()
 const _scratchEyeQuat = new THREE.Quaternion()
 const _scratchLocalDir = new THREE.Vector3()
+
 import {
   applyBehaviorEffects,
   type BehaviorContext,

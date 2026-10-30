@@ -25,7 +25,11 @@ export function disposeThreeObject(root: THREE.Object3D, removeFromParent = true
   if (!root) return
 
   root.traverse((object) => {
-    if (object instanceof THREE.Mesh || object instanceof THREE.Line || object instanceof THREE.Points) {
+    if (
+      object instanceof THREE.Mesh ||
+      object instanceof THREE.Line ||
+      object instanceof THREE.Points
+    ) {
       if (object.geometry) {
         object.geometry.dispose()
       }

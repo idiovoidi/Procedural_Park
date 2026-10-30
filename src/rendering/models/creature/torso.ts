@@ -6,10 +6,7 @@ import * as THREE from 'three'
 import { getBodyTypeScale, getSizeMultiplier } from './body-types'
 import { createCreatureMaterial } from './palette'
 
-export function buildTorso(
-  rand: Random,
-  anatomy: Anatomy
-): THREE.Object3D {
+export function buildTorso(rand: Random, anatomy: Anatomy): THREE.Object3D {
   const sizeMultiplier = getSizeMultiplier(anatomy.size)
   const bodyScale = getBodyTypeScale(anatomy.bodyType)
 
@@ -23,13 +20,19 @@ export function buildTorso(
   switch (anatomy.torsoShape) {
     case 'sphere': {
       // Round body like a bird or small mammal
-      const body = new THREE.Mesh(new THREE.SphereGeometry(0.6 * sizeMultiplier, 28, 28), finalMaterial)
+      const body = new THREE.Mesh(
+        new THREE.SphereGeometry(0.6 * sizeMultiplier, 28, 28),
+        finalMaterial
+      )
       body.scale.set(1.0 * bodyScale.width, 0.9 * bodyScale.height, 1.1 * bodyScale.length)
       return body
     }
     case 'ellipsoid': {
       // Streamlined body for aerial/aquatic creatures
-      const body = new THREE.Mesh(new THREE.SphereGeometry(0.5 * sizeMultiplier, 28, 28), finalMaterial)
+      const body = new THREE.Mesh(
+        new THREE.SphereGeometry(0.5 * sizeMultiplier, 28, 28),
+        finalMaterial
+      )
       body.scale.set(0.7 * bodyScale.width, 0.6 * bodyScale.height, 1.3 * bodyScale.length)
       return body
     }

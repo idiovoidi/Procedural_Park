@@ -1,5 +1,5 @@
-import { rangeInt } from '@systems/creatures/generator'
 import type { Random } from '@core/types'
+import { rangeInt } from '@systems/creatures/generator'
 import type { Anatomy } from '@systems/creatures/types'
 import * as THREE from 'three'
 import { getSizeMultiplier } from './body-types'

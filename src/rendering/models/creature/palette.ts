@@ -1,8 +1,8 @@
-import { randomCenteredSeeded } from '@core/utils'
 import type { Random } from '@core/types'
+import { randomCenteredSeeded } from '@core/utils'
+import { createPatternTexture } from '@rendering/textures'
 import type { Anatomy, CreatureArchetype } from '@systems/creatures/types'
 import * as THREE from 'three'
-import { createPatternTexture } from '@rendering/textures'
 
 export interface CreaturePalette {
   base: THREE.Color

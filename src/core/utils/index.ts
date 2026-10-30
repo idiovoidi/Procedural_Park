@@ -1,4 +1,6 @@
 // Barrel export for utils module
+
+export { disposeMaterial, disposeThreeObject } from './disposal'
 export {
   clamp,
   clampAndUpdate,
@@ -12,7 +14,6 @@ export {
   memoizedTan,
   normalizeAngle,
 } from './math'
-
 export {
   colorPool,
   getPooledColor,
@@ -24,7 +25,4 @@ export {
   vector2Pool,
   vector3Pool,
 } from './pooling'
-
 export { randomCentered, randomCenteredSeeded } from './random'
-
-export { disposeMaterial, disposeThreeObject } from './disposal'

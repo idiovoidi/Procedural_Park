@@ -211,7 +211,6 @@ export class Game {
     const currentUI = state.getUIState()
     const newPhotoCount = currentUI.photoCount + 1
     const newTotalScore = currentUI.totalScore + result.score
-    const _newBestScore = Math.max(currentUI.lastScore, result.score)
 
     state.updateUIState({
       photoCount: newPhotoCount,
