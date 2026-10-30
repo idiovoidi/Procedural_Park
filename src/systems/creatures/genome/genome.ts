@@ -251,7 +251,7 @@ function rollSpineType(
 }
 
 /** Same structure, same species: individuals within a species differ only in genes and colors. */
-function computeSpeciesId(genome: Genome): number {
+export function computeSpeciesId(genome: Genome): number {
   const limbs = genome.limbSets.map((set) => `${set.type}${set.count}`).join(',')
   return hashString(
     [

@@ -19,12 +19,14 @@ export { CreaturePool, PooledCreature } from './creature-pool'
 export {
   BODY_PLANS,
   type BodyPlanId,
+  crossover,
   deriveAnatomy,
   GENOME_VERSION,
   type Genome,
   generateGenome,
   generateSpeciesName,
   hashSeed,
+  mutate,
   validateGenome,
 } from './genome'
 

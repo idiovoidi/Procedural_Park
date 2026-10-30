@@ -37,7 +37,7 @@ export function buildHead(
   if (!anatomy.hasHead) return null
 
   const headGroup = new THREE.Group()
-  const material = new THREE.MeshStandardMaterial({
+  const material = palette.standard({
     color: palette.base,
     metalness: 0.2,
     roughness: 0.5,
@@ -93,6 +93,7 @@ export function buildHead(
 export function buildEyes(
   _rand: Random,
   anatomy: Anatomy,
+  palette: CreaturePalette,
   head: THREE.Object3D | null
 ): THREE.Object3D[] {
   if (!head || anatomy.eyeCount <= 0) return []
@@ -126,16 +127,16 @@ export function buildEyes(
 
     // Eye white (slightly oval for more natural look)
     const eyeWhite = new THREE.Mesh(
-      new THREE.SphereGeometry(eyeSize, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0.4 })
+      palette.geometry('eye-white', () => new THREE.SphereGeometry(eyeSize, 16, 16)),
+      palette.standard({ color: 0xffffff, metalness: 0.1, roughness: 0.4 })
     )
     eyeWhite.scale.set(1.0, 0.9, 1.1)
 
     // Iris (colored ring around pupil)
     const irisColor = new THREE.Color().setHSL(anatomy.baseHue, 0.6, 0.4)
     const iris = new THREE.Mesh(
-      new THREE.SphereGeometry(eyeSize * 0.5, 12, 12),
-      new THREE.MeshStandardMaterial({
+      palette.geometry('eye-iris', () => new THREE.SphereGeometry(eyeSize * 0.5, 12, 12)),
+      palette.standard({
         color: irisColor,
         metalness: 0.2,
         roughness: 0.6,
@@ -145,8 +146,8 @@ export function buildEyes(
 
     // Pupil (black center) - made larger and more prominent
     const pupil = new THREE.Mesh(
-      new THREE.SphereGeometry(eyeSize * 0.25, 10, 10),
-      new THREE.MeshStandardMaterial({
+      palette.geometry('eye-pupil', () => new THREE.SphereGeometry(eyeSize * 0.25, 10, 10)),
+      palette.standard({
         color: 0x000000,
         metalness: 0,
         roughness: 1,
@@ -192,14 +193,14 @@ export function buildMouth(
   // Upper lip (static)
   const upper = new THREE.Mesh(
     new THREE.CapsuleGeometry(anatomy.eyeSize * 0.6, anatomy.eyeSize * 0.1, 4, 8),
-    new THREE.MeshStandardMaterial({ color: palette.base, metalness: 0.2, roughness: 0.6 })
+    palette.standard({ color: palette.base, metalness: 0.2, roughness: 0.6 })
   )
   upper.position.set(0, -anatomy.headSize * 0.3, anatomy.headSize * 0.9)
   mouth.add(upper)
   // Lower jaw (animated)
   const lowerJaw = new THREE.Mesh(
     new THREE.BoxGeometry(anatomy.eyeSize * 1.6, anatomy.eyeSize * 0.5, anatomy.eyeSize * 0.9),
-    new THREE.MeshStandardMaterial({ color: palette.accent, metalness: 0.1, roughness: 0.5 })
+    palette.standard({ color: palette.accent, metalness: 0.1, roughness: 0.5 })
   )
   lowerJaw.position.set(0, -anatomy.headSize * 0.37, anatomy.headSize * 0.78)
   lowerJaw.rotation.x = -0.1

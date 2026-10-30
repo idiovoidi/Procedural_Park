@@ -26,6 +26,7 @@ export {
   getArchetypeMaterial,
   makePalette,
 } from './palette'
+export { createLimbRigs, type LimbRig, updateLimbRigs } from './rig'
 // Body part builders
 export type { BodyBounds } from './sockets'
 export { buildSpines, buildTails } from './tails'

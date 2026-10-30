@@ -4,6 +4,7 @@
  *
  * Open /Procedural_Park/creature-preview.html?seed=0 while `npm run dev` is running.
  *   Left / Right arrows: previous / next page of seeds
+ *   H: toggle between holding creatures in place and letting them wander (shows gaits)
  *   Drag: orbit, wheel: zoom
  */
 
@@ -21,6 +22,9 @@ const COLUMNS = 6
 const ROWS = 4
 const PAGE_SIZE = COLUMNS * ROWS
 const SPACING = 6
+// Fliers and drifters hover at this height above the pedestal
+const HOVER_HEIGHT = 1.6
+const WANDER_LIMIT = 2.4
 
 const params = new URLSearchParams(location.search)
 let firstSeed = Math.max(0, Number.parseInt(params.get('seed') ?? '0', 10) || 0)
@@ -48,8 +52,10 @@ type Cell = {
   creature: CreatureInstance
   label: HTMLDivElement
   anchorPoint: THREE.Vector3
+  grounded: boolean
 }
 let cells: Cell[] = []
+let holdStill = true
 
 function clearPage(): void {
   for (const cell of cells) {
@@ -74,17 +80,31 @@ function buildPage(): void {
     pivot.rotation.y = 0.5
     scene.add(pivot)
 
-    const creature = spawnCreatureAt(scene, new THREE.Vector3(), genome)
+    const grounded = genome.locomotion === 'walk' || genome.locomotion === 'slither'
+    const creature = spawnCreatureAt(
+      scene,
+      new THREE.Vector3(0, grounded ? 0 : HOVER_HEIGHT, 0),
+      genome,
+      { groundHeightAt: () => 0 }
+    )
     pivot.add(creature.group)
+
+    const pedestal = new THREE.Mesh(
+      new THREE.CircleGeometry(SPACING * 0.45, 40),
+      new THREE.MeshStandardMaterial({ color: 0x232733 })
+    )
+    pedestal.rotation.x = -Math.PI / 2
+    pedestal.position.y = -0.01
+    pivot.add(pedestal)
 
     const label = document.createElement('div')
     label.className = 'label'
     label.innerHTML = `${seed} ${generateSpeciesName(genome)}<small>${genome.bodyPlan} · ${genome.archetype} · r${genome.rarity.toFixed(2)}</small>`
     document.body.appendChild(label)
 
-    cells.push({ pivot, creature, label, anchorPoint: pivot.position.clone().setY(-1.6) })
+    cells.push({ pivot, creature, label, grounded, anchorPoint: pivot.position.clone().setY(-1.6) })
   }
-  hud.textContent = `Seeds ${firstSeed}–${firstSeed + PAGE_SIZE - 1}  ·  ←/→ page  ·  invalid genomes: ${invalid}`
+  hud.textContent = `Seeds ${firstSeed}–${firstSeed + PAGE_SIZE - 1}  ·  ←/→ page  ·  H: ${holdStill ? 'let them wander' : 'hold still'}  ·  invalid genomes: ${invalid}`
 }
 
 function resize(): void {
@@ -97,6 +117,7 @@ window.addEventListener('resize', resize)
 window.addEventListener('keydown', (event) => {
   if (event.key === 'ArrowRight') firstSeed += PAGE_SIZE
   else if (event.key === 'ArrowLeft') firstSeed = Math.max(0, firstSeed - PAGE_SIZE)
+  else if (event.key.toLowerCase() === 'h') holdStill = !holdStill
   else return
   history.replaceState(null, '', `?seed=${firstSeed}`)
   buildPage()
@@ -110,10 +131,19 @@ function frame(): void {
   const t = clock.elapsedTime
 
   for (const cell of cells) {
-    // Hold each creature at its pedestal and facing the camera; behavior would wander it away
-    cell.creature.anchor.set(0, 0, 0)
+    const { anchor, group } = cell.creature
+    if (holdStill) {
+      // Pin to the pedestal and face the camera; behavior would wander it away
+      anchor.x = 0
+      anchor.z = 0
+      if (!cell.grounded) anchor.y = HOVER_HEIGHT
+    } else if (Math.hypot(anchor.x, anchor.z) > WANDER_LIMIT) {
+      // Free roaming, but pull back toward the pedestal so it stays in its cell
+      anchor.x *= 0.2
+      anchor.z *= 0.2
+    }
     cell.creature.update(dt, t, camera, [])
-    cell.creature.group.rotation.y = 0
+    if (holdStill) group.rotation.y = 0
 
     projected.copy(cell.anchorPoint).project(camera)
     cell.label.style.left = `${((projected.x + 1) / 2) * window.innerWidth}px`

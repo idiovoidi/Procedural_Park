@@ -4,18 +4,10 @@ import type { Anatomy } from '@systems/creatures/types'
 import * as THREE from 'three'
 import { getLimbThicknessMultiplier, getSizeMultiplier } from './body-types'
 import type { CreaturePalette } from './palette'
+import type { LimbGait } from './rig'
 import { type BodyBounds, DOWN, getLimbSockets } from './sockets'
 
 type LimbType = Anatomy['limbType']
-
-/** How far each limb type may sway at idle, in radians. Stiff limbs barely move. */
-const SWAY: Record<LimbType, number> = {
-  leg: 0.05,
-  arm: 0.12,
-  fin: 0.15,
-  tendril: 0.3,
-  crystal_shard: 0.02,
-}
 
 type LimbSize = {
   scale: number
@@ -48,7 +40,7 @@ export function buildLimbs(
       const limb = buildLimb(set.type, palette, size)
       limb.position.copy(socket.position)
       limb.quaternion.setFromUnitVectors(DOWN, socket.direction)
-      limb.userData.swayAmp = SWAY[set.type]
+      limb.userData.gait = { type: set.type, row: socket.row, side: socket.side } satisfies LimbGait
       root.add(limb)
       limbs.push(limb)
     }
@@ -59,7 +51,7 @@ export function buildLimbs(
 function buildLimb(type: LimbType, palette: CreaturePalette, size: LimbSize): THREE.Group {
   const group = new THREE.Group()
   const { scale, thickness: thicknessMultiplier, lanky, lengthScale } = size
-  const material = new THREE.MeshStandardMaterial({
+  const material = palette.standard({
     color: palette.accent,
     metalness: 0.1,
     roughness: 0.6,
@@ -115,7 +107,7 @@ function buildLimb(type: LimbType, palette: CreaturePalette, size: LimbSize): TH
 
       const fin = new THREE.Mesh(
         geometry,
-        new THREE.MeshStandardMaterial({
+        palette.standard({
           color: palette.accent,
           side: THREE.DoubleSide,
           transparent: true,
@@ -153,7 +145,7 @@ function buildLimb(type: LimbType, palette: CreaturePalette, size: LimbSize): TH
       const radius = 0.2 * scale * lengthScale
       const shard = new THREE.Mesh(
         new THREE.OctahedronGeometry(radius),
-        new THREE.MeshStandardMaterial({
+        palette.standard({
           color: palette.accent,
           metalness: 0.7,
           roughness: 0.2,

@@ -27,7 +27,7 @@ export function buildAntennae(
     const x = (i - (count - 1) / 2) * spacing
     const antenna = new THREE.Mesh(
       new THREE.CapsuleGeometry(0.03 * sizeMultiplier, length, 6, 10),
-      new THREE.MeshStandardMaterial({ color: palette.accent })
+      palette.standard({ color: palette.accent })
     )
     antenna.position.set(x, anatomy.headSize * 0.65 + length / 2, anatomy.headSize * 0.25)
     antenna.rotation.z = -Math.sign(x) * 0.35
@@ -57,7 +57,7 @@ export function buildEars(
         // Triangular pointed ears
         ear = new THREE.Mesh(
           new THREE.ConeGeometry(0.15 * sizeMultiplier, 0.4 * sizeMultiplier, 4),
-          new THREE.MeshStandardMaterial({ color: palette.base })
+          palette.standard({ color: palette.base })
         )
         ear.rotation.z = side * Math.PI * 0.3
         break
@@ -66,7 +66,7 @@ export function buildEars(
         // Round ears
         ear = new THREE.Mesh(
           new THREE.SphereGeometry(0.2 * sizeMultiplier, 12, 12),
-          new THREE.MeshStandardMaterial({ color: palette.base })
+          palette.standard({ color: palette.base })
         )
         ear.scale.set(0.6, 1.0, 0.3)
         break
@@ -75,7 +75,7 @@ export function buildEars(
         // Floppy hanging ears
         ear = new THREE.Mesh(
           new THREE.PlaneGeometry(0.25 * sizeMultiplier, 0.5 * sizeMultiplier),
-          new THREE.MeshStandardMaterial({ color: palette.base, side: THREE.DoubleSide })
+          palette.standard({ color: palette.base, side: THREE.DoubleSide })
         )
         ear.rotation.y = side * Math.PI * 0.5
         ear.rotation.z = side * Math.PI * 0.2
@@ -85,7 +85,7 @@ export function buildEars(
         // Fish-like fin ears
         ear = new THREE.Mesh(
           new THREE.ConeGeometry(0.2 * sizeMultiplier, 0.3 * sizeMultiplier, 3),
-          new THREE.MeshStandardMaterial({
+          palette.standard({
             color: palette.accent,
             side: THREE.DoubleSide,
             transparent: true,
@@ -125,7 +125,7 @@ export function buildHorns(
         // Straight pointed horn
         horn = new THREE.Mesh(
           new THREE.ConeGeometry(0.08 * sizeMultiplier, 0.6 * sizeMultiplier, 8),
-          new THREE.MeshStandardMaterial({ color: palette.accent, metalness: 0.3, roughness: 0.4 })
+          palette.standard({ color: palette.accent, metalness: 0.3, roughness: 0.4 })
         )
         horn.rotation.x = -Math.PI * 0.1
         break
@@ -142,7 +142,7 @@ export function buildHorns(
               0.15 * sizeMultiplier,
               8
             ),
-            new THREE.MeshStandardMaterial({ color: palette.accent, metalness: 0.3 })
+            palette.standard({ color: palette.accent, metalness: 0.3 })
           )
           seg.position.y = 0.12 * sizeMultiplier
           seg.rotation.x = -0.3
@@ -164,7 +164,7 @@ export function buildHorns(
         const tubeGeometry = new THREE.TubeGeometry(curve, 20, 0.05 * sizeMultiplier, 8, false)
         horn = new THREE.Mesh(
           tubeGeometry,
-          new THREE.MeshStandardMaterial({ color: palette.accent, metalness: 0.4 })
+          palette.standard({ color: palette.accent, metalness: 0.4 })
         )
         break
       }
@@ -173,7 +173,7 @@ export function buildHorns(
         const antlerGroup = new THREE.Group()
         const main = new THREE.Mesh(
           new THREE.CapsuleGeometry(0.04 * sizeMultiplier, 0.5 * sizeMultiplier, 6, 8),
-          new THREE.MeshStandardMaterial({ color: palette.accent })
+          palette.standard({ color: palette.accent })
         )
         main.position.y = 0.25 * sizeMultiplier
         antlerGroup.add(main)
@@ -182,7 +182,7 @@ export function buildHorns(
         for (let b = 0; b < 2; b++) {
           const branch = new THREE.Mesh(
             new THREE.CapsuleGeometry(0.03 * sizeMultiplier, 0.25 * sizeMultiplier, 6, 8),
-            new THREE.MeshStandardMaterial({ color: palette.accent })
+            palette.standard({ color: palette.accent })
           )
           branch.position.set((b === 0 ? -0.1 : 0.1) * sizeMultiplier, 0.35 * sizeMultiplier, 0)
           branch.rotation.z = (b === 0 ? 1 : -1) * Math.PI * 0.3
@@ -233,8 +233,8 @@ export function buildFurTufts(
     // Create multiple small spheres for fluffy effect
     for (let i = 0; i < 3; i++) {
       const tuft = new THREE.Mesh(
-        new THREE.SphereGeometry(0.08 * sizeMultiplier, 8, 8),
-        new THREE.MeshStandardMaterial({ color: palette.base, roughness: 0.9 })
+        palette.geometry('fur-puff', () => new THREE.SphereGeometry(0.08 * sizeMultiplier, 8, 8)),
+        palette.standard({ color: palette.base, roughness: 0.9 })
       )
       tuft.position.set(
         randomCenteredSeeded(rand) * 0.1,
@@ -277,8 +277,8 @@ export function buildScales(
       const position = onSurface(bounds, new THREE.Vector3(Math.sin(phi), Math.cos(phi), z), 1.01)
 
       const scale = new THREE.Mesh(
-        new THREE.CircleGeometry(0.08 * sizeMultiplier, 6),
-        new THREE.MeshStandardMaterial({
+        palette.geometry('scale-plate', () => new THREE.CircleGeometry(0.08 * sizeMultiplier, 6)),
+        palette.standard({
           color: palette.accent,
           metalness: 0.4,
           roughness: 0.3,

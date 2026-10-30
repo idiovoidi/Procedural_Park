@@ -14,7 +14,9 @@ import {
   buildTails,
   buildTorso,
   buildWings,
+  createLimbRigs,
   makePalette,
+  updateLimbRigs,
 } from '@rendering/models/creature'
 import { getSizeMultiplier } from '@rendering/models/creature/body-types'
 import * as THREE from 'three'
@@ -41,6 +43,14 @@ import type { BehaviorState, CreatureInstance } from './types'
 
 const UP = new THREE.Vector3(0, 1, 0)
 
+export type SpawnOptions = {
+  /** Terrain height lookup. Walking and slithering creatures stand on it; others ignore it. */
+  groundHeightAt?: (x: number, z: number) => number
+}
+
+// Speed at which a creature's gait reaches full stride, in world units per second
+const FULL_STRIDE_SPEED = 1.5
+
 /** A part's resting rotation, so idle animation sways around it instead of replacing it. */
 type Rest = { object: THREE.Object3D; x: number; y: number; z: number }
 
@@ -56,7 +66,8 @@ function captureRest(objects: THREE.Object3D[]): Rest[] {
 export function spawnCreatureNearPath(
   scene: THREE.Scene,
   curve: THREE.CatmullRomCurve3,
-  genome: Genome
+  genome: Genome,
+  options: SpawnOptions = {}
 ): CreatureInstance {
   const rand = createSeededRandom(genome.partSeeds.placement)
   const t = rand()
@@ -69,21 +80,23 @@ export function spawnCreatureNearPath(
     .addScaledVector(side, offset)
     .add(new THREE.Vector3(0, -0.2 + rand() * 1.6, 0))
 
-  return buildCreature(scene, genome, position)
+  return buildCreature(scene, genome, position, options)
 }
 
 export function spawnCreatureAt(
   scene: THREE.Scene,
   position: THREE.Vector3,
-  genome: Genome
+  genome: Genome,
+  options: SpawnOptions = {}
 ): CreatureInstance {
-  return buildCreature(scene, genome, position.clone())
+  return buildCreature(scene, genome, position.clone(), options)
 }
 
 function buildCreature(
   scene: THREE.Scene,
   genome: Genome,
-  position: THREE.Vector3
+  position: THREE.Vector3,
+  options: SpawnOptions
 ): CreatureInstance {
   const anatomy = deriveAnatomy(genome)
   const palette = makePalette(genome.palette)
@@ -102,7 +115,7 @@ function buildCreature(
   const head = buildHead(headStream, anatomy, palette, bounds)
   if (head) group.add(head)
 
-  const eyes = buildEyes(headStream, anatomy, head)
+  const eyes = buildEyes(headStream, anatomy, palette, head)
   const { mouth: _mouth, lowerJaw } = buildMouth(headStream, anatomy, head, palette)
   const limbs = buildLimbs(streamFor('limbs'), anatomy, palette, group, bounds)
   const wings = buildWings(streamFor('wings'), anatomy, palette, group, bounds)
@@ -117,7 +130,7 @@ function buildCreature(
   const furTufts = buildFurTufts(decorStream, anatomy, palette, group, bounds)
   const scales = buildScales(decorStream, anatomy, palette, group, bounds)
 
-  const limbRest = captureRest(limbs)
+  const limbRigs = createLimbRigs(limbs, anatomy.locomotion)
   const tailRest = captureRest(tails)
   const antennaRest = captureRest(antennae)
   const earRest = captureRest(ears)
@@ -129,6 +142,14 @@ function buildCreature(
     `Creature ${genome.seed} (${genome.bodyPlan}, ${genome.archetype}): ${limbs.length} limbs, ${wings.length} wings, ${tails.length} tails, ${ears.length} ears, ${horns.length} horns, ${spines.length} spines, pattern: ${anatomy.pattern}`
   )
 
+  // Walkers and slitherers stand on the terrain with their lowest point touching it
+  const groundHeightAt =
+    anatomy.locomotion === 'walk' || anatomy.locomotion === 'slither'
+      ? options.groundHeightAt
+      : undefined
+  const footOffset = -new THREE.Box3().setFromObject(group).min.y
+  if (groundHeightAt) position.y = groundHeightAt(position.x, position.z) + footOffset
+
   group.position.copy(position)
   scene.add(group)
 
@@ -137,7 +158,7 @@ function buildCreature(
   const behaviorRand = streamFor('behavior')
 
   // Animation parameters
-  const floatAmplitude = 0.35 + motion() * 0.4
+  const floatAmplitude = (0.35 + motion() * 0.4) * (groundHeightAt ? 0 : 1)
   const floatSpeed = 0.4 + motion() * 0.5
   const flapSpeed = 2.0 + motion() * 2.0
   const tailSpeed = 1.0 + motion() * 1.5
@@ -154,6 +175,12 @@ function buildCreature(
   let facingYaw = motion() * TAU
   let targetYaw = facingYaw
   let poseTimer = 0
+
+  // Gait state: how fast the creature is actually moving drives stride length and rate
+  let moveFactor = 0
+  let gaitPhase = motion() * TAU
+  let lastX = anchor.x
+  let lastZ = anchor.z
 
   // Territory setup for territorial creatures
   const territoryCenter = anatomy.temperament === 'territorial' ? anchor.clone() : undefined
@@ -222,9 +249,27 @@ function buildCreature(
     allCreatures?: CreatureInstance[]
   ) => {
     updateBehaviorState(dt, camera, allCreatures)
-    // Floating motion
+
+    // Measure real movement so legs only stride when the creature travels
+    if (dt > 0) {
+      const speed = Math.hypot(anchor.x - lastX, anchor.z - lastZ) / dt
+      moveFactor += (Math.min(1, speed / FULL_STRIDE_SPEED) - moveFactor) * Math.min(1, dt * 6)
+    }
+    lastX = anchor.x
+    lastZ = anchor.z
+    gaitPhase += dt * (2.5 + 5 * moveFactor)
+
+    // Ground-bound creatures follow the terrain; the rest float
+    if (groundHeightAt) {
+      const target = groundHeightAt(anchor.x, anchor.z) + footOffset
+      anchor.y += (target - anchor.y) * Math.min(1, dt * 8)
+    }
     const upDown = memoizedSin((tSec + timeOffset) * floatSpeed) * floatAmplitude
-    group.position.set(anchor.x, anchor.y + upDown, anchor.z)
+    // Walkers bounce slightly with each step
+    const stepBob = groundHeightAt
+      ? Math.abs(Math.sin(gaitPhase)) * 0.06 * sizeMultiplier * moveFactor
+      : 0
+    group.position.set(anchor.x, anchor.y + upDown + stepBob, anchor.z)
 
     // Gentle body breathing
     const s = 1.0 + memoizedSin((tSec + timeOffset) * 1.6) * 0.03
@@ -232,7 +277,7 @@ function buildCreature(
 
     // Apply behavior-based animations
     setMouthOpen(getMouthOpenAmount(behaviorState))
-    applyBehaviorEffects(behaviorState, group, tSec)
+    if (!groundHeightAt) applyBehaviorEffects(behaviorState, group, tSec)
 
     // Turn body towards target yaw smoothly
     const yawDelta = ((targetYaw - facingYaw + TAU * 1.5) % TAU) - TAU / 2
@@ -255,11 +300,11 @@ function buildCreature(
       object.rotation.x = x + memoizedCos((tSec + timeOffset) * tailSpeed * 0.7) * 0.2
     }
 
-    // Serpent bodies ripple head to tail, widening toward the tip
+    // Serpent bodies ripple head to tail, widening toward the tip and with speed
+    const rippleAmplitude = (0.05 + 0.12 * moveFactor) * sizeMultiplier
     for (let i = 0; i < bodySegments.length; i++) {
       const reach = i / Math.max(1, bodySegments.length - 1)
-      bodySegments[i].position.x =
-        memoizedSin((tSec + timeOffset) * 2.2 - i * 0.7) * 0.14 * sizeMultiplier * reach
+      bodySegments[i].position.x = memoizedSin(gaitPhase * 0.8 - i * 0.7) * rippleAmplitude * reach
     }
 
     // Antennae wiggle
@@ -296,13 +341,8 @@ function buildCreature(
       scale.scale.setScalar(shimmer)
     }
 
-    // Limbs idle sway, scaled by how loose each limb type is
-    for (let i = 0; i < limbRest.length; i++) {
-      const { object, x, z } = limbRest[i]
-      const sway = object.userData.swayAmp as number
-      object.rotation.x = x + memoizedSin((tSec + timeOffset) * 1.3 + i) * sway
-      object.rotation.z = z + memoizedCos((tSec + timeOffset) * 1.1 + i * 0.5) * sway * 0.6
-    }
+    // Limbs stride with the gait and sway gently at idle
+    updateLimbRigs(limbRigs, tSec + timeOffset, gaitPhase, moveFactor)
 
     // Eyes blink (scale pupils)
     blinkTimer -= dt

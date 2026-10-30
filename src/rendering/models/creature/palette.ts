@@ -4,13 +4,24 @@ import type { GenomePalette } from '@systems/creatures/genome/types'
 import type { Anatomy, CreatureArchetype } from '@systems/creatures/types'
 import * as THREE from 'three'
 
+/**
+ * Colors plus per-creature caches. Parts built from the same recipe (every leg,
+ * every scale, every eye) share one material or geometry instead of each making
+ * their own, which cuts GPU resources several-fold per creature.
+ */
 export interface CreaturePalette {
   base: THREE.Color
   accent: THREE.Color
+  /** A MeshStandardMaterial for these parameters, created once per creature. */
+  standard(params: THREE.MeshStandardMaterialParameters): THREE.MeshStandardMaterial
+  /** A geometry for `key`, built by `create` the first time it is asked for. */
+  geometry<T extends THREE.BufferGeometry>(key: string, create: () => T): T
 }
 
 export function makePalette(source: GenomePalette): CreaturePalette {
   const { saturation, lightness } = source
+  const materials = new Map<string, THREE.MeshStandardMaterial>()
+  const geometries = new Map<string, THREE.BufferGeometry>()
   return {
     base: new THREE.Color().setHSL(source.baseHue, saturation, lightness),
     accent: new THREE.Color().setHSL(
@@ -18,6 +29,25 @@ export function makePalette(source: GenomePalette): CreaturePalette {
       Math.min(0.95, saturation + 0.1),
       Math.min(0.85, lightness + 0.05)
     ),
+    standard(params) {
+      const key = JSON.stringify(params, (_name, value) =>
+        value instanceof THREE.Color ? value.getHexString() : value
+      )
+      let material = materials.get(key)
+      if (!material) {
+        material = new THREE.MeshStandardMaterial(params)
+        materials.set(key, material)
+      }
+      return material
+    },
+    geometry<T extends THREE.BufferGeometry>(key: string, create: () => T): T {
+      let geometry = geometries.get(key)
+      if (!geometry) {
+        geometry = create()
+        geometries.set(key, geometry)
+      }
+      return geometry as T
+    },
   }
 }
 

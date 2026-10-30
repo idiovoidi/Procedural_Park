@@ -40,7 +40,7 @@ export function buildTails(
           const thickness = 0.12 * sizeMultiplier * (1 - s / segments)
           const seg = new THREE.Mesh(
             lengthwiseCapsule(thickness, 0.25 * sizeMultiplier, 6, 8),
-            new THREE.MeshStandardMaterial({ color: palette.base })
+            palette.standard({ color: palette.base })
           )
           seg.position.z = -0.22 * sizeMultiplier
           parent.add(seg)
@@ -54,7 +54,7 @@ export function buildTails(
           const thickness = 0.1 * sizeMultiplier * (1 - s / segments)
           const seg = new THREE.Mesh(
             lengthwiseCapsule(thickness, 0.2 * sizeMultiplier, 6, 8),
-            new THREE.MeshStandardMaterial({ color: palette.base })
+            palette.standard({ color: palette.base })
           )
           seg.position.z = -0.18 * sizeMultiplier
           parent.add(seg)
@@ -63,7 +63,7 @@ export function buildTails(
         // Add tail fan
         const fan = new THREE.Mesh(
           new THREE.PlaneGeometry(0.4 * sizeMultiplier, 0.3 * sizeMultiplier),
-          new THREE.MeshStandardMaterial({
+          palette.standard({
             color: palette.accent,
             side: THREE.DoubleSide,
             transparent: true,
@@ -84,7 +84,7 @@ export function buildTails(
               6,
               8
             ),
-            new THREE.MeshStandardMaterial({ color: palette.base })
+            palette.standard({ color: palette.base })
           )
           seg.position.z = -0.22 * sizeMultiplier
           parent.add(seg)
@@ -123,7 +123,7 @@ export function buildSpines(
     const height = 0.7 + 0.6 * Math.sin(Math.PI * t)
     const spine = new THREE.Mesh(
       new THREE.ConeGeometry(0.04 * sizeMultiplier, 0.2 * sizeMultiplier * height, 4),
-      new THREE.MeshStandardMaterial({ color: palette.accent, metalness: 0.2 })
+      palette.standard({ color: palette.accent, metalness: 0.2 })
     )
 
     switch (anatomy.spineType) {

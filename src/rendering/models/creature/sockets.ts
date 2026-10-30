@@ -33,6 +33,8 @@ export type Socket = {
   direction: THREE.Vector3
   /** -1 left, 1 right, 0 on the centerline. */
   side: -1 | 0 | 1
+  /** Row along the body (rows, sides) or index around the ring (underside, ring). */
+  row: number
 }
 
 export const DOWN = new THREE.Vector3(0, -1, 0)
@@ -123,12 +125,13 @@ export function getLimbSockets(
       // Hips: mirrored pairs spread along the underside, plus a rear centerline limb if odd
       rowOffsets(pairs)
         .slice(0, pairs)
-        .forEach((row) => {
+        .forEach((row, index) => {
           for (const side of [-1, 1] as const) {
             sockets.push({
               position: onSurface(bounds, new THREE.Vector3(side * 0.6, -0.5, row), 0.92),
               direction: new THREE.Vector3(side * 0.12, -1, 0).normalize(),
               side,
+              row: index,
             })
           }
         })
@@ -137,6 +140,7 @@ export function getLimbSockets(
           position: onSurface(bounds, new THREE.Vector3(0, -0.5, -0.4), 0.92),
           direction: DOWN.clone(),
           side: 0,
+          row: pairs,
         })
       }
       break
@@ -147,6 +151,7 @@ export function getLimbSockets(
           position: onSurface(bounds, new THREE.Vector3(side, 0.35, 0.2), 0.97),
           direction: new THREE.Vector3(side * 0.3, -1, 0.1).normalize(),
           side,
+          row: 0,
         })
       }
       break
@@ -155,12 +160,13 @@ export function getLimbSockets(
       // Fins: mirrored pairs along the flanks, angled outward and back
       rowOffsets(pairs)
         .slice(0, pairs)
-        .forEach((row) => {
+        .forEach((row, index) => {
           for (const side of [-1, 1] as const) {
             sockets.push({
               position: onSurface(bounds, new THREE.Vector3(side, -0.2, row * 0.55), 0.97),
               direction: new THREE.Vector3(side * 0.9, -0.35, -0.25).normalize(),
               side,
+              row: index,
             })
           }
         })
@@ -176,6 +182,7 @@ export function getLimbSockets(
           position: onSurface(bounds, new THREE.Vector3(cos * 0.55, -1, sin * 0.55), 0.92),
           direction: new THREE.Vector3(cos * 0.25, -1, sin * 0.25).normalize(),
           side: sideOf(cos),
+          row: i,
         })
       }
       break
@@ -191,6 +198,7 @@ export function getLimbSockets(
           position: onSurface(bounds, direction, 0.95),
           direction,
           side: sideOf(direction.x),
+          row: i,
         })
       }
       break
@@ -212,6 +220,7 @@ export function getWingSockets(pairs: number, bounds: BodyBounds): Socket[] {
         ),
         direction: new THREE.Vector3(side, 0, 0),
         side,
+        row: pair,
       })
     }
   }
@@ -225,6 +234,7 @@ export function getTailSockets(count: number, bounds: BodyBounds): Array<Socket 
       position: onSurface(bounds, new THREE.Vector3(side * 0.22, -0.12, -1), 0.92),
       direction: new THREE.Vector3(0, 0, -1),
       side: side as -1 | 0 | 1,
+      row: i,
       yaw: side * 0.3,
     }
   })

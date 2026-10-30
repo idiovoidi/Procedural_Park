@@ -37,7 +37,7 @@ export function buildWings(
         // Main wing surface
         const mainWing = new THREE.Mesh(
           new THREE.PlaneGeometry(wingLength, wingWidth, 4, 2),
-          new THREE.MeshStandardMaterial({
+          palette.standard({
             color: palette.accent,
             side: THREE.DoubleSide,
             transparent: true,
@@ -51,7 +51,7 @@ export function buildWings(
         // Wing tip feathers
         const tipFeathers = new THREE.Mesh(
           new THREE.PlaneGeometry(wingLength * 0.4, wingWidth * 0.8, 2, 3),
-          new THREE.MeshStandardMaterial({
+          palette.standard({
             color: palette.base,
             side: THREE.DoubleSide,
             transparent: true,
@@ -73,7 +73,7 @@ export function buildWings(
 
         const membrane = new THREE.Mesh(
           new THREE.PlaneGeometry(wingLength, wingWidth, 3, 2),
-          new THREE.MeshStandardMaterial({
+          palette.standard({
             color: palette.accent,
             side: THREE.DoubleSide,
             transparent: true,
@@ -87,7 +87,7 @@ export function buildWings(
         for (let b = 0; b < 3; b++) {
           const bone = new THREE.Mesh(
             new THREE.CapsuleGeometry(0.02 * sizeMultiplier, wingLength * 0.8, 4, 6),
-            new THREE.MeshStandardMaterial({ color: palette.base })
+            palette.standard({ color: palette.base })
           )
           bone.position.set(side * wingLength * 0.3, wingWidth * (b / 3 - 0.33), 0.01)
           bone.rotation.z = side * Math.PI * 0.5
@@ -105,7 +105,7 @@ export function buildWings(
 
         const energyWing = new THREE.Mesh(
           new THREE.PlaneGeometry(wingLength, wingWidth, 1, 1),
-          new THREE.MeshStandardMaterial({
+          palette.standard({
             color: palette.accent,
             side: THREE.DoubleSide,
             transparent: true,
@@ -126,7 +126,7 @@ export function buildWings(
             2,
             2
           ),
-          new THREE.MeshStandardMaterial({
+          palette.standard({
             color: palette.accent,
             side: THREE.DoubleSide,
             transparent: true,

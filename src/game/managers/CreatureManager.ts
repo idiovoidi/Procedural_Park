@@ -30,6 +30,7 @@ export class CreatureManager {
   private uiManager: UIManager
   private stateManager: IntegratedStateManager
   private parkStructures: ParkStructures
+  private groundHeightAt?: (x: number, z: number) => number
 
   constructor(
     scene: THREE.Scene,
@@ -38,7 +39,8 @@ export class CreatureManager {
     camera: CameraController,
     uiManager: UIManager,
     stateManager: IntegratedStateManager,
-    parkStructures: ParkStructures
+    parkStructures: ParkStructures,
+    groundHeightAt?: (x: number, z: number) => number
   ) {
     this.scene = scene
     this.curve = curve
@@ -47,6 +49,7 @@ export class CreatureManager {
     this.uiManager = uiManager
     this.stateManager = stateManager
     this.parkStructures = parkStructures
+    this.groundHeightAt = groundHeightAt
   }
 
   /**
@@ -56,7 +59,9 @@ export class CreatureManager {
     // Each creature has its own seed, so adding or removing one never reshuffles the rest
     this.creatures = Array.from({ length: GAME_CONFIG.CREATURE_COUNT }, (_, index) => {
       const genome = generateGenome(hashSeed(GAME_CONFIG.WORLD_SEED, index))
-      return spawnCreatureNearPath(this.scene, this.curve, genome)
+      return spawnCreatureNearPath(this.scene, this.curve, genome, {
+        groundHeightAt: this.groundHeightAt,
+      })
     })
 
     // Update creatures state
