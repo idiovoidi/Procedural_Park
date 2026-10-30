@@ -114,9 +114,10 @@ export function mutate(genome: Genome, rate: number, seed: number): Genome {
   child.genes.glow = Math.max(0, (child.rarity - 0.75) / 0.25)
 
   const hueShift = (rand() - 0.5) * rate * 0.3
-  child.palette.baseHue = (((child.palette.baseHue + hueShift) % 1) + 1) % 1
-  child.palette.accentHue = (((child.palette.accentHue + hueShift) % 1) + 1) % 1
-  child.palette.patternHue = (((child.palette.patternHue + hueShift) % 1) + 1) % 1
+  const wrapHue = (hue: number) => hue - Math.floor(hue)
+  child.palette.baseHue = wrapHue(child.palette.baseHue + hueShift)
+  child.palette.accentHue = wrapHue(child.palette.accentHue + hueShift)
+  child.palette.patternHue = wrapHue(child.palette.patternHue + hueShift)
 
   // Style swaps: each existing part may take a different style from the theme
   if (rand() < rate) child.wings.type = pickWeighted(rand, theme.wingTypes)
