@@ -234,7 +234,6 @@ export class CreatureManager {
    * Sync creatures to subsystem state
    */
   private syncCreaturesToState(): void {
-    // TODO: Implement creature state sync when needed
     // Update creatures state
     this.stateManager.updateCreaturesState({
       activeCount: this.creatures.length,

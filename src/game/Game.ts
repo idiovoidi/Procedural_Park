@@ -104,8 +104,8 @@ export class Game {
   private setupUICallbacks(): void {
     const { ui, scene } = this.systems
 
-    ui.onRideSpeedChange = (_speed) => {
-      // TODO: Implement ride speed change
+    ui.onRideSpeedChange = (speed) => {
+      this.systems.camera.setRideSpeed(speed)
     }
 
     ui.onClearGallery = () => {
@@ -285,8 +285,7 @@ export class Game {
     // Update lab sign
     this.updateLabSign()
 
-    // Reset camera (create new instance)
-    // TODO: Add reset method to CameraController instead
+    this.systems.camera.reset()
     this.systems.ui.showToast('🔄 Ride restarted')
   }
 
@@ -702,7 +701,7 @@ export class Game {
 
       // Play sound effect
       if (result.creatureReaction === 'loved' || result.creatureReaction === 'liked') {
-        // TODO: Add feeding sound effect
+        this.systems.audio.playSoundEffect('creature_chirp')
       }
     }
   }
@@ -764,7 +763,7 @@ export class Game {
         cameraMode: this.systems.camera.getMode(),
         photos: this.galleryPhotos,
         settings: {
-          dayNightMode: 'day', // TODO: Get from scene
+          dayNightMode: this.systems.scene.getDayNightMode(),
           audioEnabled: true,
           ambientVolume: 0.5,
           shaderEnabled: this.systems.shaders.isEnabled(),
