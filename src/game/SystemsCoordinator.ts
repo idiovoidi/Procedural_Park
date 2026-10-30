@@ -101,7 +101,7 @@ export class SystemsCoordinator {
       uiManager,
       stateManager,
       sceneManager.parkStructures,
-      (x, z) => sceneManager.terrainSystem.getHeightAt(x, z)
+      (x, z) => sceneManager.terrainSystem.getFloorHeightAt(x, z)
     )
 
     // Initialize multiplayer manager

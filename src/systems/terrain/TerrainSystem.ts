@@ -22,6 +22,7 @@ export class TerrainSystem {
   private readonly mapSize = 200
   private readonly resolution = 64
   private readonly maxHeight = 8
+  private static readonly FLOOR_Y = -0.1
 
   constructor(scene: THREE.Scene) {
     this.scene = scene
@@ -168,7 +169,7 @@ export class TerrainSystem {
     })
     const ground = new THREE.Mesh(groundGeo, groundMat)
     ground.rotation.x = -Math.PI / 2
-    ground.position.y = -0.1 // Slightly below the main terrain
+    ground.position.y = TerrainSystem.FLOOR_Y
     ground.receiveShadow = true
     this.terrainGroup.add(ground)
   }
@@ -403,6 +404,15 @@ export class TerrainSystem {
       state = (Math.imul(1664525, state) + 1013904223) >>> 0
       return state / 0xffffffff
     }
+  }
+
+  /**
+   * Height of the ground that is actually drawn. The terrain mesh does not currently
+   * render the heightmap (see createTerrainMesh), so the visible floor is the flat
+   * fallback plane; use this, not getHeightAt, to stand things on what the player sees.
+   */
+  public getFloorHeightAt(_x: number, _z: number): number {
+    return TerrainSystem.FLOOR_Y
   }
 
   public getHeightAt(x: number, z: number): number {

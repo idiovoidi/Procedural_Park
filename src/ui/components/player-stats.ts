@@ -18,8 +18,14 @@ export type { InventoryItem }
 export class PlayerStats extends UIComponentBase {
   protected displayStyle = 'flex'
 
-  // Avatar preview
-  private avatar = new AvatarPreview(268)
+  // Avatar preview. Created on first use because the base constructor builds the
+  // container before this class's field initializers have run.
+  // `declare` emits no initializer, which would otherwise reset the value after super() returns.
+  private declare avatarPreview?: AvatarPreview
+  private get avatar(): AvatarPreview {
+    this.avatarPreview ??= new AvatarPreview(268)
+    return this.avatarPreview
+  }
 
   // Inventory
   private inventory: InventoryItem[] = []
