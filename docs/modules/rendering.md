@@ -200,13 +200,6 @@ shaderManager.updateUniforms('myShader', { staticValue })
 3. Add to ShaderManager
 4. Export from `rendering/shaders/index.ts`
 
-### Adding a New Effect
-
-1. Create effect file: `rendering/visual-effects/MyEffect.ts`
-2. Extend postprocessing `Effect` class
-3. Add to VisualEffectsManager
-4. Export from `rendering/visual-effects/index.ts`
-
 ### Adding Texture Generation
 
 1. Add function to `rendering/textures/texture-generator.ts`
@@ -231,15 +224,4 @@ Profile rendering performance:
 import Stats from 'three/examples/jsm/libs/stats.module'
 const stats = new Stats()
 document.body.appendChild(stats.dom)
-```
-
-### Effect Not Visible
-
-Check effect order and intensity:
-```typescript
-// Increase intensity
-vfx.enableFilmGrain({ intensity: 1.0 })
-
-// Check effect is enabled
-console.log(vfx.isEffectEnabled('filmGrain'))
 ```
