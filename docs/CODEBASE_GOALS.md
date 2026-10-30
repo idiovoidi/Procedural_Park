@@ -197,7 +197,7 @@ AI Snap is a 3D wildlife photography game where players explore a procedurally g
 ### Code Organization Rules
 
 - **Core systems** → `src/systems/[system-name]/`
-- **Rendering** → `src/rendering/[scene|shaders|textures|visual-effects]/`
+- **Rendering** → `src/rendering/[scene|shaders|textures]/`
 - **Game logic** → `src/game/`
 - **UI components** → `src/ui/components/`
 - **UI managers** → `src/ui/managers/`

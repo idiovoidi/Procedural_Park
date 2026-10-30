@@ -136,8 +136,7 @@ ai-snap/
 │   ├── rendering/            # Rendering systems
 │   │   ├── scene/            # Scene management
 │   │   ├── shaders/          # Custom shaders
-│   │   ├── textures/         # Texture management
-│   │   └── visual-effects/   # Post-processing
+│   │   └── textures/         # Texture management
 │   ├── ui/                   # User interface
 │   │   ├── components/       # UI components
 │   │   └── managers/         # UI coordination
