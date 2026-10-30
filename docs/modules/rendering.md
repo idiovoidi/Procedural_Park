@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `rendering` module handles all rendering-related functionality including scene management, shaders, visual effects, and texture generation. It depends on both `core` and `systems` modules.
+The `rendering` module handles all rendering-related functionality including scene management, shaders, and texture generation. It depends on both `core` and `systems` modules.
 
 **Import Path**: `@rendering/*`
 
@@ -14,7 +14,6 @@ The `rendering` module handles all rendering-related functionality including sce
 rendering/
 ├── scene/           # Scene management
 ├── shaders/         # Shader programs
-├── visual-effects/  # Post-processing effects
 └── textures/        # Texture generation
 ```
 
@@ -113,78 +112,6 @@ export class MyCustomShader {
 }
 ```
 
-## Visual Effects System (`@rendering/visual-effects`)
-
-Post-processing effects using the postprocessing library.
-
-### Key Components
-
-- **VisualEffectsManager.ts**: Effects coordinator
-- **CRTFilter.ts**: CRT monitor simulation
-- **FilmGrainFilter.ts**: Film grain effect
-- **ChromaticAberrationFilter.ts**: Chromatic aberration effect
-
-### Usage
-
-```typescript
-import { VisualEffectsManager } from '@rendering/visual-effects'
-
-const vfx = new VisualEffectsManager(renderer, scene, camera)
-
-// Enable effects
-vfx.enableCRT({
-  scanlineIntensity: 0.5,
-  vignetteIntensity: 0.3
-})
-
-vfx.enableFilmGrain({
-  intensity: 0.2
-})
-
-vfx.enableChromaticAberration({
-  offset: 0.002
-})
-
-// Update effects
-vfx.update(deltaTime)
-```
-
-### Available Effects
-
-#### CRT Filter
-Simulates a CRT monitor with:
-- Scanlines
-- Vignette
-- Screen curvature
-- Color bleeding
-
-#### Film Grain
-Adds film grain noise:
-- Adjustable intensity
-- Animated grain pattern
-
-#### Chromatic Aberration
-Color separation effect:
-- Adjustable offset
-- RGB channel separation
-
-### Creating Custom Effects
-
-```typescript
-// visual-effects/MyCustomEffect.ts
-import { Effect } from 'postprocessing'
-
-export class MyCustomEffect extends Effect {
-  constructor() {
-    super('MyCustomEffect', fragmentShader, {
-      uniforms: new Map([
-        ['intensity', new Uniform(1.0)]
-      ])
-    })
-  }
-}
-```
-
 ## Texture System (`@rendering/textures`)
 
 Procedural texture generation for creatures and environment.
@@ -225,14 +152,10 @@ const sceneManager = new SceneManager()
 // 2. Set up shaders
 const shaderManager = new ShaderManager(renderer, scene, camera)
 
-// 3. Set up post-processing
-const vfx = new VisualEffectsManager(renderer, scene, camera)
-
-// 4. Render loop
+// 3. Render loop
 function render() {
   sceneManager.update(deltaTime)
   shaderManager.update(deltaTime)
-  vfx.render()
 }
 ```
 
@@ -266,17 +189,6 @@ if (timeChanged) {
 
 // ❌ Bad: Update every frame unnecessarily
 shaderManager.updateUniforms('myShader', { staticValue })
-```
-
-### Effect Composition
-
-Compose effects in the right order for best results:
-
-```typescript
-// Order matters!
-vfx.enableChromaticAberration() // 1. Color effects first
-vfx.enableFilmGrain()           // 2. Noise effects
-vfx.enableCRT()                 // 3. Display effects last
 ```
 
 ## Adding New Rendering Features

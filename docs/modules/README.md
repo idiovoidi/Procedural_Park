@@ -73,11 +73,10 @@ Domain-specific game systems implementing core functionality.
 ### [Rendering Module](./rendering.md)
 **Level 2 - Depends on: core, systems**
 
-Rendering systems including scene management, shaders, and effects.
+Rendering systems including scene management and shaders.
 
 - Scene (management, interactions, structures)
 - Shaders (management, custom shaders)
-- Visual Effects (CRT, film grain, chromatic aberration)
 - Textures (procedural generation)
 
 **Import**: `@rendering/*`
@@ -142,7 +141,6 @@ import { CameraController } from '@systems/camera'
 // Rendering
 import { SceneManager } from '@rendering/scene'
 import { ShaderManager } from '@rendering/shaders'
-import { VisualEffectsManager } from '@rendering/visual-effects'
 
 // UI
 import { UIManager } from '@ui/managers'
@@ -172,7 +170,7 @@ import { GameLoop } from '@game'
 |--------|---------------|----------|
 | **core** | Utilities, constants, types | Math utils, object pooling, game config |
 | **systems** | Game logic and systems | Creatures, terrain, camera, audio |
-| **rendering** | Visual rendering | Scene, shaders, effects, textures |
+| **rendering** | Visual rendering | Scene, shaders, textures |
 | **ui** | User interface | Gallery, settings, debug panel |
 | **multiplayer** | P2P networking | WebRTC, state sync, peer avatars |
 | **game** | Orchestration | Game loop, system coordination |
