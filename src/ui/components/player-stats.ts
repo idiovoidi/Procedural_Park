@@ -4,28 +4,22 @@
  */
 
 import type { PlayerProgress } from '@systems/state'
-import * as THREE from 'three'
+import { AvatarPreview } from './avatar-preview'
+import {
+  type InventoryItem,
+  renderBasicStats,
+  renderInventoryItems,
+  renderRarityTiers,
+} from './player-stats-views'
 import { UIComponentBase } from './UIComponentBase'
 
-export interface InventoryItem {
-  id: string
-  name: string
-  icon: string
-  description: string
-  quantity: number
-  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
-}
+export type { InventoryItem }
 
 export class PlayerStats extends UIComponentBase {
   protected displayStyle = 'flex'
 
   // Avatar preview
-  private avatarCanvas: HTMLCanvasElement | null = null
-  private avatarScene: THREE.Scene | null = null
-  private avatarCamera: THREE.PerspectiveCamera | null = null
-  private avatarRenderer: THREE.WebGLRenderer | null = null
-  private avatarMesh: THREE.Group | null = null
-  private animationId: number | null = null
+  private avatar = new AvatarPreview(268)
 
   // Inventory
   private inventory: InventoryItem[] = []
@@ -179,16 +173,13 @@ export class PlayerStats extends UIComponentBase {
     avatarCard.appendChild(avatarTitle)
 
     // Avatar canvas
-    this.avatarCanvas = document.createElement('canvas')
-    this.avatarCanvas.width = 268
-    this.avatarCanvas.height = 268
-    this.avatarCanvas.style.cssText = `
+    this.avatar.canvas.style.cssText = `
       width: 100%;
       border-radius: 8px;
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       border: 2px solid rgba(74, 222, 128, 0.3);
     `
-    avatarCard.appendChild(this.avatarCanvas)
+    avatarCard.appendChild(this.avatar.canvas)
 
     column.appendChild(avatarCard)
 
@@ -301,195 +292,12 @@ export class PlayerStats extends UIComponentBase {
     return column
   }
 
-  private initAvatarPreview(): void {
-    if (!this.avatarCanvas) return
-
-    // Setup Three.js scene
-    this.avatarScene = new THREE.Scene()
-    this.avatarScene.background = new THREE.Color(0x0f172a)
-
-    // Camera
-    this.avatarCamera = new THREE.PerspectiveCamera(
-      50,
-      this.avatarCanvas.width / this.avatarCanvas.height,
-      0.1,
-      100
-    )
-    this.avatarCamera.position.set(0, 1.5, 4)
-    this.avatarCamera.lookAt(0, 1, 0)
-
-    // Renderer
-    this.avatarRenderer = new THREE.WebGLRenderer({
-      canvas: this.avatarCanvas,
-      antialias: true,
-      alpha: false,
-    })
-    this.avatarRenderer.setSize(this.avatarCanvas.width, this.avatarCanvas.height)
-    this.avatarRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
-    this.avatarScene.add(ambientLight)
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
-    directionalLight.position.set(2, 3, 2)
-    this.avatarScene.add(directionalLight)
-
-    const rimLight = new THREE.DirectionalLight(0x4ade80, 0.4)
-    rimLight.position.set(-2, 1, -2)
-    this.avatarScene.add(rimLight)
-
-    // Create avatar mesh
-    this.avatarMesh = this.createAvatarMesh()
-    this.avatarScene.add(this.avatarMesh)
-
-    // Start animation
-    this.animateAvatar()
-  }
-
-  private createAvatarMesh(): THREE.Group {
-    const group = new THREE.Group()
-
-    // Body
-    const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 16)
-    const bodyMaterial = new THREE.MeshStandardMaterial({
-      color: 0x00ffff,
-      emissive: 0x00ffff,
-      emissiveIntensity: 0.2,
-      metalness: 0.6,
-      roughness: 0.4,
-    })
-    const body = new THREE.Mesh(bodyGeometry, bodyMaterial)
-    body.position.y = 0.6
-    group.add(body)
-
-    // Head
-    const headGeometry = new THREE.SphereGeometry(0.25, 16, 16)
-    const head = new THREE.Mesh(headGeometry, bodyMaterial)
-    head.position.y = 1.4
-    group.add(head)
-
-    // Eyes
-    const eyeGeometry = new THREE.SphereGeometry(0.05, 8, 8)
-    const eyeMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      emissive: 0xffffff,
-      emissiveIntensity: 0.5,
-    })
-    const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial)
-    leftEye.position.set(-0.1, 1.45, 0.2)
-    group.add(leftEye)
-
-    const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial)
-    rightEye.position.set(0.1, 1.45, 0.2)
-    group.add(rightEye)
-
-    // Glow effect
-    const glowGeometry = new THREE.SphereGeometry(0.4, 16, 16)
-    const glowMaterial = new THREE.MeshBasicMaterial({
-      color: 0x00ffff,
-      transparent: true,
-      opacity: 0.15,
-    })
-    const glow = new THREE.Mesh(glowGeometry, glowMaterial)
-    glow.position.y = 1
-    group.add(glow)
-
-    return group
-  }
-
-  private animateAvatar(): void {
-    if (!this.avatarScene || !this.avatarCamera || !this.avatarRenderer || !this.avatarMesh) {
-      return
-    }
-
-    // Capture references for the closure
-    const mesh = this.avatarMesh
-    const scene = this.avatarScene
-    const camera = this.avatarCamera
-    const renderer = this.avatarRenderer
-
-    const animate = () => {
-      if (!this.isVisible) {
-        this.animationId = null
-        return
-      }
-
-      // Rotate avatar
-      mesh.rotation.y += 0.01
-
-      // Gentle bobbing animation
-      mesh.position.y = Math.sin(Date.now() * 0.001) * 0.05
-
-      renderer.render(scene, camera)
-      this.animationId = requestAnimationFrame(animate)
-    }
-
-    animate()
-  }
-
   public updateStats(progress: PlayerProgress): void {
-    // Update basic stats
-    const basicStatsContent = document.getElementById('basic-stats-content')
-    if (basicStatsContent) {
-      const playTimeHours = Math.floor(progress.playTime / 3600)
-      const playTimeMinutes = Math.floor((progress.playTime % 3600) / 60)
+    const basicStats = document.getElementById('basic-stats-content')
+    if (basicStats) basicStats.innerHTML = renderBasicStats(progress)
 
-      basicStatsContent.innerHTML = `
-        <div style="display: flex; justify-content: space-between;">
-          <span>📸 Photos:</span>
-          <span style="color: #4ade80; font-weight: bold;">${progress.photoCount}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between;">
-          <span>⭐ Total Score:</span>
-          <span style="color: #fbbf24; font-weight: bold;">${progress.totalScore.toLocaleString()}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between;">
-          <span>🏆 Best Score:</span>
-          <span style="color: #f59e0b; font-weight: bold;">${progress.bestScore}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between;">
-          <span>🦎 Discovered:</span>
-          <span style="color: #60a5fa; font-weight: bold;">${progress.creaturesDiscovered.size}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between;">
-          <span>⏱️ Play Time:</span>
-          <span style="color: #a78bfa; font-weight: bold;">${playTimeHours}h ${playTimeMinutes}m</span>
-        </div>
-      `
-    }
-
-    // Update detailed stats
-    const detailedStatsContent = document.getElementById('detailed-stats-content')
-    if (detailedStatsContent) {
-      const rarityColors = {
-        common: '#9ca3af',
-        uncommon: '#4ade80',
-        rare: '#60a5fa',
-        epic: '#a78bfa',
-        legendary: '#fbbf24',
-      }
-
-      detailedStatsContent.innerHTML = Object.entries(progress.rarityTiers)
-        .map(
-          ([tier, count]) => `
-        <div style="
-          background: rgba(0, 0, 0, 0.3);
-          padding: 12px;
-          border-radius: 8px;
-          border: 1px solid ${rarityColors[tier as keyof typeof rarityColors]}40;
-        ">
-          <div style="color: ${rarityColors[tier as keyof typeof rarityColors]}; font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">
-            ${tier}
-          </div>
-          <div style="color: white; font-size: 20px; font-weight: bold;">
-            ${count}
-          </div>
-        </div>
-      `
-        )
-        .join('')
-    }
+    const detailedStats = document.getElementById('detailed-stats-content')
+    if (detailedStats) detailedStats.innerHTML = renderRarityTiers(progress)
   }
 
   public setInventory(items: InventoryItem[]): void {
@@ -511,108 +319,27 @@ export class PlayerStats extends UIComponentBase {
     const inventoryGrid = document.getElementById('inventory-grid')
     if (!inventoryGrid) return
 
-    const rarityColors = {
-      common: '#9ca3af',
-      uncommon: '#4ade80',
-      rare: '#60a5fa',
-      epic: '#a78bfa',
-      legendary: '#fbbf24',
+    inventoryGrid.innerHTML = renderInventoryItems(this.inventory)
+
+    // Hover effects
+    for (const el of inventoryGrid.querySelectorAll<HTMLElement>('.inventory-item')) {
+      const restingBorder = el.style.borderColor
+      el.addEventListener('mouseenter', () => {
+        el.style.transform = 'scale(1.1)'
+        el.style.borderColor = 'rgba(74, 222, 128, 0.8)'
+      })
+      el.addEventListener('mouseleave', () => {
+        el.style.transform = 'scale(1)'
+        el.style.borderColor = restingBorder
+      })
     }
-
-    inventoryGrid.innerHTML = this.inventory
-      .map(
-        (item) => `
-      <div 
-        class="inventory-item"
-        style="
-          background: rgba(0, 0, 0, 0.5);
-          border: 2px solid ${rarityColors[item.rarity]}40;
-          border-radius: 8px;
-          padding: 8px;
-          cursor: pointer;
-          transition: all 0.2s;
-          position: relative;
-        "
-        title="${item.description}"
-      >
-        <div style="font-size: 32px; text-align: center;">${item.icon}</div>
-        <div style="font-size: 10px; color: #e5e7eb; text-align: center; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          ${item.name}
-        </div>
-        ${
-          item.quantity > 1
-            ? `<div style="
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            font-size: 10px;
-            padding: 2px 4px;
-            border-radius: 4px;
-            font-weight: bold;
-          ">${item.quantity}</div>`
-            : ''
-        }
-      </div>
-    `
-      )
-      .join('')
-
-    // Add hover effects
-    const items = inventoryGrid.querySelectorAll('.inventory-item')
-    items.forEach((item) => {
-      item.addEventListener('mouseenter', () => {
-        ;(item as HTMLElement).style.transform = 'scale(1.1)'
-        ;(item as HTMLElement).style.borderColor = 'rgba(74, 222, 128, 0.8)'
-      })
-      item.addEventListener('mouseleave', () => {
-        ;(item as HTMLElement).style.transform = 'scale(1)'
-        const rarity = this.inventory.find(
-          (i) => i.name === item.querySelector('div:nth-child(2)')?.textContent?.trim()
-        )?.rarity
-        if (rarity) {
-          const rarityColors = {
-            common: '#9ca3af',
-            uncommon: '#4ade80',
-            rare: '#60a5fa',
-            epic: '#a78bfa',
-            legendary: '#fbbf24',
-          }
-          ;(item as HTMLElement).style.borderColor = `${rarityColors[rarity]}40`
-        }
-      })
-    })
   }
 
   protected onShow(): void {
-    // Initialize avatar preview if not already done
-    if (!this.avatarScene) {
-      this.initAvatarPreview()
-    } else if (!this.animationId) {
-      this.animateAvatar()
-    }
+    this.avatar.start(() => this.isVisible)
   }
 
   protected onDispose(): void {
-    // Cleanup Three.js resources
-    if (this.avatarRenderer) {
-      this.avatarRenderer.dispose()
-    }
-
-    if (this.avatarScene) {
-      this.avatarScene.traverse((object) => {
-        if (object instanceof THREE.Mesh) {
-          object.geometry.dispose()
-          if (Array.isArray(object.material)) {
-            object.material.forEach((mat) => {
-              mat.dispose()
-            })
-          } else {
-            object.material.dispose()
-          }
-        }
-      })
-    }
+    this.avatar.dispose()
   }
 }
