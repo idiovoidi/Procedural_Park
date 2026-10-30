@@ -1,4 +1,4 @@
-import { clamp } from '@core/utils'
+import { clamp, log } from '@core/utils'
 import type * as THREE from 'three'
 import {
   createFilterFallbackTarget,
@@ -346,6 +346,6 @@ export class FilmGrainFilter extends ShaderFilterBase {
    * Log successful disposal
    */
   protected logDisposalSuccess(): void {
-    console.log('FilmGrainFilter disposed successfully')
+    log.debug('FilmGrainFilter disposed successfully')
   }
 }

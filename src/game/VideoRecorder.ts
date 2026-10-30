@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 export class VideoRecorder {
   private mediaRecorder: MediaRecorder | null = null
   private recordedChunks: Blob[] = []
@@ -59,7 +60,7 @@ export class VideoRecorder {
         }
       }, this.maxDuration)
 
-      console.log('Recording started')
+      log.debug('Recording started')
       return true
     } catch (error) {
       console.error('Failed to start recording:', error)
@@ -84,7 +85,7 @@ export class VideoRecorder {
         })
       }
 
-      console.log('Recording stopped')
+      log.debug('Recording stopped')
       return true
     } catch (error) {
       console.error('Failed to stop recording:', error)
@@ -102,7 +103,7 @@ export class VideoRecorder {
     const blob = new Blob(this.recordedChunks, { type: 'video/webm' })
     const duration = Date.now() - this.recordingStartTime
 
-    console.log(
+    log.debug(
       `Recording complete: ${(duration / 1000).toFixed(1)}s, ${(blob.size / 1024 / 1024).toFixed(2)}MB`
     )
 

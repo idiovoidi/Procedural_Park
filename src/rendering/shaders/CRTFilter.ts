@@ -1,4 +1,4 @@
-import { clampAndUpdate } from '@core/utils'
+import { clampAndUpdate, log } from '@core/utils'
 import * as THREE from 'three'
 import {
   createFilterFallbackTarget,
@@ -624,6 +624,6 @@ export class CRTFilter extends ShaderFilterBase {
    * Log successful disposal
    */
   protected logDisposalSuccess(): void {
-    console.log('CRTFilter disposed successfully')
+    log.debug('CRTFilter disposed successfully')
   }
 }

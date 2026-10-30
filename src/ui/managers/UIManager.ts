@@ -1,4 +1,5 @@
 import type { SettingsCallbacks, UICallbacks } from '@core/types'
+import { log } from '@core/utils'
 import type { ShaderConfig } from '@rendering/shaders'
 import { type ShaderDebugCallbacks, ShaderDebugUI } from '@rendering/shaders'
 import type { FoodItem } from '@systems/food'
@@ -62,7 +63,7 @@ export class UIManager {
     if (!this.toggleSaveLoadBtn) {
       console.error('toggleSaveLoad button not found in DOM!')
     } else {
-      console.log('toggleSaveLoad button found:', this.toggleSaveLoadBtn)
+      log.debug('toggleSaveLoad button found:', this.toggleSaveLoadBtn)
     }
 
     this.setupEventListeners()
@@ -89,9 +90,9 @@ export class UIManager {
 
     // Setup save/load button
     if (this.toggleSaveLoadBtn) {
-      console.log('Adding click listener to save/load button')
+      log.debug('Adding click listener to save/load button')
       this.toggleSaveLoadBtn.addEventListener('click', () => {
-        console.log('Save/load button clicked!')
+        log.debug('Save/load button clicked!')
         this.audioCallbacks.onClick?.()
         this.toggleSaveLoadMenu()
       })
@@ -239,7 +240,7 @@ export class UIManager {
 
   // Save/Load methods
   public toggleSaveLoadMenu() {
-    console.log('toggleSaveLoadMenu called')
+    log.debug('toggleSaveLoadMenu called')
     this.saveLoadMenu.toggle()
   }
 

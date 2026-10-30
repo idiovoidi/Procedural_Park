@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 /**
  * SystemsCoordinator
  * Initializes and coordinates all game systems
@@ -203,7 +204,7 @@ export class SystemsCoordinator {
 
     // Listen for flow state changes
     state.onFlowStateChange((newState, prevState) => {
-      console.log(`Game state: ${prevState} → ${newState}`)
+      log.debug(`Game state: ${prevState} → ${newState}`)
       this.handleStateChange(newState, prevState)
     })
 
@@ -216,9 +217,9 @@ export class SystemsCoordinator {
       const mpState = event.newState as import('@systems/state').MultiplayerState
       const prevState = event.previousState as import('@systems/state').MultiplayerState
       if (mpState.isConnected && !prevState.isConnected) {
-        console.log('Multiplayer connected')
+        log.debug('Multiplayer connected')
       } else if (!mpState.isConnected && prevState.isConnected) {
-        console.log('Multiplayer disconnected')
+        log.debug('Multiplayer disconnected')
       }
     })
   }

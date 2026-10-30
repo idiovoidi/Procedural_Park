@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 import * as THREE from 'three'
 import {
   type ChromaticAberrationConfig,
@@ -151,7 +152,7 @@ export class VisualEffectsManager {
         }
       }
 
-      console.log('Visual effects initialized successfully')
+      log.debug('Visual effects initialized successfully')
     } catch (error) {
       console.error('Critical failure during visual effects initialization:', error)
       // Continue with degraded functionality rather than throwing
@@ -201,7 +202,7 @@ export class VisualEffectsManager {
     // Sort filters by order to ensure consistent application
     this.filters.sort((a, b) => a.order - b.order)
 
-    console.log(`Filter pipeline setup with ${this.filters.length} filters`)
+    log.debug(`Filter pipeline setup with ${this.filters.length} filters`)
   }
 
   /**
@@ -239,14 +240,14 @@ export class VisualEffectsManager {
 
         if (fallbackTarget) {
           this.renderTargets.push(fallbackTarget)
-          console.log(`Created fallback render target ${i}`)
+          log.debug(`Created fallback render target ${i}`)
         } else {
           console.error(`Failed to create fallback render target ${i}`)
         }
       }
     }
 
-    console.log(`Created ${this.renderTargets.length} render targets for ${size.x}x${size.y}`)
+    log.debug(`Created ${this.renderTargets.length} render targets for ${size.x}x${size.y}`)
   }
 
   /**
@@ -524,7 +525,7 @@ export class VisualEffectsManager {
         const resultTarget = filterInfo.filter.apply(this.renderer, inputTexture, outputTarget)
 
         if (resultTarget?.texture) {
-          console.log(`Successfully recovered ${filterInfo.name} filter`)
+          log.debug(`Successfully recovered ${filterInfo.name} filter`)
           return resultTarget
         }
       }
@@ -679,7 +680,7 @@ export class VisualEffectsManager {
       this.renderer.setRenderTarget(null)
       this.renderer.render(this.gameScene, this.gameCamera)
 
-      console.log('Successfully recovered with direct rendering')
+      log.debug('Successfully recovered with direct rendering')
     } catch (fallbackError) {
       console.error('Critical error: Failed to fallback to direct rendering:', fallbackError)
     }
@@ -689,7 +690,7 @@ export class VisualEffectsManager {
    * Handle automatic quality level changes from performance monitor
    */
   private handleQualityChange(qualityLevel: QualityLevel): void {
-    console.log(`Automatically adjusting quality to: ${qualityLevel.name}`)
+    log.debug(`Automatically adjusting quality to: ${qualityLevel.name}`)
 
     try {
       // Apply quality settings to effects configuration
@@ -865,7 +866,7 @@ export class VisualEffectsManager {
       // Rebuild filter pipeline if any effects were enabled/disabled
       this.rebuildFilterPipelineIfNeeded(oldConfig, this.config)
 
-      console.log('Visual effects configuration updated successfully')
+      log.debug('Visual effects configuration updated successfully')
     } catch (error) {
       console.error('Failed to update visual effects configuration:', error)
 
@@ -1050,7 +1051,7 @@ export class VisualEffectsManager {
 
     if (needsRebuild) {
       this.setupFilterPipeline()
-      console.log('Filter pipeline rebuilt due to effect enable/disable changes')
+      log.debug('Filter pipeline rebuilt due to effect enable/disable changes')
     }
   }
 
@@ -1301,11 +1302,11 @@ export class VisualEffectsManager {
    * Handle successful recovery reports
    */
   private handleRecovery(recovery: ErrorReport): void {
-    console.log(`Visual Effects Recovery: ${recovery.message}`)
+    log.debug(`Visual Effects Recovery: ${recovery.message}`)
 
     if (recovery.type === 'webgl_context') {
       // Context recovered - reinitialize effects
-      console.log('WebGL context recovered - reinitializing visual effects')
+      log.debug('WebGL context recovered - reinitializing visual effects')
       try {
         this.initializeEffects()
         this.setupFilterPipeline()
@@ -1325,19 +1326,19 @@ export class VisualEffectsManager {
     // Disable high-memory effects first
     if (this.config.crt.enabled) {
       this.config.crt.enabled = false
-      console.log('Disabled CRT effects due to memory pressure')
+      log.debug('Disabled CRT effects due to memory pressure')
     }
 
     if (this.config.chromatic.enabled) {
       this.config.chromatic.enabled = false
-      console.log('Disabled chromatic aberration due to memory pressure')
+      log.debug('Disabled chromatic aberration due to memory pressure')
     }
 
     // Reduce low-res resolution
     if (this.config.lowRes.enabled) {
       this.config.lowRes.width = Math.max(320, Math.floor(this.config.lowRes.width * 0.75))
       this.config.lowRes.height = Math.max(180, Math.floor(this.config.lowRes.height * 0.75))
-      console.log(
+      log.debug(
         `Reduced low-res resolution to ${this.config.lowRes.width}x${this.config.lowRes.height}`
       )
     }
@@ -1466,7 +1467,7 @@ export class VisualEffectsManager {
     }
 
     this.updateConfig(defaultConfig)
-    console.log('Visual effects configuration reset to defaults')
+    log.debug('Visual effects configuration reset to defaults')
   }
 
   /**
@@ -1620,7 +1621,7 @@ export class VisualEffectsManager {
         })
       }
 
-      console.log('Visual effects manager resized successfully')
+      log.debug('Visual effects manager resized successfully')
     } catch (error) {
       console.error('Failed to handle resize:', error)
     }
@@ -1673,7 +1674,7 @@ export class VisualEffectsManager {
       // Clear filter pipeline
       this.filters = []
 
-      console.log('VisualEffectsManager disposed successfully')
+      log.debug('VisualEffectsManager disposed successfully')
     } catch (error) {
       console.error('Error during VisualEffectsManager disposal:', error)
     }

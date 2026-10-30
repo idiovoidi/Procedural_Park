@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 import {
   DEVELOPMENT_PRESETS,
   INSCRYPTION_SHADER_DEFAULTS,
@@ -546,13 +547,13 @@ export class ShaderDebugUI {
       this.ditheringInput,
       'ditheringIntensity',
       (value) => {
-        console.log('Dithering slider changed to:', value)
+        log.debug('Dithering slider changed to:', value)
         this.callbacks.onConfigChange({ ditheringIntensity: value })
       }
     )
 
     this.setupSliderInputPair(this.pixelSizeSlider, this.pixelSizeInput, 'pixelSize', (value) => {
-      console.log('Pixel Size slider changed to:', value)
+      log.debug('Pixel Size slider changed to:', value)
       this.callbacks.onConfigChange({ pixelSize: value })
     })
 

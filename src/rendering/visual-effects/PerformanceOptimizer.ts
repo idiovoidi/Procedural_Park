@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 /**
  * Performance optimization utilities for visual effects
  * Handles shader profiling, memory management, and device capability detection
@@ -57,7 +58,7 @@ export class PerformanceOptimizer {
     this.gl = renderer.getContext()
     this.deviceCapabilities = this.detectDeviceCapabilities()
 
-    console.log('Performance Optimizer initialized:', {
+    log.debug('Performance Optimizer initialized:', {
       webglVersion: this.deviceCapabilities.webglVersion,
       maxTextureSize: this.deviceCapabilities.maxTextureSize,
       isLowEndDevice: this.deviceCapabilities.isLowEndDevice,
@@ -180,7 +181,7 @@ export class PerformanceOptimizer {
 
       this.shaderProfiles.set(name, profile)
 
-      console.log(`Shader profile for ${name}:`, {
+      log.debug(`Shader profile for ${name}:`, {
         compilationTime: `${compilationTime.toFixed(2)}ms`,
         executionTime: `${executionTime.toFixed(2)}ms`,
         complexity,

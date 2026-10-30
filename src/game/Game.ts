@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 /**
  * Game
  * Main game class - now simplified and modular
@@ -32,9 +33,9 @@ export class Game {
 
     // Always expose game instance for debugging
     ;(window as unknown as { game: Game }).game = this
-    console.log('🎮 AI Snap Game initialized')
-    console.log('Environment:', import.meta.env.DEV ? 'Development' : 'Production')
-    console.log('Game instance available as window.game')
+    log.debug('🎮 AI Snap Game initialized')
+    log.debug('Environment:', import.meta.env.DEV ? 'Development' : 'Production')
+    log.debug('Game instance available as window.game')
   }
 
   /**
@@ -221,7 +222,7 @@ export class Game {
     // Log detailed score breakdown
     if (result.creature) {
       const breakdown = photo.getScoreBreakdown(result.creature, this.systems.camera.camera)
-      console.log(`Photo of ${result.creatureName}:`, breakdown)
+      log.debug(`Photo of ${result.creatureName}:`, breakdown)
     }
 
     // Send photo event to peer
@@ -232,11 +233,11 @@ export class Game {
    * Export creature card
    */
   private async exportCreatureCard(): Promise<void> {
-    console.log('🎯 exportCreatureCard called')
+    log.debug('🎯 exportCreatureCard called')
     const { photo, scene, ui, creatures } = this.systems
 
     try {
-      console.log('📸 Calling photo.exportCreatureCard...')
+      log.debug('📸 Calling photo.exportCreatureCard...')
       const result = await photo.exportCreatureCard(
         creatures.getAllCreatures(),
         this.systems.camera.camera,
@@ -244,12 +245,12 @@ export class Game {
         GAME_CONFIG.WORLD_SEED
       )
 
-      console.log('📦 Export result:', result ? 'Success' : 'No creature found')
+      log.debug('📦 Export result:', result ? 'Success' : 'No creature found')
 
       if (result) {
-        console.log('➕ Adding to collection:', result.metadata.creatureName)
+        log.debug('➕ Adding to collection:', result.metadata.creatureName)
         const added = ui.addCreatureToCollection(result.metadata, result.thumbnail)
-        console.log('Collection add result:', added ? 'Added' : 'Already exists')
+        log.debug('Collection add result:', added ? 'Added' : 'Already exists')
 
         if (added) {
           ui.showToast(`📦 Captured ${result.metadata.creatureName}!`)

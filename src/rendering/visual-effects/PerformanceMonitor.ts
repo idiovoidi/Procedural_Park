@@ -1,3 +1,5 @@
+import { log } from '@core/utils'
+
 /**
  * Performance monitoring system for visual effects
  * Implements FPS tracking, performance impact measurement, and automatic quality adjustment
@@ -327,10 +329,10 @@ export class PerformanceMonitor {
 
     const qualityLevel = this.qualityLevels[newLevel]
 
-    console.log(
+    log.debug(
       `Performance: Adjusting quality from ${this.qualityLevels[oldLevel].name} to ${qualityLevel.name}`
     )
-    console.log(
+    log.debug(
       `Current FPS: ${this.metrics.averageFPS.toFixed(1)}, Frame Time: ${this.metrics.averageFrameTime.toFixed(2)}ms`
     )
 
@@ -353,7 +355,7 @@ export class PerformanceMonitor {
     this.currentQualityLevel = level
     const qualityLevel = this.qualityLevels[level]
 
-    console.log(`Manually setting quality to: ${qualityLevel.name}`)
+    log.debug(`Manually setting quality to: ${qualityLevel.name}`)
 
     if (this.onQualityChange) {
       this.onQualityChange(qualityLevel)

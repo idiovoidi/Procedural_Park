@@ -1,6 +1,7 @@
 // Barrel export for utils module
 
 export { disposeMaterial, disposeThreeObject } from './disposal'
+export { type LogLevel, log } from './logger'
 export {
   clamp,
   clampAndUpdate,

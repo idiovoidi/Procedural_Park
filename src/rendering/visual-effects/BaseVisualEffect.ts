@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 import type * as THREE from 'three'
 
 /**
@@ -48,7 +49,7 @@ export abstract class BaseVisualEffect {
    * Log successful disposal - override in subclasses for specific messages
    */
   protected logDisposalSuccess(): void {
-    console.log(`${this.constructor.name} disposed successfully`)
+    log.debug(`${this.constructor.name} disposed successfully`)
   }
 
   /**

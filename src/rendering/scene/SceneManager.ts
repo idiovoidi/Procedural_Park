@@ -1,5 +1,5 @@
 import { TAU } from '@core/constants'
-import { disposeThreeObject } from '@core/utils'
+import { disposeThreeObject, log } from '@core/utils'
 import { type ShaderConfig, ShaderManager } from '@rendering/shaders'
 import { TerrainSystem } from '@systems/terrain'
 import * as THREE from 'three'
@@ -292,7 +292,7 @@ export class SceneManager {
   private createShaderCallbacks() {
     return {
       onPerformanceAdjustment: (_config: ShaderConfig, reason: string) => {
-        console.log(`Shader quality auto-adjusted: ${reason}`)
+        log.debug(`Shader quality auto-adjusted: ${reason}`)
       },
       onPerformanceWarning: (message: string) => {
         console.warn(`Shader performance: ${message}`)

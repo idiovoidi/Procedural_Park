@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 /**
  * MultiplayerManager
  * Manages multiplayer connections and state synchronization
@@ -44,7 +45,7 @@ export class MultiplayerManager {
    */
   private setupCallbacks(): void {
     this.multiplayer.onConnected = () => {
-      console.log('Connected to peer!')
+      log.debug('Connected to peer!')
       this.uiManager.showToast('🌐 Connected to friend!')
       this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
 
@@ -56,7 +57,7 @@ export class MultiplayerManager {
     }
 
     this.multiplayer.onDisconnected = () => {
-      console.log('Disconnected from peer')
+      log.debug('Disconnected from peer')
       this.uiManager.showToast('🌐 Disconnected from friend')
       this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
 

@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 /**
  * WebRTCMultiplayer - Main coordinator for peer-to-peer multiplayer
  *
@@ -271,7 +272,7 @@ export class WebRTCMultiplayer {
    * Handle successful connection
    */
   private handleConnect(): void {
-    console.log('WebRTC connection established')
+    log.debug('WebRTC connection established')
 
     // Create peer avatar
     this.avatar = new PeerAvatar(this.scene, 'Friend')
@@ -291,7 +292,7 @@ export class WebRTCMultiplayer {
    * Handle disconnection
    */
   private handleDisconnect(): void {
-    console.log('WebRTC connection closed')
+    log.debug('WebRTC connection closed')
 
     // Stop ping interval
     if (this.pingInterval) {

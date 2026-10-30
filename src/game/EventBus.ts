@@ -1,8 +1,9 @@
+import { log } from '@core/utils'
 /**
  * Event Bus - Centralized pub/sub system for decoupled communication
  *
  * Usage:
- *   EventBus.on('photoTaken', (data) => console.log(data))
+ *   EventBus.on('photoTaken', (data) => log.debug(data))
  *   EventBus.emit('photoTaken', { score: 85, creature: 'Deer' })
  *   EventBus.off('photoTaken', handler)
  */
@@ -73,7 +74,7 @@ class EventBusClass {
     this.events[event].push(handler)
 
     if (this.debugMode) {
-      console.log(`[EventBus] Subscribed to '${String(event)}'`)
+      log.debug(`[EventBus] Subscribed to '${String(event)}'`)
     }
   }
 
@@ -110,7 +111,7 @@ class EventBusClass {
       handlers.splice(index, 1)
 
       if (this.debugMode) {
-        console.log(`[EventBus] Unsubscribed from '${String(event)}'`)
+        log.debug(`[EventBus] Unsubscribed from '${String(event)}'`)
       }
     }
   }
@@ -122,13 +123,13 @@ class EventBusClass {
     const handlers = this.events[event]
     if (!handlers || handlers.length === 0) {
       if (this.debugMode) {
-        console.log(`[EventBus] No handlers for '${String(event)}'`)
+        log.debug(`[EventBus] No handlers for '${String(event)}'`)
       }
       return
     }
 
     if (this.debugMode) {
-      console.log(`[EventBus] Emitting '${String(event)}'`, data)
+      log.debug(`[EventBus] Emitting '${String(event)}'`, data)
     }
 
     // Call handlers in order, catching errors to prevent one handler from breaking others
@@ -149,7 +150,7 @@ class EventBusClass {
     this.onceHandlers.delete(String(event))
 
     if (this.debugMode) {
-      console.log(`[EventBus] Cleared all handlers for '${String(event)}'`)
+      log.debug(`[EventBus] Cleared all handlers for '${String(event)}'`)
     }
   }
 
@@ -161,7 +162,7 @@ class EventBusClass {
     this.onceHandlers.clear()
 
     if (this.debugMode) {
-      console.log('[EventBus] Cleared all handlers')
+      log.debug('[EventBus] Cleared all handlers')
     }
   }
 
@@ -184,7 +185,7 @@ class EventBusClass {
    */
   setDebugMode(enabled: boolean): void {
     this.debugMode = enabled
-    console.log(`[EventBus] Debug mode ${enabled ? 'enabled' : 'disabled'}`)
+    log.debug(`[EventBus] Debug mode ${enabled ? 'enabled' : 'disabled'}`)
   }
 
   /**

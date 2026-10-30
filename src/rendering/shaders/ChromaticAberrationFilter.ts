@@ -1,4 +1,4 @@
-import { clampAndUpdate } from '@core/utils'
+import { clampAndUpdate, log } from '@core/utils'
 import * as THREE from 'three'
 import {
   createFilterFallbackTarget,
@@ -213,6 +213,6 @@ export class ChromaticAberrationFilter extends ShaderFilterBase {
    * Log successful disposal
    */
   protected logDisposalSuccess(): void {
-    console.log('ChromaticAberrationFilter disposed successfully')
+    log.debug('ChromaticAberrationFilter disposed successfully')
   }
 }

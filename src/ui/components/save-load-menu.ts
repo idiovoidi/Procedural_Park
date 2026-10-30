@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 /**
  * Save/Load Menu Component
  * UI for managing save slots
@@ -120,8 +121,8 @@ export class SaveLoadMenu {
   }
 
   public toggle(): void {
-    console.log('SaveLoadMenu.toggle() called, isOpen:', this.isOpen)
-    console.log('worldStateManager:', this.worldStateManager)
+    log.debug('SaveLoadMenu.toggle() called, isOpen:', this.isOpen)
+    log.debug('worldStateManager:', this.worldStateManager)
     if (this.isOpen) {
       this.close()
     } else {

@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 import type { CreatureInstance } from '@systems/creatures'
 import * as THREE from 'three'
 import { generateCreatureName } from './scoring'
@@ -38,7 +39,7 @@ export class CreatureCardExporter {
     canvas.style.display = 'none' // Hidden by default
     canvas.id = 'creature-card-debug-canvas'
     document.body.appendChild(canvas)
-    console.log('Debug canvas added to DOM (hidden)')
+    log.debug('Debug canvas added to DOM (hidden)')
 
     // Setup card scene
     this.cardScene = new THREE.Scene()
@@ -70,7 +71,7 @@ export class CreatureCardExporter {
     seed: number
   ): Promise<{ metadata: CreatureCardMetadata; thumbnail: string }> {
     const creatureName = generateCreatureName(creature)
-    console.log(`Exporting creature card for: ${creatureName}`)
+    log.debug(`Exporting creature card for: ${creatureName}`)
 
     // Clone creature group for isolated rendering
     const creatureClone = creature.group.clone(true)
@@ -81,7 +82,7 @@ export class CreatureCardExporter {
     const size = box.getSize(new THREE.Vector3())
     const maxDim = Math.max(size.x, size.y, size.z)
 
-    console.log(
+    log.debug(
       `Creature bounds - center: ${center.toArray()}, size: ${size.toArray()}, maxDim: ${maxDim}`
     )
 
@@ -111,7 +112,7 @@ export class CreatureCardExporter {
 
     // Get canvas data (WebGL canvas, no need for 2D context)
     const canvas = this.cardRenderer.domElement
-    console.log(`Canvas size: ${canvas.width}x${canvas.height}`)
+    log.debug(`Canvas size: ${canvas.width}x${canvas.height}`)
 
     // Create metadata object
     const metadata: CreatureCardMetadata = {
@@ -124,9 +125,9 @@ export class CreatureCardExporter {
     }
 
     // Create enhanced card with border and text
-    console.log('Creating enhanced card with border and name...')
+    log.debug('Creating enhanced card with border and name...')
     const enhancedCanvas = this.createEnhancedCard(canvas, creatureName, creature.rarity)
-    console.log(`Enhanced canvas size: ${enhancedCanvas.width}x${enhancedCanvas.height}`)
+    log.debug(`Enhanced canvas size: ${enhancedCanvas.width}x${enhancedCanvas.height}`)
 
     // Debug: Show enhanced canvas (always enabled)
     const debugCanvas = document.getElementById('creature-card-debug-canvas') as HTMLCanvasElement
@@ -149,7 +150,7 @@ export class CreatureCardExporter {
 
     const dataUrl = enhancedCanvas.toDataURL('image/png')
 
-    console.log(`Generated dataURL length: ${dataUrl.length} characters`)
+    log.debug(`Generated dataURL length: ${dataUrl.length} characters`)
 
     if (!dataUrl || dataUrl === 'data:,') {
       throw new Error('Failed to generate image data from canvas')
@@ -158,8 +159,8 @@ export class CreatureCardExporter {
     // Store metadata in localStorage as backup
     const metadataKey = `creature-card-${metadata.creatureName}-${Date.now()}`
     localStorage.setItem(metadataKey, JSON.stringify(metadata))
-    console.log(`Stored metadata in localStorage: ${metadataKey}`)
-    console.log(`✅ Creature card created successfully for ${creatureName}`)
+    log.debug(`Stored metadata in localStorage: ${metadataKey}`)
+    log.debug(`✅ Creature card created successfully for ${creatureName}`)
 
     // Cleanup
     this.cardScene.remove(creatureClone)
@@ -329,7 +330,7 @@ export class CreatureCardExporter {
   ): Promise<CreatureInstance | null> {
     // This would require importing the creature builder
     // For now, return the anatomy data that can be used to rebuild
-    console.log('Creature reconstruction data:', metadata)
+    log.debug('Creature reconstruction data:', metadata)
     return null
   }
 

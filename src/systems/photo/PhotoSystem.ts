@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 import type { CreatureInstance } from '@systems/creatures'
 import * as THREE from 'three'
 import { CreatureCardExporter } from './CreatureCardExporter'
@@ -114,21 +115,21 @@ export class PhotoSystem {
     metadata: import('./CreatureCardExporter').CreatureCardMetadata
     thumbnail: string
   } | null> {
-    console.log('🔍 PhotoSystem.exportCreatureCard - Starting search')
-    console.log('Total creatures:', creatures.length)
+    log.debug('🔍 PhotoSystem.exportCreatureCard - Starting search')
+    log.debug('Total creatures:', creatures.length)
 
     const best = this.findBestCreature(creatures, camera, scene)
 
-    console.log(`Checked ${creatures.length} creatures, ${best ? '1' : '0'} best found`)
+    log.debug(`Checked ${creatures.length} creatures, ${best ? '1' : '0'} best found`)
 
     if (best) {
-      console.log(`✅ Found best creature with score ${best.score}`)
-      console.log('🎨 Calling cardExporter.exportCreatureCard...')
+      log.debug(`✅ Found best creature with score ${best.score}`)
+      log.debug('🎨 Calling cardExporter.exportCreatureCard...')
       const result = await this.cardExporter.exportCreatureCard(best.c, worldSeed)
-      console.log(`✅ Card exported, result:`, result ? 'Success' : 'Failed')
+      log.debug(`✅ Card exported, result:`, result ? 'Success' : 'Failed')
       if (result) {
-        console.log(`Creature name: ${result.metadata.creatureName}`)
-        console.log(`Thumbnail length: ${result.thumbnail.length}`)
+        log.debug(`Creature name: ${result.metadata.creatureName}`)
+        log.debug(`Thumbnail length: ${result.thumbnail.length}`)
       }
       return result
     } else {

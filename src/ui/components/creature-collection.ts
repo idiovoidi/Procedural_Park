@@ -1,4 +1,5 @@
 import type { UICallbacks } from '@core/types'
+import { log } from '@core/utils'
 import type { CreatureCardMetadata } from '@systems/photo'
 
 export interface CapturedCreature {
@@ -21,10 +22,10 @@ export class CreatureCollection {
     this.toggleCollectionBtn = document.getElementById('toggleCollection') as HTMLButtonElement
     this.collectionGrid = document.getElementById('collection-grid') as HTMLDivElement
 
-    console.log('🎨 CreatureCollection initialized')
-    console.log('Panel:', this.collectionPanel ? 'Found' : 'NOT FOUND')
-    console.log('Button:', this.toggleCollectionBtn ? 'Found' : 'NOT FOUND')
-    console.log('Grid:', this.collectionGrid ? 'Found' : 'NOT FOUND')
+    log.debug('🎨 CreatureCollection initialized')
+    log.debug('Panel:', this.collectionPanel ? 'Found' : 'NOT FOUND')
+    log.debug('Button:', this.toggleCollectionBtn ? 'Found' : 'NOT FOUND')
+    log.debug('Grid:', this.collectionGrid ? 'Found' : 'NOT FOUND')
 
     this.setupEventListeners()
     this.loadFromLocalStorage()
@@ -41,9 +42,9 @@ export class CreatureCollection {
 
   private setupEventListeners() {
     if (this.toggleCollectionBtn) {
-      console.log('✅ Setting up collection button listener')
+      log.debug('✅ Setting up collection button listener')
       this.toggleCollectionBtn.addEventListener('click', () => {
-        console.log('🖱️ Collection button clicked!')
+        log.debug('🖱️ Collection button clicked!')
         this.audioCallbacks.onClick?.()
         this.toggle()
       })
@@ -54,7 +55,7 @@ export class CreatureCollection {
     const closeBtn = this.collectionPanel?.querySelector('.close-btn')
     if (closeBtn) {
       closeBtn.addEventListener('click', () => {
-        console.log('🖱️ Close button clicked!')
+        log.debug('🖱️ Close button clicked!')
         this.audioCallbacks.onClick?.()
         this.toggle()
       })
@@ -62,26 +63,26 @@ export class CreatureCollection {
   }
 
   public toggle() {
-    console.log('🔄 Toggling collection panel')
-    console.log('Panel element:', this.collectionPanel)
-    console.log('Current classes:', this.collectionPanel?.className)
+    log.debug('🔄 Toggling collection panel')
+    log.debug('Panel element:', this.collectionPanel)
+    log.debug('Current classes:', this.collectionPanel?.className)
     this.collectionPanel?.classList.toggle('hidden')
-    console.log('After toggle:', this.collectionPanel?.className)
-    console.log('Collection size:', this.capturedCreatures.length)
+    log.debug('After toggle:', this.collectionPanel?.className)
+    log.debug('Collection size:', this.capturedCreatures.length)
   }
 
   public addCreature(metadata: CreatureCardMetadata, thumbnail: string): boolean {
-    console.log('🎨 CreatureCollection.addCreature called:', metadata.creatureName)
-    console.log('📊 Current collection size:', this.capturedCreatures.length)
-    console.log('🖼️ Thumbnail length:', thumbnail.length)
+    log.debug('🎨 CreatureCollection.addCreature called:', metadata.creatureName)
+    log.debug('📊 Current collection size:', this.capturedCreatures.length)
+    log.debug('🖼️ Thumbnail length:', thumbnail.length)
 
     // Check if already captured
     const creatureId = this.getCreatureId(metadata)
-    console.log('🆔 Creature ID:', creatureId)
+    log.debug('🆔 Creature ID:', creatureId)
 
     const exists = this.capturedCreatures.some((c) => c.id === creatureId)
     if (exists) {
-      console.log('⚠️ Creature already in collection')
+      log.debug('⚠️ Creature already in collection')
       return false
     }
 
@@ -89,7 +90,7 @@ export class CreatureCollection {
     if (this.capturedCreatures.length >= this.maxCreatures) {
       const removed = this.capturedCreatures.shift()
       if (removed) {
-        console.log('🗑️ Removing oldest creature:', removed.metadata.creatureName)
+        log.debug('🗑️ Removing oldest creature:', removed.metadata.creatureName)
         this.removeFromLocalStorage(removed.id)
       }
     }
@@ -102,11 +103,11 @@ export class CreatureCollection {
     }
 
     this.capturedCreatures.push(captured)
-    console.log('💾 Saving to localStorage...')
+    log.debug('💾 Saving to localStorage...')
     this.saveToLocalStorage(captured)
-    console.log('🎨 Rendering collection...')
+    log.debug('🎨 Rendering collection...')
     this.render()
-    console.log('✅ Creature added successfully! New size:', this.capturedCreatures.length)
+    log.debug('✅ Creature added successfully! New size:', this.capturedCreatures.length)
     return true
   }
 
@@ -203,7 +204,7 @@ export class CreatureCollection {
   }
 
   private exportCreature(creature: CapturedCreature, format: 'png' | 'jpg' = 'png') {
-    console.log('Exporting creature:', creature.metadata.creatureName, 'as', format)
+    log.debug('Exporting creature:', creature.metadata.creatureName, 'as', format)
 
     try {
       // Create a temporary canvas to convert format if needed
@@ -249,7 +250,7 @@ export class CreatureCollection {
               URL.revokeObjectURL(url)
             }, 100)
 
-            console.log(`Exported: ${filename}`)
+            log.debug(`Exported: ${filename}`)
           },
           mimeType,
           quality
@@ -321,7 +322,7 @@ export class CreatureCollection {
   }
 
   private addTestCreature() {
-    console.log('🧪 Adding test creature...')
+    log.debug('🧪 Adding test creature...')
 
     // Create a simple test image (red square)
     const canvas = document.createElement('canvas')
@@ -361,6 +362,6 @@ export class CreatureCollection {
     }
 
     const result = this.addCreature(testMetadata, testThumbnail)
-    console.log('🧪 Test creature added:', result)
+    log.debug('🧪 Test creature added:', result)
   }
 }

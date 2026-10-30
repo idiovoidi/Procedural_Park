@@ -1,6 +1,6 @@
 import { QUARTER_PI, TAU } from '@core/constants'
 import type { Random } from '@core/types'
-import { memoizedCos, memoizedSin } from '@core/utils'
+import { log, memoizedCos, memoizedSin } from '@core/utils'
 import {
   buildAntennae,
   buildEars,
@@ -100,7 +100,7 @@ function buildCreature(
     scales.length > 0 ||
     anatomy.pattern !== 'solid'
   ) {
-    console.log(
+    log.debug(
       `Creature created with: ${ears.length} ears, ${horns.length} horns, ${spines.length} spines, ${furTufts.length} fur tufts, ${scales.length} scales, pattern: ${anatomy.pattern}`
     )
   }

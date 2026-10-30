@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 /**
  * Game State Machine
  * Manages game states and transitions with validation and callbacks
@@ -105,7 +106,7 @@ export class GameStateMachine {
     const newCallbacks = this.stateCallbacks.get(newState)
     newCallbacks?.onEnter?.(this.previousState)
 
-    console.log(`State transition: ${this.previousState} -> ${this.currentState}`)
+    log.debug(`State transition: ${this.previousState} -> ${this.currentState}`)
     return true
   }
 

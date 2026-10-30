@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 import * as THREE from 'three'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -47,7 +48,7 @@ export class ShaderManager {
     const performanceCallbacks: PerformanceCallbacks = {
       onQualityAdjustment: (newConfig, reason) => {
         if (this.autoPerformanceAdjustment) {
-          console.log(`Auto-adjusting shader quality: ${reason}`)
+          log.debug(`Auto-adjusting shader quality: ${reason}`)
           this.updateConfig(newConfig)
           this.callbacks.onPerformanceAdjustment?.(newConfig, reason)
         }
@@ -67,7 +68,7 @@ export class ShaderManager {
       // this.performanceMonitor.startMonitoring()
 
       // Force update all uniforms to ensure they're properly initialized
-      console.log('Initializing shader uniforms with config:', this.config)
+      log.debug('Initializing shader uniforms with config:', this.config)
       this.updateUniforms(this.config)
     } catch (error) {
       console.error('Failed to initialize shader system:', error)
@@ -95,7 +96,7 @@ export class ShaderManager {
       const size = this.renderer.getSize(new THREE.Vector2())
       this.setSize(size.x, size.y)
 
-      console.log('Inscryption shader initialized successfully')
+      log.debug('Inscryption shader initialized successfully')
     } catch (error) {
       console.error('Shader compilation failed:', error)
       throw error
@@ -113,11 +114,11 @@ export class ShaderManager {
     }
 
     this.contextRestoredHandler = (_event: Event) => {
-      console.log('WebGL context restored, reinitializing shader')
+      log.debug('WebGL context restored, reinitializing shader')
       try {
         this.initializePostProcessing()
         this.hasShaderError = false
-        console.log('Shader successfully restored after context recovery')
+        log.debug('Shader successfully restored after context recovery')
       } catch (error) {
         console.error('Failed to restore shader after context recovery:', error)
         this.hasShaderError = true
@@ -140,7 +141,7 @@ export class ShaderManager {
       config.crtPhosphor !== undefined ||
       config.pixelSize !== undefined
     ) {
-      console.log('Updating CRT/Pixel uniforms:', {
+      log.debug('Updating CRT/Pixel uniforms:', {
         ditheringIntensity: config.ditheringIntensity,
         pixelSize: config.pixelSize,
         crtScanlines: config.crtScanlines,
@@ -238,7 +239,7 @@ export class ShaderManager {
       // Revert to last known good configuration
       try {
         this.updateUniformsSafely(this.config)
-        console.log('Reverted to previous shader configuration')
+        log.debug('Reverted to previous shader configuration')
       } catch (revertError) {
         console.error('Failed to revert shader configuration:', revertError)
         this.handleConfigurationError(error as Error)
@@ -379,7 +380,7 @@ export class ShaderManager {
       this.initializePostProcessing()
       this.hasShaderError = false
       this.config.enabled = true
-      console.log('Successfully recovered from shader error')
+      log.debug('Successfully recovered from shader error')
       return true
     } catch (error) {
       console.error('Failed to recover from shader error:', error)
@@ -426,7 +427,7 @@ export class ShaderManager {
 
   // Dispose of resources with comprehensive error handling
   dispose(): void {
-    console.log('Disposing shader manager resources...')
+    log.debug('Disposing shader manager resources...')
 
     // Track disposal errors but continue cleanup
     const errors: Error[] = []
@@ -485,7 +486,7 @@ export class ShaderManager {
         console.error(`  ${index + 1}. ${error.message}`)
       })
     } else {
-      console.log('Shader manager disposed successfully')
+      log.debug('Shader manager disposed successfully')
     }
   }
 }

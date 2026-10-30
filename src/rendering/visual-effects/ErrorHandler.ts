@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 /**
  * Comprehensive error handling and fallback mechanisms for visual effects
  * Handles shader compilation failures, WebGL context loss/restore, and recovery strategies
@@ -71,7 +72,7 @@ export class ErrorHandler {
     this.initializeFallbackShaders()
     this.setupContextLossHandling()
 
-    console.log('Error handler initialized with config:', this.config)
+    log.debug('Error handler initialized with config:', this.config)
   }
 
   /**
@@ -137,7 +138,7 @@ export class ErrorHandler {
     })
 
     canvas.addEventListener('webglcontextrestored', () => {
-      console.log('WebGL context restored')
+      log.debug('WebGL context restored')
       this.isContextLost = false
 
       // Attempt to recover
@@ -176,7 +177,7 @@ export class ErrorHandler {
       this.renderer.dispose()
 
       // The renderer should automatically recreate resources on next render
-      console.log('WebGL context recovery initiated')
+      log.debug('WebGL context recovery initiated')
 
       this.reportRecovery({
         type: 'webgl_context',
@@ -332,7 +333,7 @@ export class ErrorHandler {
         },
       })
 
-      console.log(`Created fallback shader for ${shaderName}`)
+      log.debug(`Created fallback shader for ${shaderName}`)
       return material
     } catch (error) {
       console.error(`Fallback shader creation failed for ${shaderName}:`, error)
@@ -490,7 +491,7 @@ export class ErrorHandler {
 
     this.errorHistory.push(recovery)
 
-    console.log(`Visual Effects Recovery [${recovery.severity}]:`, recovery.message)
+    log.debug(`Visual Effects Recovery [${recovery.severity}]:`, recovery.message)
 
     if (this.onRecovery) {
       this.onRecovery(recovery)

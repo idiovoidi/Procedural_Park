@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 /**
  * World State Manager
  * Handles saving and loading game progress to/from localStorage
@@ -53,7 +54,7 @@ export class WorldStateManager {
       this.updateMetadata(slotId, fullState)
 
       this.currentSlotId = slotId
-      console.log(`✅ Game saved to slot: ${slotId}`)
+      log.debug(`✅ Game saved to slot: ${slotId}`)
       return true
     } catch (error) {
       console.error('Failed to save game:', error)
@@ -80,7 +81,7 @@ export class WorldStateManager {
       const migratedState = this.migrateVersion(state)
 
       this.currentSlotId = slotId
-      console.log(`✅ Game loaded from slot: ${slotId}`)
+      log.debug(`✅ Game loaded from slot: ${slotId}`)
       return migratedState
     } catch (error) {
       console.error('Failed to load game:', error)
@@ -105,7 +106,7 @@ export class WorldStateManager {
         this.currentSlotId = null
       }
 
-      console.log(`🗑️ Deleted save slot: ${slotId}`)
+      log.debug(`🗑️ Deleted save slot: ${slotId}`)
       return true
     } catch (error) {
       console.error('Failed to delete save:', error)
@@ -181,7 +182,7 @@ export class WorldStateManager {
     if (this.autoSaveEnabled) {
       this.autoSaveTimer = window.setInterval(() => {
         if (this.currentSlotId) {
-          console.log('🔄 Auto-saving...')
+          log.debug('🔄 Auto-saving...')
           // Auto-save will be triggered by game with current state
         }
       }, this.autoSaveInterval)
@@ -281,7 +282,7 @@ export class WorldStateManager {
   private migrateVersion(state: WorldState): WorldState {
     // Future version migrations go here
     if (state.version !== CURRENT_VERSION) {
-      console.log(`Migrating save from ${state.version} to ${CURRENT_VERSION}`)
+      log.debug(`Migrating save from ${state.version} to ${CURRENT_VERSION}`)
       // Add migration logic as needed
     }
     return state
@@ -337,7 +338,7 @@ export class WorldStateManager {
       this.deleteSave('quicksave')
       localStorage.removeItem(METADATA_KEY)
       this.currentSlotId = null
-      console.log('🗑️ All saves cleared')
+      log.debug('🗑️ All saves cleared')
       return true
     } catch (error) {
       console.error('Failed to clear saves:', error)

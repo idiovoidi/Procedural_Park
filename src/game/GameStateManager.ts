@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 /**
  * Game State Manager
  * High-level wrapper that integrates the state machine with game systems
@@ -128,65 +129,65 @@ export class GameStateManager {
   private setupStateCallbacks(): void {
     // Loading state
     this.stateMachine.registerState('loading', {
-      onEnter: () => console.log('Entering loading state'),
-      onExit: () => console.log('Exiting loading state'),
+      onEnter: () => log.debug('Entering loading state'),
+      onExit: () => log.debug('Exiting loading state'),
     })
 
     // Menu state
     this.stateMachine.registerState('menu', {
-      onEnter: () => console.log('Entering menu state'),
-      onExit: () => console.log('Exiting menu state'),
+      onEnter: () => log.debug('Entering menu state'),
+      onExit: () => log.debug('Exiting menu state'),
     })
 
     // Playing state
     this.stateMachine.registerState('playing', {
       onEnter: (prev) => {
-        console.log(`Entering playing state from ${prev}`)
+        log.debug(`Entering playing state from ${prev}`)
       },
       onExit: (next) => {
-        console.log(`Exiting playing state to ${next}`)
+        log.debug(`Exiting playing state to ${next}`)
       },
     })
 
     // Paused state
     this.stateMachine.registerState('paused', {
-      onEnter: () => console.log('Game paused'),
-      onExit: () => console.log('Game resumed'),
+      onEnter: () => log.debug('Game paused'),
+      onExit: () => log.debug('Game resumed'),
     })
 
     // Photo mode state
     this.stateMachine.registerState('photo_mode', {
-      onEnter: () => console.log('Entering photo mode'),
-      onExit: () => console.log('Exiting photo mode'),
+      onEnter: () => log.debug('Entering photo mode'),
+      onExit: () => log.debug('Exiting photo mode'),
     })
 
     // Gallery state
     this.stateMachine.registerState('gallery', {
-      onEnter: () => console.log('Opening gallery'),
-      onExit: () => console.log('Closing gallery'),
+      onEnter: () => log.debug('Opening gallery'),
+      onExit: () => log.debug('Closing gallery'),
     })
 
     // Settings state
     this.stateMachine.registerState('settings', {
-      onEnter: () => console.log('Opening settings'),
-      onExit: () => console.log('Closing settings'),
+      onEnter: () => log.debug('Opening settings'),
+      onExit: () => log.debug('Closing settings'),
     })
 
     // Multiplayer states
     this.stateMachine.registerState('multiplayer_connecting', {
-      onEnter: () => console.log('Connecting to multiplayer...'),
-      onExit: () => console.log('Multiplayer connection attempt ended'),
+      onEnter: () => log.debug('Connecting to multiplayer...'),
+      onExit: () => log.debug('Multiplayer connection attempt ended'),
     })
 
     this.stateMachine.registerState('multiplayer_connected', {
-      onEnter: () => console.log('Multiplayer connected!'),
-      onExit: () => console.log('Multiplayer disconnected'),
+      onEnter: () => log.debug('Multiplayer connected!'),
+      onExit: () => log.debug('Multiplayer disconnected'),
     })
 
     // Game over state
     this.stateMachine.registerState('game_over', {
-      onEnter: () => console.log('Game over'),
-      onExit: () => console.log('Restarting game'),
+      onEnter: () => log.debug('Game over'),
+      onExit: () => log.debug('Restarting game'),
     })
   }
 

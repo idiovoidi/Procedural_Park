@@ -1,3 +1,4 @@
+import { log } from '@core/utils'
 import * as THREE from 'three'
 
 export interface LowResConfig {
@@ -128,7 +129,7 @@ export class LowResolutionRenderer {
       this.renderer.setSize(originalSize.x, originalSize.y, false)
       this.renderer.render(this.displayScene, this.displayCamera)
 
-      console.log('Successfully recovered from render error')
+      log.debug('Successfully recovered from render error')
     } catch (recoveryError) {
       console.error('Failed to recover from render error:', recoveryError)
 
@@ -161,7 +162,7 @@ export class LowResolutionRenderer {
         throw new Error('Low-resolution renderer components not properly initialized')
       }
 
-      console.log('Low-resolution renderer initialized successfully')
+      log.debug('Low-resolution renderer initialized successfully')
     } catch (error) {
       console.error('Failed to initialize low-resolution renderer:', error)
       throw error
@@ -378,7 +379,7 @@ export class LowResolutionRenderer {
   public enableLowResRendering(): void {
     try {
       this.initialize()
-      console.log('Low-resolution rendering enabled')
+      log.debug('Low-resolution rendering enabled')
     } catch (error) {
       console.error('Failed to enable low-resolution rendering:', error)
       throw error
@@ -390,7 +391,7 @@ export class LowResolutionRenderer {
    */
   public disableLowResRendering(): void {
     try {
-      console.log('Low-resolution rendering disabled - will render directly')
+      log.debug('Low-resolution rendering disabled - will render directly')
     } catch (error) {
       console.error('Failed to disable low-resolution rendering:', error)
     }
@@ -455,7 +456,7 @@ export class LowResolutionRenderer {
         this.displayScene.clear()
       }
 
-      console.log('Low-resolution renderer disposed successfully')
+      log.debug('Low-resolution renderer disposed successfully')
     } catch (error) {
       console.error('Error during low-resolution renderer disposal:', error)
     }
