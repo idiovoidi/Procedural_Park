@@ -42,7 +42,6 @@ export default defineConfig({
         manualChunks: {
           // Three.js and related libraries
           three: ['three'],
-          'three-postprocessing': ['postprocessing'],
           // Vendor chunk for other dependencies
           vendor: ['three/examples/jsm/postprocessing/EffectComposer.js'],
         },
