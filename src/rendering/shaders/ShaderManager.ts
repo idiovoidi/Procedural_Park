@@ -177,6 +177,9 @@ export class ShaderManager {
       uniforms.pixelSize.value = config.pixelSize
     }
 
+    if (config.crtCurvature !== undefined) {
+      uniforms.crtCurvature.value = config.crtCurvature
+    }
     if (config.crtScanlines !== undefined) {
       uniforms.crtScanlines.value = config.crtScanlines
     }
@@ -215,6 +218,21 @@ export class ShaderManager {
     }
     if (config.vignetteStrength !== undefined) {
       validated.vignetteStrength = fullConfig.vignetteStrength
+    }
+    if (config.ditheringIntensity !== undefined) {
+      validated.ditheringIntensity = fullConfig.ditheringIntensity
+    }
+    if (config.pixelSize !== undefined) {
+      validated.pixelSize = fullConfig.pixelSize
+    }
+    if (config.crtCurvature !== undefined) {
+      validated.crtCurvature = fullConfig.crtCurvature
+    }
+    if (config.crtScanlines !== undefined) {
+      validated.crtScanlines = fullConfig.crtScanlines
+    }
+    if (config.crtPhosphor !== undefined) {
+      validated.crtPhosphor = fullConfig.crtPhosphor
     }
 
     return validated
