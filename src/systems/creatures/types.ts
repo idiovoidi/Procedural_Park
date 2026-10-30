@@ -1,6 +1,7 @@
 import type { InteractionPoint } from '@rendering/scene/environment-interactions'
 import type { PatternType } from '@rendering/textures'
 import type * as THREE from 'three'
+import type { BodyPlanId, Genes, Genome, LimbSet, Locomotion } from './genome/types'
 
 export type CreatureArchetype = 'terrestrial' | 'aerial' | 'aquatic' | 'ethereal' | 'crystalline'
 
@@ -8,7 +9,14 @@ export type BodyType = 'chubby' | 'sleek' | 'muscular' | 'lanky' | 'compact' | '
 
 export type Anatomy = {
   archetype: CreatureArchetype
-  torsoShape: 'sphere' | 'ellipsoid' | 'capsule' | 'box' | 'crystal' | 'cloud'
+  bodyPlan: BodyPlanId
+  locomotion: Locomotion
+  /** Limb groups with their layout; limbCount and limbType summarize them. */
+  limbSets: LimbSet[]
+  genes: Genes
+  /** Seed for the body pattern texture. */
+  patternSeed: number
+  torsoShape: 'sphere' | 'ellipsoid' | 'capsule' | 'box' | 'crystal' | 'cloud' | 'segmented'
   bodyType: BodyType
   hasHead: boolean
   headSize: number
@@ -61,6 +69,7 @@ export type CreatureInstance = {
   timeOffset: number
   rarity: number
   anatomy: Anatomy
+  genome: Genome
   behaviorState: BehaviorState
   behaviorTimer: number
   socialGroup?: CreatureInstance[]

@@ -1,8 +1,7 @@
 import { ObjectPool } from '@core/utils'
-import { createRng } from '@systems/terrain/noise-utils'
 import type * as THREE from 'three'
 import { spawnCreatureAt } from './builder'
-import { generateAnatomy } from './generator'
+import { generateGenome } from './genome/genome'
 import type { CreatureInstance } from './types'
 
 /**
@@ -13,9 +12,7 @@ export class PooledCreature {
   public active: boolean = false
 
   public init(scene: THREE.Scene, position: THREE.Vector3, seed: number): void {
-    const rand = createRng(seed)
-    const anatomy = generateAnatomy(rand)
-    this.instance = spawnCreatureAt(scene, position, rand, anatomy)
+    this.instance = spawnCreatureAt(scene, position, generateGenome(seed))
     this.active = true
   }
 

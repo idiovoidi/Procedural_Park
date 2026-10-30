@@ -4,24 +4,34 @@ import type { Anatomy } from '@systems/creatures/types'
 import * as THREE from 'three'
 import { getSizeMultiplier } from './body-types'
 import type { CreaturePalette } from './palette'
+import { type BodyBounds, getWingSockets } from './sockets'
 
 export function buildWings(
   rand: Random,
   anatomy: Anatomy,
   palette: CreaturePalette,
-  torso: THREE.Object3D
+  root: THREE.Object3D,
+  bounds: BodyBounds
 ): THREE.Object3D[] {
   const wings: THREE.Object3D[] = []
   const sizeMultiplier = getSizeMultiplier(anatomy.size)
+  const spanScale = 0.85 + anatomy.genes.wing * 0.45
+  const sockets = getWingSockets(anatomy.wingCount / 2, bounds)
 
-  for (let i = 0; i < anatomy.wingCount; i++) {
+  for (let i = 0; i < sockets.length; i++) {
+    const socket = sockets[i]
+    const side = socket.side
     const wingGroup = new THREE.Group()
-    const side = i % 2 === 0 ? -1 : 1
+    // The blade holds the wing surface; offsetting it puts the wing's root on the socket.
+    const blade = new THREE.Group()
+    wingGroup.add(blade)
+    let span = sizeMultiplier
 
     switch (anatomy.wingType) {
       case 'feather': {
         // Bird-like feathered wing with segments
         const wingLength = (1.0 + rand() * 0.3) * sizeMultiplier
+        span = wingLength
         const wingWidth = (0.6 + rand() * 0.2) * sizeMultiplier
 
         // Main wing surface
@@ -51,13 +61,14 @@ export function buildWings(
         tipFeathers.position.x = side * wingLength * 0.5
         tipFeathers.rotation.y = side * Math.PI * 0.2
 
-        wingGroup.add(mainWing)
-        wingGroup.add(tipFeathers)
+        blade.add(mainWing)
+        blade.add(tipFeathers)
         break
       }
       case 'membrane': {
         // Bat-like membrane wing
         const wingLength = (0.9 + rand() * 0.3) * sizeMultiplier
+        span = wingLength
         const wingWidth = (0.5 + rand() * 0.2) * sizeMultiplier
 
         const membrane = new THREE.Mesh(
@@ -80,15 +91,16 @@ export function buildWings(
           )
           bone.position.set(side * wingLength * 0.3, wingWidth * (b / 3 - 0.33), 0.01)
           bone.rotation.z = side * Math.PI * 0.5
-          wingGroup.add(bone)
+          blade.add(bone)
         }
 
-        wingGroup.add(membrane)
+        blade.add(membrane)
         break
       }
       case 'energy': {
         // Ethereal energy wing
         const wingLength = (1.1 + rand() * 0.4) * sizeMultiplier
+        span = wingLength
         const wingWidth = (0.7 + rand() * 0.3) * sizeMultiplier
 
         const energyWing = new THREE.Mesh(
@@ -102,7 +114,7 @@ export function buildWings(
             emissiveIntensity: 0.3,
           })
         )
-        wingGroup.add(energyWing)
+        blade.add(energyWing)
         break
       }
       default: {
@@ -121,15 +133,18 @@ export function buildWings(
             opacity: 0.8,
           })
         )
-        wingGroup.add(wing)
+        blade.add(wing)
       }
     }
 
-    wingGroup.position.set(side * 0.6 * sizeMultiplier, 0.3 * sizeMultiplier, -0.1 * sizeMultiplier)
+    blade.scale.setScalar(spanScale)
+    blade.position.x = (side * span * spanScale) / 2
+
+    wingGroup.position.copy(socket.position)
     wingGroup.rotation.y = side * Math.PI * 0.1
     wingGroup.rotation.z = side * QUARTER_PI * 0.6
 
-    torso.add(wingGroup)
+    root.add(wingGroup)
     wings.push(wingGroup)
   }
   return wings

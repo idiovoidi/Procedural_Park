@@ -1,4 +1,4 @@
-import type { CreatureInstance } from '@systems/creatures'
+import { type CreatureInstance, generateSpeciesName } from '@systems/creatures'
 import * as THREE from 'three'
 import type { ScoreBreakdown } from './types'
 
@@ -75,27 +75,9 @@ export function getPhotoQualityDescription(score: number): string {
 }
 
 /**
- * Generate a fun creature name based on its properties
+ * Creature name, stable for a species: the same structure always gets the same name,
+ * wherever the creature happens to be standing.
  */
 export function generateCreatureName(creature: CreatureInstance): string {
-  const prefixes = [
-    'Sparkle',
-    'Fluffy',
-    'Crystal',
-    'Shadow',
-    'Mystic',
-    'Glowing',
-    'Swift',
-    'Gentle',
-    'Wild',
-    'Cosmic',
-  ]
-  const suffixes = ['wing', 'tail', 'eye', 'horn', 'fin', 'claw', 'beam', 'song', 'dance', 'spirit']
-
-  // Use creature's rarity and position to determine name
-  const seed = Math.floor(creature.rarity * 1000) + Math.floor(creature.group.position.x * 10)
-  const prefixIndex = seed % prefixes.length
-  const suffixIndex = Math.floor(seed / prefixes.length) % suffixes.length
-
-  return `${prefixes[prefixIndex]}${suffixes[suffixIndex]}`
+  return generateSpeciesName(creature.genome)
 }

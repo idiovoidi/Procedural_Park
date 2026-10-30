@@ -1,6 +1,6 @@
 import type { Random } from '@core/types'
-import { randomCenteredSeeded } from '@core/utils'
 import { createPatternTexture } from '@rendering/textures'
+import type { GenomePalette } from '@systems/creatures/genome/types'
 import type { Anatomy, CreatureArchetype } from '@systems/creatures/types'
 import * as THREE from 'three'
 
@@ -9,14 +9,16 @@ export interface CreaturePalette {
   accent: THREE.Color
 }
 
-export function makePalette(baseHue: number, rand: Random): CreaturePalette {
-  const base = new THREE.Color().setHSL(baseHue, 0.6, 0.55)
-  const accent = new THREE.Color().setHSL(
-    (baseHue + 0.12 + randomCenteredSeeded(rand) * 0.1) % 1,
-    0.7,
-    0.6
-  )
-  return { base, accent }
+export function makePalette(source: GenomePalette): CreaturePalette {
+  const { saturation, lightness } = source
+  return {
+    base: new THREE.Color().setHSL(source.baseHue, saturation, lightness),
+    accent: new THREE.Color().setHSL(
+      source.accentHue,
+      Math.min(0.95, saturation + 0.1),
+      Math.min(0.85, lightness + 0.05)
+    ),
+  }
 }
 
 export function getArchetypeMaterial(
@@ -64,7 +66,14 @@ export function createCreatureMaterial(
     anatomy.pattern,
     palette.base,
     anatomy.patternColor,
-    anatomy.rarity * 10000
+    anatomy.patternSeed
   )
-  return getArchetypeMaterial(anatomy.archetype, palette, rand, patternTexture)
+  const material = getArchetypeMaterial(anatomy.archetype, palette, rand, patternTexture)
+
+  // Rare creatures shimmer in their accent color.
+  if (anatomy.genes.glow > 0) {
+    material.emissive.copy(palette.accent)
+    material.emissiveIntensity = 0.35 * anatomy.genes.glow
+  }
+  return material
 }

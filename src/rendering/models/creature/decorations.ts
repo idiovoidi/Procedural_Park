@@ -1,10 +1,12 @@
-import { TAU } from '@core/constants'
 import type { Random } from '@core/types'
 import { randomCenteredSeeded } from '@core/utils'
 import type { Anatomy } from '@systems/creatures/types'
 import * as THREE from 'three'
 import { getSizeMultiplier } from './body-types'
 import type { CreaturePalette } from './palette'
+import { type BodyBounds, onSurface, surfaceNormal } from './sockets'
+
+const FORWARD = new THREE.Vector3(0, 0, 1)
 
 // Antennae
 export function buildAntennae(
@@ -15,12 +17,20 @@ export function buildAntennae(
 ): THREE.Object3D[] {
   if (!head) return []
   const antennae: THREE.Object3D[] = []
-  for (let i = 0; i < anatomy.antennaCount; i++) {
+  const sizeMultiplier = getSizeMultiplier(anatomy.size)
+  const count = anatomy.antennaCount
+  // One length per creature, so the set reads as symmetric
+  const length = anatomy.headSize * (0.7 + rand() * 0.7)
+  const spacing = anatomy.headSize * 0.35
+
+  for (let i = 0; i < count; i++) {
+    const x = (i - (count - 1) / 2) * spacing
     const antenna = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.03, 0.35 + rand() * 0.4, 6, 10),
+      new THREE.CapsuleGeometry(0.03 * sizeMultiplier, length, 6, 10),
       new THREE.MeshStandardMaterial({ color: palette.accent })
     )
-    antenna.position.set((i - (anatomy.antennaCount - 1) / 2) * 0.2, 0.4 + rand() * 0.2, 0.1)
+    antenna.position.set(x, anatomy.headSize * 0.65 + length / 2, anatomy.headSize * 0.25)
+    antenna.rotation.z = -Math.sign(x) * 0.35
     head.add(antenna)
     antennae.push(antenna)
   }
@@ -185,13 +195,11 @@ export function buildHorns(
         continue
     }
 
-    // Position horns on head
-    const angle = (i / Math.max(1, anatomy.hornCount - 1)) * Math.PI - Math.PI / 2
-    horn.position.set(
-      Math.sin(angle) * anatomy.headSize * 0.4,
-      anatomy.headSize * 0.5,
-      Math.cos(angle) * anatomy.headSize * 0.2
-    )
+    // Mirror horns across the head's centerline, tilting outward from the skull
+    const spacing = anatomy.headSize * (anatomy.hornCount <= 2 ? 0.55 : 0.32)
+    const x = (i - (anatomy.hornCount - 1) / 2) * spacing
+    horn.position.set(x, anatomy.headSize * 0.55 - Math.abs(x) * 0.4, anatomy.headSize * 0.1)
+    horn.rotation.z = -Math.sign(x) * 0.3
 
     head.add(horn)
     horns.push(horn)
@@ -204,21 +212,22 @@ export function buildFurTufts(
   rand: Random,
   anatomy: Anatomy,
   palette: CreaturePalette,
-  torso: THREE.Object3D
+  root: THREE.Object3D,
+  bounds: BodyBounds
 ): THREE.Object3D[] {
   if (!anatomy.furTufts) return []
   const tufts: THREE.Object3D[] = []
   const sizeMultiplier = getSizeMultiplier(anatomy.size)
 
-  // Add fur tufts at various locations
-  const tuftLocations = [
-    { x: 0, y: 0.4, z: 0.6 }, // chest
-    { x: -0.3, y: 0.2, z: 0.3 }, // left side
-    { x: 0.3, y: 0.2, z: 0.3 }, // right side
-    { x: 0, y: 0.3, z: -0.5 }, // back
+  // Chest, both flanks, and the back, as directions from the body center
+  const tuftDirections = [
+    new THREE.Vector3(0, -0.1, 1),
+    new THREE.Vector3(-1, 0, 0.2),
+    new THREE.Vector3(1, 0, 0.2),
+    new THREE.Vector3(0, 1, -0.5),
   ]
 
-  for (const loc of tuftLocations) {
+  for (const direction of tuftDirections) {
     const tuftGroup = new THREE.Group()
 
     // Create multiple small spheres for fluffy effect
@@ -235,8 +244,8 @@ export function buildFurTufts(
       tuftGroup.add(tuft)
     }
 
-    tuftGroup.position.set(loc.x * sizeMultiplier, loc.y * sizeMultiplier, loc.z * sizeMultiplier)
-    torso.add(tuftGroup)
+    tuftGroup.position.copy(onSurface(bounds, direction, 0.97))
+    root.add(tuftGroup)
     tufts.push(tuftGroup)
   }
 
@@ -245,44 +254,43 @@ export function buildFurTufts(
 
 // Scales
 export function buildScales(
-  rand: Random,
+  _rand: Random,
   anatomy: Anatomy,
   palette: CreaturePalette,
-  torso: THREE.Object3D
+  root: THREE.Object3D,
+  bounds: BodyBounds
 ): THREE.Object3D[] {
   if (!anatomy.hasScales) return []
   const scales: THREE.Object3D[] = []
   const sizeMultiplier = getSizeMultiplier(anatomy.size)
 
-  // Add scale pattern on body
-  const scaleCount = 12 + Math.floor(rand() * 8)
-  for (let i = 0; i < scaleCount; i++) {
-    const scale = new THREE.Mesh(
-      new THREE.CircleGeometry(0.08 * sizeMultiplier, 6),
-      new THREE.MeshStandardMaterial({
-        color: palette.accent,
-        metalness: 0.4,
-        roughness: 0.3,
-        side: THREE.DoubleSide,
-      })
-    )
+  // A staggered grid over the upper half of the body: rows along the length,
+  // each offset from the last, like overlapping plates.
+  const rows = anatomy.genes.length > 0.5 ? 4 : 3
+  const perRow = 5
+  const step = (Math.PI * 0.7) / perRow
+  for (let row = 0; row < rows; row++) {
+    const z = 0.6 - (1.2 * row) / (rows - 1)
+    for (let i = 0; i < perRow; i++) {
+      // Angle from the top line, evenly spread, with odd rows shifted half a step
+      const phi = (i - (perRow - 1) / 2 + (row % 2 === 0 ? 0 : 0.5)) * step
+      const position = onSurface(bounds, new THREE.Vector3(Math.sin(phi), Math.cos(phi), z), 1.01)
 
-    // Random position on body surface
-    const theta = rand() * TAU
-    const phi = rand() * Math.PI
-    const radius = 0.5 * sizeMultiplier
+      const scale = new THREE.Mesh(
+        new THREE.CircleGeometry(0.08 * sizeMultiplier, 6),
+        new THREE.MeshStandardMaterial({
+          color: palette.accent,
+          metalness: 0.4,
+          roughness: 0.3,
+          side: THREE.DoubleSide,
+        })
+      )
+      scale.position.copy(position)
+      scale.quaternion.setFromUnitVectors(FORWARD, surfaceNormal(bounds, position))
 
-    scale.position.set(
-      Math.sin(phi) * Math.cos(theta) * radius,
-      Math.cos(phi) * radius * 0.8,
-      Math.sin(phi) * Math.sin(theta) * radius
-    )
-
-    // Orient scale to face outward
-    scale.lookAt(scale.position.clone().multiplyScalar(2))
-
-    torso.add(scale)
-    scales.push(scale)
+      root.add(scale)
+      scales.push(scale)
+    }
   }
 
   return scales

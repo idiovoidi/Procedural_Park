@@ -1,5 +1,4 @@
 import { QUARTER_PI, TAU } from '@core/constants'
-import type { Random } from '@core/types'
 import { log, memoizedCos, memoizedSin } from '@core/utils'
 import {
   buildAntennae,
@@ -17,6 +16,7 @@ import {
   buildWings,
   makePalette,
 } from '@rendering/models/creature'
+import { getSizeMultiplier } from '@rendering/models/creature/body-types'
 import * as THREE from 'three'
 
 // Pre-allocated scratch objects to prevent allocations in eye tracking loop
@@ -34,110 +34,130 @@ import {
   updateBehaviorState as updateBehaviorStateLogic,
   updateMovement,
 } from './creature-behavior'
-import type { Anatomy, BehaviorState, CreatureInstance } from './types'
+import { deriveAnatomy } from './genome/derive'
+import { createSeededRandom } from './genome/random'
+import type { Genome, PartFamily } from './genome/types'
+import type { BehaviorState, CreatureInstance } from './types'
+
+const UP = new THREE.Vector3(0, 1, 0)
+
+/** A part's resting rotation, so idle animation sways around it instead of replacing it. */
+type Rest = { object: THREE.Object3D; x: number; y: number; z: number }
+
+function captureRest(objects: THREE.Object3D[]): Rest[] {
+  return objects.map((object) => ({
+    object,
+    x: object.rotation.x,
+    y: object.rotation.y,
+    z: object.rotation.z,
+  }))
+}
 
 export function spawnCreatureNearPath(
   scene: THREE.Scene,
   curve: THREE.CatmullRomCurve3,
-  rand: Random,
-  anatomy: Anatomy
+  genome: Genome
 ): CreatureInstance {
-  return buildCreature(scene, anatomy, curve, rand)
+  const rand = createSeededRandom(genome.partSeeds.placement)
+  const t = rand()
+  const point = curve.getPointAt(t)
+  const tangent = curve.getTangentAt(t)
+  const side = new THREE.Vector3().crossVectors(tangent, UP).normalize()
+  const offset = (rand() * 2 + 4) * (rand() > 0.5 ? 1 : -1)
+  const position = point
+    .clone()
+    .addScaledVector(side, offset)
+    .add(new THREE.Vector3(0, -0.2 + rand() * 1.6, 0))
+
+  return buildCreature(scene, genome, position)
 }
 
 export function spawnCreatureAt(
   scene: THREE.Scene,
   position: THREE.Vector3,
-  rand: Random,
-  anatomy: Anatomy
+  genome: Genome
 ): CreatureInstance {
-  // Create a simple curve for the buildCreature function (it won't be used for positioning)
-  const dummyCurve = new THREE.CatmullRomCurve3([position, position])
-  const creature = buildCreature(scene, anatomy, dummyCurve, rand)
-
-  // Override position to exact location
-  creature.group.position.copy(position)
-  creature.anchor.copy(position)
-
-  return creature
+  return buildCreature(scene, genome, position.clone())
 }
 
 function buildCreature(
   scene: THREE.Scene,
-  anatomy: Anatomy,
-  curve: THREE.CatmullRomCurve3,
-  rand: Random
+  genome: Genome,
+  position: THREE.Vector3
 ): CreatureInstance {
-  const palette = makePalette(anatomy.baseHue, rand)
+  const anatomy = deriveAnatomy(genome)
+  const palette = makePalette(genome.palette)
+  // Each part family reads its own seeded stream, so changing one never shifts another
+  const streamFor = (family: PartFamily) => createSeededRandom(genome.partSeeds[family])
 
   const group = new THREE.Group()
-  const torso = buildTorso(rand, anatomy)
+  const {
+    object: torso,
+    bounds,
+    segments: bodySegments,
+  } = buildTorso(streamFor('body'), anatomy, palette)
   group.add(torso)
 
-  const head = buildHead(rand, anatomy, palette)
+  const headStream = streamFor('head')
+  const head = buildHead(headStream, anatomy, palette, bounds)
   if (head) group.add(head)
 
-  const eyes = buildEyes(rand, anatomy, head)
-  const { mouth: _mouth, lowerJaw } = buildMouth(rand, anatomy, head, palette)
-  const limbs = buildLimbs(rand, anatomy, palette, torso)
-  const wings = buildWings(rand, anatomy, palette, torso)
-  const tails = buildTails(rand, anatomy, palette, torso)
-  const antennae = buildAntennae(rand, anatomy, palette, head)
+  const eyes = buildEyes(headStream, anatomy, head)
+  const { mouth: _mouth, lowerJaw } = buildMouth(headStream, anatomy, head, palette)
+  const limbs = buildLimbs(streamFor('limbs'), anatomy, palette, group, bounds)
+  const wings = buildWings(streamFor('wings'), anatomy, palette, group, bounds)
+  const tails = buildTails(streamFor('tails'), anatomy, palette, group, bounds)
 
-  // Decorative features
-  const ears = buildEars(rand, anatomy, palette, head)
-  const horns = buildHorns(rand, anatomy, palette, head)
-  const spines = buildSpines(rand, anatomy, palette, torso, tails)
-  const furTufts = buildFurTufts(rand, anatomy, palette, torso)
-  const scales = buildScales(rand, anatomy, palette, torso)
+  // Decorative features share one stream, drawn in a fixed order
+  const decorStream = streamFor('decor')
+  const antennae = buildAntennae(decorStream, anatomy, palette, head)
+  const ears = buildEars(decorStream, anatomy, palette, head)
+  const horns = buildHorns(decorStream, anatomy, palette, head)
+  const spines = buildSpines(decorStream, anatomy, palette, group, bounds, tails)
+  const furTufts = buildFurTufts(decorStream, anatomy, palette, group, bounds)
+  const scales = buildScales(decorStream, anatomy, palette, group, bounds)
 
-  // Debug: Log creature features
-  if (
-    ears.length > 0 ||
-    horns.length > 0 ||
-    spines.length > 0 ||
-    furTufts.length > 0 ||
-    scales.length > 0 ||
-    anatomy.pattern !== 'solid'
-  ) {
-    log.debug(
-      `Creature created with: ${ears.length} ears, ${horns.length} horns, ${spines.length} spines, ${furTufts.length} fur tufts, ${scales.length} scales, pattern: ${anatomy.pattern}`
-    )
-  }
+  const limbRest = captureRest(limbs)
+  const tailRest = captureRest(tails)
+  const antennaRest = captureRest(antennae)
+  const earRest = captureRest(ears)
+  const hornRest = captureRest(horns)
+  const spineRest = captureRest(spines)
+  const furRest = captureRest(furTufts)
 
-  // Spawn near the track
-  const t = rand()
-  const pos = curve.getPointAt(t)
-  const tangent = curve.getTangentAt(t)
-  const side = new THREE.Vector3().crossVectors(tangent, new THREE.Vector3(0, 1, 0)).normalize()
-  const offset = (rand() * 2 + 4) * (rand() > 0.5 ? 1 : -1)
-  group.position
-    .copy(pos)
-    .addScaledVector(side, offset)
-    .add(new THREE.Vector3(0, -0.2 + rand() * 1.6, 0))
+  log.debug(
+    `Creature ${genome.seed} (${genome.bodyPlan}, ${genome.archetype}): ${limbs.length} limbs, ${wings.length} wings, ${tails.length} tails, ${ears.length} ears, ${horns.length} horns, ${spines.length} spines, pattern: ${anatomy.pattern}`
+  )
 
+  group.position.copy(position)
   scene.add(group)
 
+  const sizeMultiplier = getSizeMultiplier(anatomy.size)
+  const motion = streamFor('motion')
+  const behaviorRand = streamFor('behavior')
+
   // Animation parameters
-  const floatAmplitude = 0.35 + rand() * 0.4
-  const floatSpeed = 0.4 + rand() * 0.5
-  const flapSpeed = 2.0 + rand() * 2.0
-  const tailSpeed = 1.0 + rand() * 1.5
-  const blinkInterval = 2.5 + rand() * 3.5
-  let blinkTimer = blinkInterval * rand()
+  const floatAmplitude = 0.35 + motion() * 0.4
+  const floatSpeed = 0.4 + motion() * 0.5
+  const flapSpeed = 2.0 + motion() * 2.0
+  const tailSpeed = 1.0 + motion() * 1.5
+  const blinkInterval = 2.5 + motion() * 3.5
+  let blinkTimer = blinkInterval * motion()
+  // Fliers beat their wings wide; everything else only ruffles them
+  const flapAmplitude = anatomy.locomotion === 'fly' ? 0.55 : 0.15
 
   // Enhanced behavior system
   const anchor = group.position.clone()
-  const timeOffset = rand() * 1000
+  const timeOffset = motion() * 1000
   let behaviorState: BehaviorState = 'idle'
   let behaviorTimer = 0
-  let facingYaw = rand() * TAU
+  let facingYaw = motion() * TAU
   let targetYaw = facingYaw
   let poseTimer = 0
 
   // Territory setup for territorial creatures
   const territoryCenter = anatomy.temperament === 'territorial' ? anchor.clone() : undefined
-  const territoryRadius = anatomy.temperament === 'territorial' ? 8 + rand() * 12 : undefined
+  const territoryRadius = anatomy.temperament === 'territorial' ? 8 + motion() * 12 : undefined
 
   const setMouthOpen = (open: number) => {
     if (!lowerJaw) return
@@ -149,9 +169,9 @@ function buildCreature(
     return group.position.distanceTo(other.group.position)
   }
 
-  const isInTerritory = (position: THREE.Vector3): boolean => {
+  const isInTerritory = (pos: THREE.Vector3): boolean => {
     if (!territoryCenter || !territoryRadius) return false
-    return territoryCenter.distanceTo(position) <= territoryRadius
+    return territoryCenter.distanceTo(pos) <= territoryRadius
   }
 
   // Create behavior context for the AI system
@@ -159,7 +179,7 @@ function buildCreature(
     group,
     anchor,
     anatomy,
-    rand,
+    rand: behaviorRand,
     territoryCenter,
     territoryRadius,
     getDistanceTo,
@@ -219,48 +239,54 @@ function buildCreature(
     facingYaw += Math.max(-1.5 * dt, Math.min(1.5 * dt, yawDelta))
     group.rotation.y = facingYaw
 
-    // Wings flapping
+    // Wings flapping (left wings are even indices; negative z lifts the tip)
     for (let i = 0; i < wings.length; i++) {
-      const wing = wings[i] as THREE.Mesh
+      const wing = wings[i]
       const dir = i % 2 === 0 ? 1 : -1
       const speedMultiplier = getWingFlapSpeedMultiplier(behaviorState)
       const speed = flapSpeed * speedMultiplier
       wing.rotation.z =
-        dir * (QUARTER_PI + memoizedSin((tSec + timeOffset) * speed) * QUARTER_PI * 0.3)
+        -dir * (QUARTER_PI * 0.6 + memoizedSin((tSec + timeOffset) * speed) * flapAmplitude)
     }
 
-    // Tails sway
-    for (const tail of tails) {
-      tail.rotation.y = memoizedSin((tSec + timeOffset) * tailSpeed) * 0.6
-      tail.rotation.x = memoizedCos((tSec + timeOffset) * tailSpeed * 0.7) * 0.2
+    // Tails sway around their mounting angle
+    for (const { object, x, y } of tailRest) {
+      object.rotation.y = y + memoizedSin((tSec + timeOffset) * tailSpeed) * 0.6
+      object.rotation.x = x + memoizedCos((tSec + timeOffset) * tailSpeed * 0.7) * 0.2
+    }
+
+    // Serpent bodies ripple head to tail, widening toward the tip
+    for (let i = 0; i < bodySegments.length; i++) {
+      const reach = i / Math.max(1, bodySegments.length - 1)
+      bodySegments[i].position.x =
+        memoizedSin((tSec + timeOffset) * 2.2 - i * 0.7) * 0.14 * sizeMultiplier * reach
     }
 
     // Antennae wiggle
-    for (const ant of antennae) {
-      ant.rotation.z = memoizedSin((tSec + timeOffset) * 2.2) * 0.3
+    for (const { object, z } of antennaRest) {
+      object.rotation.z = z + memoizedSin((tSec + timeOffset) * 2.2) * 0.2
     }
 
     // Ears twitch
-    for (let i = 0; i < ears.length; i++) {
-      const ear = ears[i]
-      const side = i === 0 ? -1 : 1
-      ear.rotation.z = side * QUARTER_PI + memoizedSin((tSec + timeOffset) * 3.0 + i) * 0.15
+    for (let i = 0; i < earRest.length; i++) {
+      const { object, z } = earRest[i]
+      object.rotation.z = z + memoizedSin((tSec + timeOffset) * 3.0 + i) * 0.15
     }
 
     // Horns subtle movement (breathing)
-    for (const horn of horns) {
-      horn.rotation.y = memoizedSin((tSec + timeOffset) * 0.5) * 0.05
+    for (const { object, y } of hornRest) {
+      object.rotation.y = y + memoizedSin((tSec + timeOffset) * 0.5) * 0.05
     }
 
     // Spines subtle sway
-    for (let i = 0; i < spines.length; i++) {
-      const spine = spines[i]
-      spine.rotation.x += memoizedSin((tSec + timeOffset) * 1.5 + i * 0.5) * 0.02
+    for (let i = 0; i < spineRest.length; i++) {
+      const { object, x } = spineRest[i]
+      object.rotation.x = x + memoizedSin((tSec + timeOffset) * 1.5 + i * 0.5) * 0.08
     }
 
     // Fur tufts gentle wave
-    for (const tuft of furTufts) {
-      tuft.rotation.y = memoizedSin((tSec + timeOffset) * 1.8) * 0.1
+    for (const { object, y } of furRest) {
+      object.rotation.y = y + memoizedSin((tSec + timeOffset) * 1.8) * 0.1
     }
 
     // Scales shimmer (subtle scale change)
@@ -270,22 +296,23 @@ function buildCreature(
       scale.scale.setScalar(shimmer)
     }
 
-    // Limbs idle sway
-    for (let i = 0; i < limbs.length; i++) {
-      const limb = limbs[i]
-      limb.rotation.x = memoizedSin((tSec + timeOffset) * 1.3 + i) * 0.3
-      limb.rotation.y = memoizedCos((tSec + timeOffset) * 1.1 + i * 0.5) * 0.2
+    // Limbs idle sway, scaled by how loose each limb type is
+    for (let i = 0; i < limbRest.length; i++) {
+      const { object, x, z } = limbRest[i]
+      const sway = object.userData.swayAmp as number
+      object.rotation.x = x + memoizedSin((tSec + timeOffset) * 1.3 + i) * sway
+      object.rotation.z = z + memoizedCos((tSec + timeOffset) * 1.1 + i * 0.5) * sway * 0.6
     }
 
     // Eyes blink (scale pupils)
     blinkTimer -= dt
     if (blinkTimer <= 0) {
-      blinkTimer = blinkInterval + rand() * 1.5
+      blinkTimer = blinkInterval + behaviorRand() * 1.5
       for (const e of eyes) {
         // Access pupil from userData (more reliable than child index)
         const pupil = e.userData.pupil as THREE.Mesh
         if (pupil) {
-          const targetScale = 0.1 + rand() * 0.5
+          const targetScale = 0.1 + behaviorRand() * 0.5
           pupil.scale.set(1, targetScale, 1)
         }
       }
@@ -337,7 +364,7 @@ function buildCreature(
   }
 
   const reactToPhoto = () => {
-    poseTimer = 2.5 + rand() * 2.0
+    poseTimer = 2.5 + behaviorRand() * 2.0
   }
 
   const creatureInstance: CreatureInstance = {
@@ -346,6 +373,7 @@ function buildCreature(
     timeOffset,
     rarity: anatomy.rarity,
     anatomy,
+    genome,
     behaviorState,
     behaviorTimer,
     territoryCenter,

@@ -1,15 +1,38 @@
-import { HALF_PI, TAU } from '@core/constants'
+import { HALF_PI } from '@core/constants'
 import type { Random } from '@core/types'
-import { normalish } from '@systems/creatures/generator'
 import type { Anatomy } from '@systems/creatures/types'
 import * as THREE from 'three'
-import { getHeadSizeMultiplier, getNeckHeight } from './body-types'
+import { getHeadSizeMultiplier } from './body-types'
 import type { CreaturePalette } from './palette'
+import { type BodyBounds, getHeadPosition } from './sockets'
+
+const FORWARD = new THREE.Vector3(0, 0, 1)
+
+/** Radii of the skull ellipsoid, shared by head, eye and ornament placement. */
+function getHeadRadii(anatomy: Anatomy): { rx: number; ry: number; rz: number } {
+  const multiplier = getHeadSizeMultiplier(anatomy.bodyType)
+  switch (anatomy.archetype) {
+    case 'terrestrial':
+    case 'aerial': {
+      const r = anatomy.headSize * 0.8 * multiplier
+      return { rx: r * 0.9, ry: r, rz: r * 1.2 }
+    }
+    case 'aquatic': {
+      const r = anatomy.headSize * 0.9 * multiplier
+      return { rx: r * 0.8, ry: r * 0.8, rz: r * 1.3 }
+    }
+    default: {
+      const r = anatomy.headSize * 0.8
+      return { rx: r, ry: r, rz: r }
+    }
+  }
+}
 
 export function buildHead(
   _rand: Random,
   anatomy: Anatomy,
-  palette: CreaturePalette
+  palette: CreaturePalette,
+  bounds: BodyBounds
 ): THREE.Object3D | null {
   if (!anatomy.hasHead) return null
 
@@ -62,44 +85,43 @@ export function buildHead(
 
   headGroup.add(headMesh)
 
-  // Adjust head/neck position based on body type
-  const neckHeight = getNeckHeight(anatomy.bodyType)
-  headGroup.position.set(0, neckHeight, 0.7)
+  headGroup.position.copy(getHeadPosition(anatomy, bounds))
 
   return headGroup
 }
 
 export function buildEyes(
-  rand: Random,
+  _rand: Random,
   anatomy: Anatomy,
   head: THREE.Object3D | null
 ): THREE.Object3D[] {
   if (!head || anatomy.eyeCount <= 0) return []
   const eyes: THREE.Object3D[] = []
 
-  // Position eyes based on creature type
-  const eyePositions: Array<{ x: number; y: number; z: number }> = []
+  // Eyes sit on the skull surface: pairs stack upward and narrow, and an odd
+  // eye goes on the centerline (a lone eye low, a third eye on the brow).
+  const { rx, ry, rz } = getHeadRadii(anatomy)
+  const pairs = Math.floor(anatomy.eyeCount / 2)
+  const eyeSlots: Array<{ position: THREE.Vector3; normal: THREE.Vector3 }> = []
 
-  if (anatomy.eyeCount === 2) {
-    // Standard bilateral eyes
-    const separation = anatomy.headSize * 0.5
-    eyePositions.push(
-      { x: -separation, y: anatomy.headSize * 0.2, z: anatomy.headSize * 0.6 },
-      { x: separation, y: anatomy.headSize * 0.2, z: anatomy.headSize * 0.6 }
-    )
-  } else {
-    // Multiple eyes arranged in a pattern
-    for (let i = 0; i < anatomy.eyeCount; i++) {
-      const theta = (i / anatomy.eyeCount) * TAU * 1.2 - TAU * 0.6
-      eyePositions.push({
-        x: Math.sin(theta) * anatomy.headSize * 0.5,
-        y: anatomy.headSize * 0.15 + normalish(rand) * 0.1,
-        z: anatomy.headSize * 0.5 + Math.cos(theta) * 0.1,
-      })
-    }
+  const addSlot = (x: number, y: number) => {
+    const inside = Math.max(0, 1 - (x / rx) ** 2 - (y / ry) ** 2)
+    const z = rz * Math.sqrt(inside) * 0.97
+    eyeSlots.push({
+      position: new THREE.Vector3(x, y, z),
+      normal: new THREE.Vector3(x / rx ** 2, y / ry ** 2, z / rz ** 2).normalize(),
+    })
   }
 
-  for (let i = 0; i < Math.min(anatomy.eyeCount, eyePositions.length); i++) {
+  for (let pair = 0; pair < pairs; pair++) {
+    const x = rx * 0.55 * (1 - pair * 0.2)
+    const y = ry * (0.22 + pair * 0.26)
+    addSlot(-x, y)
+    addSlot(x, y)
+  }
+  if (anatomy.eyeCount % 2 === 1) addSlot(0, ry * (0.22 + pairs * 0.26))
+
+  for (let i = 0; i < eyeSlots.length; i++) {
     const eyeSize = anatomy.eyeSize * 1.2
 
     // Eye white (slightly oval for more natural look)
@@ -144,8 +166,8 @@ export function buildEyes(
     eye.userData.iris = iris
     eye.userData.maxOffset = eyeSize * 0.15 // Max distance pupil can move
 
-    const pos = eyePositions[i]
-    eye.position.set(pos.x, pos.y, pos.z)
+    eye.position.copy(eyeSlots[i].position)
+    eye.quaternion.setFromUnitVectors(FORWARD, eyeSlots[i].normal)
 
     head.add(eye)
     eyes.push(eye)

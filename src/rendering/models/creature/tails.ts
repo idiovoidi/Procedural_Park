@@ -1,21 +1,34 @@
+import { HALF_PI } from '@core/constants'
 import type { Random } from '@core/types'
-import { rangeInt } from '@systems/creatures/generator'
 import type { Anatomy } from '@systems/creatures/types'
 import * as THREE from 'three'
 import { getSizeMultiplier } from './body-types'
 import type { CreaturePalette } from './palette'
+import { type BodyBounds, getDorsalY, getHeadPosition, getTailSockets } from './sockets'
+
+/** Capsule lying along z, so chained tail segments form a continuous tube. */
+function lengthwiseCapsule(
+  radius: number,
+  length: number,
+  capSegments: number,
+  radialSegments: number
+): THREE.BufferGeometry {
+  return new THREE.CapsuleGeometry(radius, length, capSegments, radialSegments).rotateX(HALF_PI)
+}
 
 export function buildTails(
-  rand: Random,
+  _rand: Random,
   anatomy: Anatomy,
   palette: CreaturePalette,
-  torso: THREE.Object3D
+  root: THREE.Object3D,
+  bounds: BodyBounds
 ): THREE.Object3D[] {
   const tails: THREE.Object3D[] = []
   const sizeMultiplier = getSizeMultiplier(anatomy.size)
+  const sockets = getTailSockets(anatomy.tailCount, bounds)
 
-  for (let i = 0; i < anatomy.tailCount; i++) {
-    const segments = 5 + rangeInt(rand, 0, 4)
+  for (const socket of sockets) {
+    const segments = Math.round(4 + anatomy.genes.tail * 6)
     const group = new THREE.Group()
     let parent: THREE.Object3D = group
 
@@ -26,7 +39,7 @@ export function buildTails(
         for (let s = 0; s < segments; s++) {
           const thickness = 0.12 * sizeMultiplier * (1 - s / segments)
           const seg = new THREE.Mesh(
-            new THREE.CapsuleGeometry(thickness, 0.25 * sizeMultiplier, 6, 8),
+            lengthwiseCapsule(thickness, 0.25 * sizeMultiplier, 6, 8),
             new THREE.MeshStandardMaterial({ color: palette.base })
           )
           seg.position.z = -0.22 * sizeMultiplier
@@ -40,7 +53,7 @@ export function buildTails(
         for (let s = 0; s < segments; s++) {
           const thickness = 0.1 * sizeMultiplier * (1 - s / segments)
           const seg = new THREE.Mesh(
-            new THREE.CapsuleGeometry(thickness, 0.2 * sizeMultiplier, 6, 8),
+            lengthwiseCapsule(thickness, 0.2 * sizeMultiplier, 6, 8),
             new THREE.MeshStandardMaterial({ color: palette.base })
           )
           seg.position.z = -0.18 * sizeMultiplier
@@ -65,7 +78,7 @@ export function buildTails(
         // Default segmented tail
         for (let s = 0; s < segments; s++) {
           const seg = new THREE.Mesh(
-            new THREE.CapsuleGeometry(
+            lengthwiseCapsule(
               0.12 * sizeMultiplier * (1 - s / segments),
               0.25 * sizeMultiplier,
               6,
@@ -80,8 +93,11 @@ export function buildTails(
       }
     }
 
-    group.position.set(0, -0.2 * sizeMultiplier + rand() * 0.2, -0.6 * sizeMultiplier)
-    torso.add(group)
+    group.position.copy(socket.position)
+    group.rotation.y = socket.yaw
+    // Used to spread tail ornaments along the finished length
+    group.userData.length = segments * 0.22 * sizeMultiplier
+    root.add(group)
     tails.push(group)
   }
   return tails
@@ -91,44 +107,60 @@ export function buildSpines(
   _rand: Random,
   anatomy: Anatomy,
   palette: CreaturePalette,
-  torso: THREE.Object3D,
+  root: THREE.Object3D,
+  bounds: BodyBounds,
   tails: THREE.Object3D[]
 ): THREE.Object3D[] {
   if (anatomy.spineCount === 0 || anatomy.spineType === 'none') return []
   const spines: THREE.Object3D[] = []
   const sizeMultiplier = getSizeMultiplier(anatomy.size)
+  const count = anatomy.spineCount
+  const headPosition = anatomy.hasHead ? getHeadPosition(anatomy, bounds) : null
 
-  for (let i = 0; i < anatomy.spineCount; i++) {
+  for (let i = 0; i < count; i++) {
+    const t = i / Math.max(1, count - 1)
+    // Taller in the middle of the row, shorter at both ends
+    const height = 0.7 + 0.6 * Math.sin(Math.PI * t)
     const spine = new THREE.Mesh(
-      new THREE.ConeGeometry(0.04 * sizeMultiplier, 0.2 * sizeMultiplier, 4),
+      new THREE.ConeGeometry(0.04 * sizeMultiplier, 0.2 * sizeMultiplier * height, 4),
       new THREE.MeshStandardMaterial({ color: palette.accent, metalness: 0.2 })
     )
 
     switch (anatomy.spineType) {
       case 'back': {
-        // Spines along the back
-        const t = i / (anatomy.spineCount - 1)
-        spine.position.set(0, 0.5 * sizeMultiplier, (t - 0.5) * 1.2 * sizeMultiplier)
-        spine.rotation.x = Math.PI * 0.1
-        torso.add(spine)
+        // A dorsal ridge following the body's top line, front to back
+        const z = (0.65 - 1.3 * t) * bounds.hz
+        spine.position.set(0, getDorsalY(bounds, z) * 0.98, z)
+        spine.rotation.x = -0.3
+        root.add(spine)
         break
       }
       case 'neck': {
-        // Spines along neck area
-        const t = i / (anatomy.spineCount - 1)
-        spine.position.set(0, 0.3 * sizeMultiplier + t * 0.4, 0.5 * sizeMultiplier)
-        spine.rotation.x = -Math.PI * 0.2
-        torso.add(spine)
+        // A ridge from the shoulders up the back of the head
+        if (!headPosition) continue
+        const headRadius = anatomy.headSize * 0.8
+        const shoulderZ = bounds.hz * 0.4
+        const from = new THREE.Vector3(0, getDorsalY(bounds, shoulderZ), shoulderZ)
+        const to = headPosition
+          .clone()
+          .add(new THREE.Vector3(0, headRadius * 0.7, -headRadius * 0.5))
+        spine.position.lerpVectors(from, to, t)
+        spine.rotation.x = -0.4
+        root.add(spine)
         break
       }
       case 'tail': {
-        // Spines along tail
-        if (tails.length > 0) {
-          const tail = tails[0]
-          const t = i / (anatomy.spineCount - 1)
-          spine.position.set(0, 0.1 * sizeMultiplier, -t * 0.3 * sizeMultiplier)
-          tail.add(spine)
-        }
+        // A ridge along the first tail
+        const tail = tails[0]
+        if (!tail) continue
+        const length = (tail.userData.length as number) ?? 0.22 * sizeMultiplier
+        spine.position.set(
+          0,
+          0.12 * sizeMultiplier * (1 - t) + 0.04 * sizeMultiplier,
+          -(0.1 + 0.85 * t) * length
+        )
+        spine.rotation.x = -0.3
+        tail.add(spine)
         break
       }
     }

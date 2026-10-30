@@ -26,7 +26,9 @@ export {
   getArchetypeMaterial,
   makePalette,
 } from './palette'
-export { buildSpines, buildTails } from './tails'
 // Body part builders
+export type { BodyBounds } from './sockets'
+export { buildSpines, buildTails } from './tails'
+export type { BodyShell } from './torso'
 export { buildTorso } from './torso'
 export { buildWings } from './wings'

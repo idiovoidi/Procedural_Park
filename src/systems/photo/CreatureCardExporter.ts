@@ -1,5 +1,5 @@
 import { log } from '@core/utils'
-import type { CreatureInstance } from '@systems/creatures'
+import type { CreatureInstance, Genome } from '@systems/creatures'
 import * as THREE from 'three'
 import { generateCreatureName } from './scoring'
 
@@ -7,6 +7,8 @@ export interface CreatureCardMetadata {
   version: string
   creatureName: string
   anatomy: CreatureInstance['anatomy']
+  /** Full seeded definition; cards from before genomes existed do not have it. */
+  genome?: Genome
   rarity: number
   seed: number
   captureDate: string
@@ -116,9 +118,10 @@ export class CreatureCardExporter {
 
     // Create metadata object
     const metadata: CreatureCardMetadata = {
-      version: '1.0',
+      version: '2.0',
       creatureName,
       anatomy: creature.anatomy,
+      genome: creature.genome,
       rarity: creature.rarity,
       seed,
       captureDate: new Date().toISOString(),

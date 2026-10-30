@@ -10,8 +10,9 @@ import type { AudioManager } from '@systems/audio'
 import type { CameraController } from '@systems/camera'
 import {
   type CreatureInstance,
-  createRng,
-  generateAnatomy,
+  generateGenome,
+  generateSpeciesName,
+  hashSeed,
   spawnCreatureAt,
   spawnCreatureNearPath,
 } from '@systems/creatures'
@@ -52,10 +53,10 @@ export class CreatureManager {
    * Spawn all creatures in the world
    */
   public spawnCreatures(): void {
-    const randWorld = createRng(GAME_CONFIG.WORLD_SEED)
-    this.creatures = Array.from({ length: GAME_CONFIG.CREATURE_COUNT }, () => {
-      const anatomy = generateAnatomy(randWorld)
-      return spawnCreatureNearPath(this.scene, this.curve, randWorld, anatomy)
+    // Each creature has its own seed, so adding or removing one never reshuffles the rest
+    this.creatures = Array.from({ length: GAME_CONFIG.CREATURE_COUNT }, (_, index) => {
+      const genome = generateGenome(hashSeed(GAME_CONFIG.WORLD_SEED, index))
+      return spawnCreatureNearPath(this.scene, this.curve, genome)
     })
 
     // Update creatures state
@@ -67,10 +68,9 @@ export class CreatureManager {
    */
   public spawnExperimentCreature(): void {
     const labPosition = this.parkStructures.getLabPosition()
-    const rand = createRng(Math.random() * 100000)
-    const anatomy = generateAnatomy(rand)
+    const genome = generateGenome(Math.floor(Math.random() * 0x7fffffff))
 
-    this.experimentCreature = spawnCreatureAt(this.scene, labPosition, rand, anatomy)
+    this.experimentCreature = spawnCreatureAt(this.scene, labPosition, genome)
   }
 
   /**
@@ -222,7 +222,7 @@ export class CreatureManager {
     // Update UI
     if (closestCreature) {
       const distance = this.camera.camera.position.distanceTo(closestCreature.group.position)
-      const name = closestCreature.anatomy?.archetype || 'Unknown Creature'
+      const name = generateSpeciesName(closestCreature.genome)
       const rarity = closestCreature.rarity || 1
       this.uiManager.showCreatureInfo(name, distance, rarity)
     } else {

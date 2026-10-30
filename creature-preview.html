@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Creature Preview</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #14161c;
+        font-family: system-ui, sans-serif;
+      }
+      canvas {
+        display: block;
+      }
+      #hud {
+        position: fixed;
+        top: 8px;
+        left: 12px;
+        color: #cfd6e4;
+        font-size: 13px;
+        line-height: 1.5;
+        pointer-events: none;
+      }
+      .label {
+        position: fixed;
+        transform: translate(-50%, 0);
+        color: #e8ecf5;
+        font-size: 11px;
+        text-align: center;
+        white-space: nowrap;
+        text-shadow: 0 1px 2px #000;
+        pointer-events: none;
+      }
+      .label small {
+        display: block;
+        color: #98a3ba;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="hud"></div>
+    <script type="module" src="/src/dev/creature-preview.ts"></script>
+  </body>
+</html>
