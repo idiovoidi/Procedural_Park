@@ -94,20 +94,20 @@ export function generateBiomeMap(
 
       let biome: BiomeType
 
-      if (height > 5) {
-        biome = rand() > 0.7 ? 'crystal_cave' : 'rocky'
-      } else if (height > 3) {
-        biome = temperature > 0.3 ? 'rocky' : 'forest'
+      if (height > 4.5) {
+        biome = rand() > 0.75 ? 'crystal_cave' : 'rocky'
+      } else if (height > 2.5) {
+        biome = temperature > 0 ? 'rocky' : 'forest'
       } else if (height < -0.5) {
         biome = 'wetland'
-      } else if (moisture > 0.4) {
+      } else if (moisture > -0.12) {
         biome = 'forest'
       } else {
         biome = 'meadow'
       }
 
       // Add some floating islands at high altitudes
-      if (height > 6 && rand() > 0.8) {
+      if (height > 5.5 && rand() > 0.8) {
         biome = 'floating_islands'
       }
 

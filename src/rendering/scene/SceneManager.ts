@@ -15,6 +15,8 @@ export class SceneManager {
   public parkStructures: ParkStructures
   private directionalLight: THREE.DirectionalLight
   private ambientLight: THREE.AmbientLight
+  /** Soft sky/ground fill so the undersides of foliage and rocks are not pitch black. */
+  private hemisphereLight: THREE.HemisphereLight
   public sky: THREE.Mesh | null = null
   private shaderManager: ShaderManager
   private onShaderManagerRecreated: ((manager: ShaderManager) => void) | null = null
@@ -53,6 +55,7 @@ export class SceneManager {
     // Initialize lights
     this.directionalLight = new THREE.DirectionalLight(0xffffff, 2.2)
     this.ambientLight = new THREE.AmbientLight(0x406080, 0.6)
+    this.hemisphereLight = new THREE.HemisphereLight(0xaac4dc, 0x4a5a38, 0.6)
 
     // Setup lighting
     this.setupLighting()
@@ -97,7 +100,7 @@ export class SceneManager {
     this.directionalLight.shadow.camera.top = 20
     this.directionalLight.shadow.camera.bottom = -20
 
-    this.scene.add(this.directionalLight, this.ambientLight)
+    this.scene.add(this.directionalLight, this.ambientLight, this.hemisphereLight)
   }
 
   public getDayNightMode(): 'day' | 'night' {
@@ -111,6 +114,7 @@ export class SceneManager {
       this.directionalLight.intensity = 2.2
       this.ambientLight.color.set(0x406080)
       this.ambientLight.intensity = 0.6
+      this.hemisphereLight.intensity = 0.6
       if (this.scene.fog) {
         this.scene.fog.color.set(0x87ceeb)
         ;(this.scene.fog as THREE.Fog).near = 50
@@ -122,6 +126,7 @@ export class SceneManager {
       this.directionalLight.intensity = 1.2 // Brighter night lighting
       this.ambientLight.color.set(0x203040) // Lighter night ambient
       this.ambientLight.intensity = 0.5
+      this.hemisphereLight.intensity = 0.15
       if (this.scene.fog) {
         this.scene.fog.color.set(0x2a3a4a) // Much lighter night fog
         ;(this.scene.fog as THREE.Fog).near = 50

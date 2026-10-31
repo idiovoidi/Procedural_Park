@@ -2,31 +2,31 @@ import { TAU } from '@core/constants'
 import { disposeThreeObject } from '@core/utils'
 import * as THREE from 'three'
 import { BIOME_CONFIGS, generateBiomeMap } from './biome-generator'
-import { noise2D } from './noise-utils'
-import {
-  createCrystalFormation,
-  createGrass,
-  createMountain,
-  createTree,
-  createWetlandPlant,
-} from './terrain-props'
+import { createRng } from './noise-utils'
+import { createHeightSampler, MAP_SIZE } from './terrain-height'
+import { buildLandmarks } from './terrain-landmarks'
+import { buildTerrainMesh, buildWater } from './terrain-mesh'
+import { buildMountainRing } from './terrain-props'
+import { type ScatterContext, scatterProps } from './terrain-scatter'
 import type { BiomeType } from './types'
 
 export class TerrainSystem {
   private scene: THREE.Scene
   private terrainGroup: THREE.Group
-  private mountainGroup: THREE.Group | null = null
-  private heightMap: number[][] = []
+  private mountains: THREE.Mesh | null = null
   private biomeMap: BiomeType[][] = []
   private currentBiomes: Set<BiomeType> = new Set()
-  private readonly mapSize = 200
-  private readonly resolution = 64
-  private readonly maxHeight = 8
-  private static readonly FLOOR_Y = -0.1
+  private heightSampler: (x: number, z: number) => number = () => 0
+  private readonly mapSize = MAP_SIZE
+  /** Cells along each side of the biome grid. */
+  private readonly resolution = 100
+  /** Quads along each side of the rendered mesh. */
+  private readonly meshSegments = 150
 
   constructor(scene: THREE.Scene) {
     this.scene = scene
     this.terrainGroup = new THREE.Group()
+    this.terrainGroup.name = 'Terrain'
     this.scene.add(this.terrainGroup)
     this.addDistantMountains()
   }
@@ -34,11 +34,9 @@ export class TerrainSystem {
   public generateTerrain(seed: number = 42) {
     this.clearTerrain()
 
-    // Generate height and biome maps
-    this.generateHeightMap(seed)
-    this.biomeMap = generateBiomeMap(this.heightMap, this.resolution, seed + 1000)
+    this.heightSampler = createHeightSampler(seed)
+    this.biomeMap = generateBiomeMap(this.sampleHeightGrid(), this.resolution, seed + 1000)
 
-    // Track current biomes
     this.currentBiomes.clear()
     for (let x = 0; x < this.resolution; x++) {
       for (let z = 0; z < this.resolution; z++) {
@@ -46,16 +44,24 @@ export class TerrainSystem {
       }
     }
 
-    // Create terrain mesh
-    this.createTerrainMesh()
+    this.terrainGroup.add(
+      buildTerrainMesh({
+        mapSize: this.mapSize,
+        segments: this.meshSegments,
+        heightAt: this.heightSampler,
+        groundColorAt: (x, z, out) => this.blendGroundColor(x, z, out),
+      }),
+      buildWater(this.mapSize * 2.4)
+    )
 
-    // Add a simple fallback ground plane to ensure visibility
-    this.createFallbackGround()
+    const context: ScatterContext = {
+      seed: seed + 2000,
+      mapSize: this.mapSize,
+      heightAt: (x, z) => this.getHeightAt(x, z),
+      biomeAt: (x, z) => this.getBiomeAt(x, z),
+    }
+    this.terrainGroup.add(scatterProps(context), buildLandmarks(context))
 
-    // Add environmental features
-    this.addEnvironmentalFeatures(seed + 2000)
-
-    // Update scene lighting based on dominant biome
     this.updateSceneLighting()
   }
 
@@ -70,392 +76,98 @@ export class TerrainSystem {
 
   public dispose() {
     this.clearTerrain()
-    if (this.mountainGroup) {
-      disposeThreeObject(this.mountainGroup)
-      this.scene.remove(this.mountainGroup)
-      this.mountainGroup = null
+    if (this.mountains) {
+      disposeThreeObject(this.mountains)
+      this.mountains = null
     }
     this.scene.remove(this.terrainGroup)
   }
 
-  private generateHeightMap(_seed: number) {
-    this.heightMap = []
-
-    // Initialize with base noise
+  /** Heights at the centre of each biome cell, indexed [x][z]. */
+  private sampleHeightGrid(): number[][] {
+    const grid: number[][] = []
     for (let x = 0; x < this.resolution; x++) {
-      this.heightMap[x] = []
+      grid[x] = []
       for (let z = 0; z < this.resolution; z++) {
-        let height = 0
-
-        // Multiple octaves of noise for realistic terrain
-        height += noise2D(x * 0.02, z * 0.02) * 4
-        height += noise2D(x * 0.05, z * 0.05) * 2
-        height += noise2D(x * 0.1, z * 0.1) * 1
-        height += noise2D(x * 0.2, z * 0.2) * 0.5
-
-        // Add some dramatic features
-        const ridgeNoise = Math.abs(noise2D(x * 0.03, z * 0.03))
-        height += ridgeNoise * ridgeNoise * 3
-
-        this.heightMap[x][z] = Math.max(-2, Math.min(this.maxHeight, height))
+        const wx = ((x + 0.5) / this.resolution - 0.5) * this.mapSize
+        const wz = ((z + 0.5) / this.resolution - 0.5) * this.mapSize
+        grid[x][z] = this.heightSampler(wx, wz)
       }
     }
+    return grid
   }
 
-  private createTerrainMesh() {
-    // Create geometry with proper resolution
-    const geometry = new THREE.PlaneGeometry(
-      this.mapSize,
-      this.mapSize,
-      this.resolution - 1,
-      this.resolution - 1
+  /** Bilinear blend of the four nearest cells' ground colours, so biomes fade into each other. */
+  private blendGroundColor(x: number, z: number, out: THREE.Color) {
+    const fx = Math.min(
+      this.resolution - 1.001,
+      Math.max(0, ((x + this.mapSize / 2) / this.mapSize) * this.resolution - 0.5)
     )
-    const positionAttribute = geometry.attributes.position
-    const vertices = positionAttribute.array as Float32Array
-    const colors = new Float32Array(vertices.length)
+    const fz = Math.min(
+      this.resolution - 1.001,
+      Math.max(0, ((z + this.mapSize / 2) / this.mapSize) * this.resolution - 0.5)
+    )
+    const x0 = Math.floor(fx)
+    const z0 = Math.floor(fz)
+    const tx = fx - x0
+    const tz = fz - z0
 
-    // Apply height and color data with correct vertex mapping
-    // PlaneGeometry vertices are ordered in rows from top-left to bottom-right
-    for (let i = 0; i < positionAttribute.count; i++) {
-      // Get the actual position from the geometry
-      const vx = vertices[i * 3] // X position in world space
-      const vz = vertices[i * 3 + 2] // Z position in world space
-
-      // Convert world position to heightmap indices
-      const mapX = Math.floor(((vx + this.mapSize / 2) / this.mapSize) * (this.resolution - 1))
-      const mapZ = Math.floor(((vz + this.mapSize / 2) / this.mapSize) * (this.resolution - 1))
-
-      const clampedX = Math.max(0, Math.min(this.resolution - 1, mapX))
-      const clampedZ = Math.max(0, Math.min(this.resolution - 1, mapZ))
-
-      // Set height (Y coordinate)
-      vertices[i * 3 + 1] = this.heightMap[clampedX][clampedZ]
-
-      // Set color based on biome
-      const biome = this.biomeMap[clampedX][clampedZ]
-      const biomeColor = BIOME_CONFIGS[biome].groundColor
-      colors[i * 3] = biomeColor.r
-      colors[i * 3 + 1] = biomeColor.g
-      colors[i * 3 + 2] = biomeColor.b
+    const corner = (cx: number, cz: number) => BIOME_CONFIGS[this.biomeMap[cx][cz]].groundColor
+    out.setRGB(0, 0, 0)
+    const weights: Array<[number, number, number]> = [
+      [x0, z0, (1 - tx) * (1 - tz)],
+      [x0 + 1, z0, tx * (1 - tz)],
+      [x0, z0 + 1, (1 - tx) * tz],
+      [x0 + 1, z0 + 1, tx * tz],
+    ]
+    for (const [cx, cz, w] of weights) {
+      const c = corner(cx, cz)
+      out.r += c.r * w
+      out.g += c.g * w
+      out.b += c.b * w
     }
-
-    // Update geometry attributes
-    positionAttribute.needsUpdate = true
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-    geometry.computeVertexNormals()
-
-    const material = new THREE.MeshStandardMaterial({
-      vertexColors: true,
-      roughness: 0.8,
-      metalness: 0.1,
-      wireframe: false,
-    })
-
-    const terrain = new THREE.Mesh(geometry, material)
-    terrain.rotation.x = -Math.PI / 2
-    terrain.receiveShadow = true
-    terrain.castShadow = false
-
-    this.terrainGroup.add(terrain)
-  }
-
-  private createFallbackGround() {
-    // Simple fallback ground plane to ensure something is always visible
-    const groundGeo = new THREE.PlaneGeometry(this.mapSize, this.mapSize)
-    const groundMat = new THREE.MeshStandardMaterial({
-      color: 0x5a7a4f, // Much lighter fallback ground color
-      metalness: 0.1,
-      roughness: 0.9,
-    })
-    const ground = new THREE.Mesh(groundGeo, groundMat)
-    ground.rotation.x = -Math.PI / 2
-    ground.position.y = TerrainSystem.FLOOR_Y
-    ground.receiveShadow = true
-    this.terrainGroup.add(ground)
-  }
-
-  private addEnvironmentalFeatures(seed: number) {
-    const rand = this.createRng(seed)
-
-    // Add trees, rocks, and other features based on biome
-    for (let i = 0; i < 150; i++) {
-      const x = (rand() - 0.5) * this.mapSize * 0.8
-      const z = (rand() - 0.5) * this.mapSize * 0.8
-
-      const mapX = Math.floor(((x + this.mapSize / 2) / this.mapSize) * this.resolution)
-      const mapZ = Math.floor(((z + this.mapSize / 2) / this.mapSize) * this.resolution)
-
-      if (mapX >= 0 && mapX < this.resolution && mapZ >= 0 && mapZ < this.resolution) {
-        const biome = this.biomeMap[mapX][mapZ]
-        const config = BIOME_CONFIGS[biome]
-
-        if (rand() < config.vegetationDensity) {
-          this.addVegetation(x, z, biome, rand)
-        }
-
-        if (rand() < config.rockDensity) {
-          this.addRock(x, z, biome, rand)
-        }
-      }
-    }
-
-    // Add special biome features
-    this.addSpecialFeatures(seed + 500)
-  }
-
-  private addVegetation(x: number, z: number, biome: BiomeType, rand: () => number) {
-    let mesh: THREE.Object3D
-
-    switch (biome) {
-      case 'forest':
-        mesh = createTree(rand)
-        break
-      case 'meadow':
-        mesh = rand() > 0.7 ? createTree(rand) : createGrass(rand)
-        break
-      case 'wetland':
-        mesh = createWetlandPlant(rand)
-        break
-      case 'crystal_cave':
-        mesh = createCrystalFormation(rand)
-        break
-      default:
-        mesh = createGrass(rand)
-    }
-
-    // Position vegetation at the correct terrain height
-    const terrainHeight = this.getHeightAt(x, z)
-    mesh.position.set(x, terrainHeight, z)
-    mesh.rotation.y = rand() * TAU
-    mesh.castShadow = true
-    mesh.receiveShadow = true
-
-    this.terrainGroup.add(mesh)
-  }
-
-  private addRock(x: number, z: number, biome: BiomeType, rand: () => number) {
-    const geometry = new THREE.IcosahedronGeometry(0.5 + rand() * 2, rand() > 0.5 ? 1 : 0)
-
-    let color: THREE.Color
-    switch (biome) {
-      case 'rocky':
-        color = new THREE.Color().setHSL(0.1, 0.2, 0.4 + rand() * 0.2)
-        break
-      case 'crystal_cave':
-        color = new THREE.Color().setHSL(0.7 + rand() * 0.2, 0.8, 0.6)
-        break
-      default:
-        color = new THREE.Color().setHSL(0.1, 0.3, 0.3 + rand() * 0.3)
-    }
-
-    const material = new THREE.MeshStandardMaterial({
-      color,
-      roughness: biome === 'crystal_cave' ? 0.1 : 0.8,
-      metalness: biome === 'crystal_cave' ? 0.3 : 0.1,
-    })
-
-    // Position rock at the correct terrain height
-    const terrainHeight = this.getHeightAt(x, z)
-    const rock = new THREE.Mesh(geometry, material)
-    rock.position.set(x, terrainHeight + 0.5, z)
-    rock.rotation.set(rand() * Math.PI, rand() * Math.PI, rand() * Math.PI)
-    rock.castShadow = true
-    rock.receiveShadow = true
-
-    this.terrainGroup.add(rock)
-  }
-
-  private addSpecialFeatures(seed: number) {
-    const rand = this.createRng(seed)
-
-    // Add some larger landmark features
-    for (let i = 0; i < 8; i++) {
-      const x = (rand() - 0.5) * this.mapSize * 0.6
-      const z = (rand() - 0.5) * this.mapSize * 0.6
-
-      const { mapX, mapZ } = this.worldToMap(x, z)
-
-      if (mapX >= 0 && mapX < this.resolution && mapZ >= 0 && mapZ < this.resolution) {
-        const height = this.heightMap[mapX][mapZ]
-        const biome = this.biomeMap[mapX][mapZ]
-
-        this.addLandmark(x, height, z, biome, rand)
-      }
-    }
-  }
-
-  private addLandmark(x: number, y: number, z: number, biome: BiomeType, rand: () => number) {
-    switch (biome) {
-      case 'rocky':
-        this.addStoneArch(x, y, z)
-        break
-      case 'crystal_cave':
-        this.addCrystalCluster(x, y, z, rand)
-        break
-      case 'forest':
-        this.addAncientTree(x, y, z, rand)
-        break
-      case 'floating_islands':
-        this.addFloatingRock(x, y + 5, z, rand)
-        break
-    }
-  }
-
-  private addStoneArch(x: number, y: number, z: number) {
-    const group = new THREE.Group()
-
-    // Arch pillars
-    const pillarGeometry = new THREE.BoxGeometry(1, 4, 1)
-    const pillarMaterial = new THREE.MeshStandardMaterial({ color: 0x696969 })
-
-    const leftPillar = new THREE.Mesh(pillarGeometry, pillarMaterial)
-    leftPillar.position.set(-2, 2, 0)
-    group.add(leftPillar)
-
-    const rightPillar = new THREE.Mesh(pillarGeometry, pillarMaterial)
-    rightPillar.position.set(2, 2, 0)
-    group.add(rightPillar)
-
-    // Arch top
-    const archGeometry = new THREE.BoxGeometry(5, 0.5, 1)
-    const arch = new THREE.Mesh(archGeometry, pillarMaterial)
-    arch.position.set(0, 4, 0)
-    group.add(arch)
-
-    group.position.set(x, y, z)
-    group.castShadow = true
-    group.receiveShadow = true
-
-    this.terrainGroup.add(group)
-  }
-
-  private addCrystalCluster(x: number, y: number, z: number, rand: () => number) {
-    const group = new THREE.Group()
-
-    for (let i = 0; i < 5 + rand() * 5; i++) {
-      const crystal = createCrystalFormation(rand)
-      crystal.position.set((rand() - 0.5) * 4, rand() * 3, (rand() - 0.5) * 4)
-      crystal.scale.setScalar(0.5 + rand() * 1.5)
-      group.add(crystal)
-    }
-
-    group.position.set(x, y, z)
-    this.terrainGroup.add(group)
-  }
-
-  private addAncientTree(x: number, y: number, z: number, rand: () => number) {
-    const scale = 2 + rand() * 2
-    const tree = createTree(rand)
-    tree.scale.setScalar(scale)
-    // Compensate for scaling: the tree's trunk is at y=trunkHeight/2 internally
-    // When scaled, this offset gets multiplied, so we need to subtract it
-    // to keep the trunk base at ground level
-    const trunkHeight = tree.userData.trunkHeight as number
-    const offset = (trunkHeight / 2) * (scale - 1)
-    tree.position.set(x, y - offset, z)
-    this.terrainGroup.add(tree)
-  }
-
-  private addFloatingRock(x: number, y: number, z: number, rand: () => number) {
-    const geometry = new THREE.IcosahedronGeometry(2 + rand() * 3, 1)
-    const material = new THREE.MeshStandardMaterial({
-      color: new THREE.Color().setHSL(0.6, 0.3, 0.6),
-    })
-    const rock = new THREE.Mesh(geometry, material)
-    rock.position.set(x, y, z)
-    rock.castShadow = true
-
-    this.terrainGroup.add(rock)
   }
 
   private updateSceneLighting() {
-    // Get dominant biome
-    const biomeCounts = new Map<BiomeType, number>()
-    for (const biome of this.currentBiomes) {
-      biomeCounts.set(biome, 0)
-    }
-
-    for (let x = 0; x < this.resolution; x++) {
-      for (let z = 0; z < this.resolution; z++) {
+    // Dominant biome among the cells the player can actually see (skip the sunken map edge)
+    const counts = new Map<BiomeType, number>()
+    const margin = Math.floor(this.resolution * 0.125)
+    for (let x = margin; x < this.resolution - margin; x++) {
+      for (let z = margin; z < this.resolution - margin; z++) {
         const biome = this.biomeMap[x][z]
-        biomeCounts.set(biome, (biomeCounts.get(biome) || 0) + 1)
+        counts.set(biome, (counts.get(biome) ?? 0) + 1)
       }
     }
 
-    let dominantBiome: BiomeType = 'forest'
-    let maxCount = 0
-    for (const [biome, count] of biomeCounts) {
-      if (count > maxCount) {
-        maxCount = count
-        dominantBiome = biome
+    let dominant: BiomeType = 'forest'
+    let max = 0
+    for (const [biome, count] of counts) {
+      if (count > max) {
+        max = count
+        dominant = biome
       }
     }
 
-    const config = BIOME_CONFIGS[dominantBiome]
-
-    // Update scene background and fog
+    const config = BIOME_CONFIGS[dominant]
     this.scene.background = config.fogColor
-    this.scene.fog = new THREE.Fog(config.fogColor.getHex(), 25, 120)
-  }
-
-  private createRng(seed: number): () => number {
-    let state = seed >>> 0
-    return () => {
-      state = (Math.imul(1664525, state) + 1013904223) >>> 0
-      return state / 0xffffffff
-    }
+    this.scene.fog = new THREE.Fog(config.fogColor.getHex(), 60, 380)
   }
 
   /**
-   * Height of the ground that is actually drawn. The terrain mesh does not currently
-   * render the heightmap (see createTerrainMesh), so the visible floor is the flat
-   * fallback plane; use this, not getHeightAt, to stand things on what the player sees.
+   * Height of the ground the player sees. It is also the surface every prop, structure
+   * and creature stands on, so they all agree.
    */
-  public getFloorHeightAt(_x: number, _z: number): number {
-    return TerrainSystem.FLOOR_Y
+  public getFloorHeightAt(x: number, z: number): number {
+    return this.getHeightAt(x, z)
   }
 
   public getHeightAt(x: number, z: number): number {
-    // Convert world coordinates to heightmap coordinates
-    const mapX = ((x + this.mapSize / 2) / this.mapSize) * (this.resolution - 1)
-    const mapZ = ((z + this.mapSize / 2) / this.mapSize) * (this.resolution - 1)
-
-    // Get integer and fractional parts for bilinear interpolation
-    const x0 = Math.floor(mapX)
-    const z0 = Math.floor(mapZ)
-    const x1 = Math.min(x0 + 1, this.resolution - 1)
-    const z1 = Math.min(z0 + 1, this.resolution - 1)
-
-    // Check bounds
-    if (x0 < 0 || x0 >= this.resolution || z0 < 0 || z0 >= this.resolution) {
-      return 0
-    }
-
-    // Get fractional parts
-    const fx = mapX - x0
-    const fz = mapZ - z0
-
-    // Get heights at four corners
-    const h00 = this.heightMap[x0][z0]
-    const h10 = this.heightMap[x1][z0]
-    const h01 = this.heightMap[x0][z1]
-    const h11 = this.heightMap[x1][z1]
-
-    // Bilinear interpolation
-    const h0 = h00 * (1 - fx) + h10 * fx
-    const h1 = h01 * (1 - fx) + h11 * fx
-
-    return h0 * (1 - fz) + h1 * fz
-  }
-
-  private worldToMap(x: number, z: number): { mapX: number; mapZ: number } {
-    const mapX = Math.floor(((x + this.mapSize / 2) / this.mapSize) * this.resolution)
-    const mapZ = Math.floor(((z + this.mapSize / 2) / this.mapSize) * this.resolution)
-    return { mapX, mapZ }
+    return this.heightSampler(x, z)
   }
 
   public getBiomeAt(x: number, z: number): BiomeType {
-    const { mapX, mapZ } = this.worldToMap(x, z)
+    const mapX = Math.floor(((x + this.mapSize / 2) / this.mapSize) * this.resolution)
+    const mapZ = Math.floor(((z + this.mapSize / 2) / this.mapSize) * this.resolution)
 
     if (mapX >= 0 && mapX < this.resolution && mapZ >= 0 && mapZ < this.resolution) {
       return this.biomeMap[mapX][mapZ]
@@ -468,40 +180,18 @@ export class TerrainSystem {
   }
 
   private addDistantMountains() {
-    const mountainGroup = new THREE.Group()
-    const edgeDistance = this.mapSize * 1.5 // Position beyond the map edges
-    const mountainsPerSide = 4
-    const sides = [
-      { name: 'north', axis: 'z', value: edgeDistance, perpAxis: 'x' },
-      { name: 'south', axis: 'z', value: -edgeDistance, perpAxis: 'x' },
-      { name: 'east', axis: 'x', value: edgeDistance, perpAxis: 'z' },
-      { name: 'west', axis: 'x', value: -edgeDistance, perpAxis: 'z' },
-    ]
-
-    sides.forEach((side) => {
-      for (let i = 0; i < mountainsPerSide; i++) {
-        const t = (i + 0.5) / mountainsPerSide
-        const perpPos = (t - 0.5) * this.mapSize * 2
-        const x = side.axis === 'x' ? side.value : perpPos
-        const z = side.axis === 'z' ? side.value : perpPos
-
-        createMountain(mountainGroup, x, z, 50, 80, 40, 50)
-      }
-    })
-
-    // Add a few corner mountains for extra atmosphere
-    const corners = [
-      [edgeDistance * 0.7, edgeDistance * 0.7],
-      [-edgeDistance * 0.7, edgeDistance * 0.7],
-      [edgeDistance * 0.7, -edgeDistance * 0.7],
-      [-edgeDistance * 0.7, -edgeDistance * 0.7],
-    ]
-
-    corners.forEach(([x, z]) => {
-      createMountain(mountainGroup, x, z, 60, 70, 45, 45, 0.58, 0.18)
-    })
-
-    this.mountainGroup = mountainGroup
-    this.scene.add(mountainGroup)
+    const mesh = new THREE.Mesh(
+      buildMountainRing(createRng(7), this.mapSize * 1.1, 22),
+      new THREE.MeshStandardMaterial({
+        vertexColors: true,
+        flatShading: true,
+        roughness: 1,
+        metalness: 0,
+      })
+    )
+    mesh.name = 'DistantMountains'
+    mesh.rotation.y = TAU * 0.13
+    this.mountains = mesh
+    this.scene.add(mesh)
   }
 }
