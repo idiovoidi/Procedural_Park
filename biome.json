@@ -22,7 +22,7 @@
     "formatWithErrors": false,
     "indentStyle": "space",
     "indentWidth": 2,
-    "lineEnding": "crlf",
+    "lineEnding": "lf",
     "lineWidth": 100
   },
   "javascript": {

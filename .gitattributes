@@ -1,0 +1,2 @@
+# Keep line endings LF on every platform so biome (lineEnding: lf) passes locally and in CI.
+* text=auto eol=lf
