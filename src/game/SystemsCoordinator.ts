@@ -11,10 +11,12 @@ import { SceneManager } from '@rendering/scene'
 import type { ShaderConfig } from '@rendering/shaders'
 import { AudioManager } from '@systems/audio'
 import { CameraController } from '@systems/camera'
+import { CareSystem } from '@systems/care'
 import { CurrencyManager } from '@systems/currency'
 import { SimClock } from '@systems/economy'
 import { FoodManager } from '@systems/food'
 import { InputManager } from '@systems/input'
+import { PenGrid } from '@systems/park'
 import { PhotoSystem } from '@systems/photo'
 import { Roster } from '@systems/roster'
 import { createStateSyncHelpers, type GameStateType, IntegratedStateManager } from '@systems/state'
@@ -41,6 +43,10 @@ export interface GameSystems {
   simClock: SimClock
   /** The creatures the player owns (genomes, care stats, age, lineage). */
   roster: Roster
+  /** The hub build grid: fences, terrain edits and the pens they enclose. */
+  park: PenGrid
+  /** Feeding, hunger and mood for owned creatures. */
+  care: CareSystem
 }
 
 export class SystemsCoordinator {
@@ -133,6 +139,11 @@ export class SystemsCoordinator {
     const roster = new Roster()
     simClock.onTick(() => roster.advanceTicks(1))
 
+    // Initialize the hub build grid and the care loop that looks after penned creatures
+    const park = new PenGrid()
+    const care = new CareSystem(roster, park)
+    simClock.onTick((tick) => care.tick(tick))
+
     // Store all systems
     this.systems = {
       scene: sceneManager,
@@ -152,6 +163,8 @@ export class SystemsCoordinator {
       currency: currencyManager,
       simClock,
       roster,
+      park,
+      care,
     }
 
     // Setup system callbacks

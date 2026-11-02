@@ -105,6 +105,29 @@ export const GAME_CONFIG = {
     /** Food servings a medium creature eats per feeding cycle at 100% diet efficiency. */
     BASE_FOOD_PER_CYCLE: 1,
 
+    /** Care loop: feeding, hunger and mood. All values per feeding cycle unless noted. */
+    CARE: {
+      /** Fullness lost every feeding cycle. */
+      FULLNESS_DECAY_PER_CYCLE: 20,
+      /** Fullness gained from a complete meal (scaled down for a partial one). */
+      FULLNESS_PER_MEAL: 25,
+      /** A creature only eats when its fullness has dropped to this or below. */
+      EAT_AT_OR_BELOW: 85,
+      /** Servings one trough holds. */
+      TROUGH_CAPACITY_SERVINGS: 20,
+
+      /** Happiness moves this far toward its target each cycle. */
+      HAPPINESS_DRIFT_PER_CYCLE: 10,
+      /** Target happiness for a creature with no closed pen (it is not looked after). */
+      UNPENNED_HAPPINESS_TARGET: 30,
+      /** Below this fullness the happiness target is halved. */
+      HUNGRY_BELOW: 20,
+      /** Extra happiness from a meal, as a share of the food's happiness x diet efficiency. */
+      MEAL_HAPPINESS_SCALE: 0.3,
+      /** Trust gained from a meal, as a share of the food's trust bonus x diet efficiency. */
+      MEAL_TRUST_SCALE: 0.5,
+    },
+
     /** Floor for diet efficiency when computing food use, so a bad match is costly but finite. */
     MIN_DIET_EFFICIENCY: 0.1,
 
