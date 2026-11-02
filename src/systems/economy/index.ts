@@ -3,8 +3,6 @@
  * Barrel export for the park economy simulation
  */
 
-export type { SimClockState, TickListener } from './SimClock'
-export { SimClock } from './SimClock'
 export type {
   AgeStage,
   CreatureArchetypeId,
@@ -31,3 +29,5 @@ export {
   RESOURCE_BY_ARCHETYPE,
   rankFoods,
 } from './creature-economy'
+export type { SimClockState, TickListener } from './SimClock'
+export { SimClock } from './SimClock'

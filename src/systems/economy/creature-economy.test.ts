@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { GAME_CONFIG } from '../../core/constants'
-import { generateGenome } from '../creatures/genome'
 import type { Genome } from '../creatures/genome'
+import { generateGenome } from '../creatures/genome'
 import { FOOD_ITEMS } from '../food'
 import {
   canShareEnclosure,
@@ -172,8 +172,7 @@ describe('getFoodPerCycle', () => {
 })
 
 describe('canShareEnclosure', () => {
-  const t = (temperament: Genome['temperament'], speciesId = 1) =>
-    make({ temperament, speciesId })
+  const t = (temperament: Genome['temperament'], speciesId = 1) => make({ temperament, speciesId })
 
   it('never lets an aggressive creature share', () => {
     for (const other of TEMPERAMENTS) {

@@ -146,10 +146,7 @@ export function rankFoods(genome: Genome): RankedFood[] {
  * inversely with efficiency (floored so a terrible match is costly but finite).
  */
 export function getFoodPerCycle(genome: Genome, efficiency: number = 1): number {
-  const eff = Math.max(
-    Number.isFinite(efficiency) ? efficiency : 0,
-    ECONOMY.MIN_DIET_EFFICIENCY
-  )
+  const eff = Math.max(Number.isFinite(efficiency) ? efficiency : 0, ECONOMY.MIN_DIET_EFFICIENCY)
   return (ECONOMY.BASE_FOOD_PER_CYCLE * getSizeMultiplier(genome.size)) / eff
 }
 
