@@ -48,4 +48,55 @@ export const GAME_CONFIG = {
 
   // Economy
   STARTING_CURRENCY: 100,
+
+  /**
+   * Park economy tuning. Starting values from GDD sections 5-7; expect to retune after
+   * playtesting. Everything the simulation multiplies or counts lives here so balance
+   * changes never touch logic.
+   */
+  ECONOMY: {
+    // Simulation clock: the economy advances in fixed steps, independent of frame rate.
+    TICK_SECONDS: 1,
+    /** Most ticks one rendered frame may run; extra time is dropped, not queued. */
+    MAX_STEPS_PER_FRAME: 10,
+    /** Fastest allowed time scale (1 = real time, 0 = paused). */
+    MAX_SPEED: 8,
+    /** Longest gap simulated when loading a save (GDD 13.2, decision Q6). */
+    OFFLINE_CAP_SECONDS: 8 * 60 * 60,
+
+    /** Ticks per production cycle: a creature yields output once per cycle. */
+    PRODUCTION_CYCLE_TICKS: 60,
+    /** Ticks per feeding cycle: hunger and food use advance once per cycle. */
+    FEED_CYCLE_TICKS: 60,
+
+    /** Output and food scale with body size. */
+    SIZE_MULTIPLIER: { tiny: 0.5, small: 0.75, medium: 1, large: 1.5, huge: 2 },
+
+    /** Value multiplier by rarity tier; `min` is the lowest rarity (0..1) in the tier. */
+    RARITY_TIERS: [
+      { name: 'common', min: 0, multiplier: 1 },
+      { name: 'uncommon', min: 0.4, multiplier: 1.6 },
+      { name: 'rare', min: 0.6, multiplier: 2.5 },
+      { name: 'epic', min: 0.8, multiplier: 4 },
+      { name: 'legendary', min: 0.92, multiplier: 7 },
+    ],
+
+    /** Output multiplier by growth stage (no lifespan: adults stay adults, decision Q4). */
+    AGE_MULTIPLIER: { hatchling: 0.25, juvenile: 0.6, adult: 1 },
+
+    /** Happiness (0..1) maps linearly onto this output multiplier range. */
+    HAPPINESS_MULTIPLIER: { min: 0.25, max: 1.25 },
+
+    /** Resource units a medium, common, adult, neutral-happiness creature yields per cycle. */
+    BASE_OUTPUT_PER_CYCLE: {
+      terrestrial: 6,
+      aerial: 5,
+      aquatic: 5,
+      ethereal: 3,
+      crystalline: 3,
+    },
+
+    /** Food servings a medium creature eats per feeding cycle at 100% diet efficiency. */
+    BASE_FOOD_PER_CYCLE: 1,
+  },
 } as const

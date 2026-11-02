@@ -12,6 +12,7 @@ import type { ShaderConfig } from '@rendering/shaders'
 import { AudioManager } from '@systems/audio'
 import { CameraController } from '@systems/camera'
 import { CurrencyManager } from '@systems/currency'
+import { SimClock } from '@systems/economy'
 import { FoodManager } from '@systems/food'
 import { InputManager } from '@systems/input'
 import { PhotoSystem } from '@systems/photo'
@@ -35,6 +36,8 @@ export interface GameSystems {
   shaders: ShaderService
   food: FoodManager
   currency: CurrencyManager
+  /** Fixed-step clock that drives the park economy (production, hunger, breeding timers). */
+  simClock: SimClock
 }
 
 export class SystemsCoordinator {
@@ -120,6 +123,9 @@ export class SystemsCoordinator {
     // Initialize currency manager
     const currencyManager = new CurrencyManager(GAME_CONFIG.STARTING_CURRENCY)
 
+    // Initialize the economy clock (systems subscribe to its ticks as they are added)
+    const simClock = new SimClock()
+
     // Store all systems
     this.systems = {
       scene: sceneManager,
@@ -137,6 +143,7 @@ export class SystemsCoordinator {
       shaders: shaderService,
       food: foodManager,
       currency: currencyManager,
+      simClock,
     }
 
     // Setup system callbacks

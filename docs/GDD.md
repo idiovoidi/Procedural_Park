@@ -115,7 +115,7 @@ Creatures are the heart of the game and the code already has a solid base: a JSO
 | **Hunger** | 0–100 | Production stops when empty; never kills |
 | **Happiness** | 0–100 | Output multiplier; low → skittish, no breeding |
 | **Trust** | 0–100 | Handling ease, capture, breeding willingness. ✅ food already grants trust/happiness |
-| **Age stage** | hatchling → juvenile → adult → elder | Output, breeding eligibility, size scaling |
+| **Age stage** | hatchling → juvenile → adult (no elder stage or lifespan, §17.1 Q4) | Output, breeding eligibility, size scaling |
 | **Lineage** | parent ids, generation | Pedigree display, optional inbreeding rules (§6.5) |
 
 > **Rule of thumb:** a creature should be *legible at a glance* — its body tells you what it eats and where it lives (a floater hovers, a swimmer needs water), and its colour and glow tell you roughly what it's worth.
