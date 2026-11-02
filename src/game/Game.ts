@@ -9,7 +9,7 @@ import type { IntegratedStateManager } from '@systems/state'
 import { showErrorScreen } from '@ui/utils/show-error-screen'
 import { GameLoop } from './GameLoop'
 import { InputHandler, type InputHandlerCallbacks } from './InputHandler'
-import { FoodSystemManager, PhotoManager, SaveLoadManager } from './managers'
+import { FoodSystemManager, MarketUIManager, PhotoManager, SaveLoadManager } from './managers'
 import { type GameSystems, SystemsCoordinator } from './SystemsCoordinator'
 
 export class Game {
@@ -17,6 +17,7 @@ export class Game {
   private gameLoop!: GameLoop
   private photos!: PhotoManager
   private food!: FoodSystemManager
+  private market!: MarketUIManager
   private saveLoad!: SaveLoadManager
   private recordingIndicator: HTMLElement | null = null
   private container: HTMLElement
@@ -53,6 +54,7 @@ export class Game {
       // Initialize feature managers
       this.photos = new PhotoManager(this.systems)
       this.food = new FoodSystemManager(this.systems)
+      this.market = new MarketUIManager(this.systems)
       this.saveLoad = new SaveLoadManager(this.systems, this.photos, () => this.updateLabSign())
 
       // Setup input handler
@@ -84,6 +86,7 @@ export class Game {
 
       // Initialize food system
       this.food.initialize()
+      this.market.initialize()
 
       // Hide loading screen and transition to playing state
       setTimeout(() => {
@@ -153,6 +156,7 @@ export class Game {
       onFeedCreature: () => this.food.feedNearestCreature(),
       onRandomizeCreature: () => this.randomizeCreature(),
       onToggleFoodStore: () => this.food.toggleStore(),
+      onToggleMarket: () => this.market.toggle(),
     }
 
     new InputHandler(

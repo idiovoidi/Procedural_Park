@@ -16,6 +16,7 @@ import { CurrencyManager } from '@systems/currency'
 import { SimClock } from '@systems/economy'
 import { FoodManager } from '@systems/food'
 import { InputManager } from '@systems/input'
+import { MarketSystem } from '@systems/market'
 import { PenGrid } from '@systems/park'
 import { PhotoSystem } from '@systems/photo'
 import { ProductionSystem, ResourceInventory } from '@systems/production'
@@ -51,6 +52,8 @@ export interface GameSystems {
   /** Resource output, collector bins and the player's carried resources. */
   production: ProductionSystem
   resources: ResourceInventory
+  /** Selling resources and creatures for Safari Coins. */
+  market: MarketSystem
 }
 
 export class SystemsCoordinator {
@@ -153,6 +156,10 @@ export class SystemsCoordinator {
     const production = new ProductionSystem(roster, park, resources)
     simClock.onTick((tick) => production.tick(tick))
 
+    // The market sells what production makes; demand recovers with the clock
+    const market = new MarketSystem(roster, resources, currencyManager)
+    simClock.onTick(() => market.tick())
+
     // Store all systems
     this.systems = {
       scene: sceneManager,
@@ -176,6 +183,7 @@ export class SystemsCoordinator {
       care,
       production,
       resources,
+      market,
     }
 
     // Setup system callbacks

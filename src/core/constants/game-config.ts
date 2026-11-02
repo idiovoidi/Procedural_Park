@@ -105,6 +105,26 @@ export const GAME_CONFIG = {
     /** Food servings a medium creature eats per feeding cycle at 100% diet efficiency. */
     BASE_FOOD_PER_CYCLE: 1,
 
+    /** Market prices and demand (GDD 7.2, 7.7; decision Q7: base price with demand saturation). */
+    MARKET: {
+      /** Coins per unit at full demand. */
+      BASE_UNIT_PRICE: { fibre: 4, down: 5, brine: 6, essence: 12, shards: 14 },
+      /** Demand lost for every unit sold (demand starts at 1). */
+      DEMAND_DROP_PER_UNIT: 0.01,
+      /** Demand never falls below this, so a flooded market still pays something. */
+      MIN_DEMAND: 0.25,
+      /** Demand regained per economy tick while below 1. */
+      DEMAND_RECOVERY_PER_TICK: 0.0005,
+
+      /** Coins for a medium, common, adult creature with no extra parts. */
+      CREATURE_BASE_VALUE: 40,
+      /** Younger creatures sell for less. */
+      CREATURE_AGE_FACTOR: { hatchling: 0.4, juvenile: 0.7, adult: 1 },
+      /** Each optional body part (wings, horns, tails ...) adds this, up to the maximum. */
+      CREATURE_PART_PREMIUM: 0.04,
+      CREATURE_MAX_PART_PREMIUM: 0.5,
+    },
+
     /** Collector bins: how much output a pen can store before the rest is wasted. */
     PRODUCTION: {
       /** Units (all resource types combined) one collector bin holds. */
