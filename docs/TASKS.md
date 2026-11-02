@@ -7,8 +7,8 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · **← deps** are tasks 
 
 - [x] **T1 — Fix P2P host timeout and disconnect-as-error** *(M0 cleanup)*
   Added a 5-min `signalingTimeout` for the code exchange; the 30 s `connectionTimeout` starts when the answer is applied. Deliberate/remote close is no longer an error. Removed the `setTimeout` patch from the E2E spec and added unit tests plus an E2E no-console-errors check.
-- [ ] **T2 — Decide GDD open questions blocking M1** *(design)*
-  GDD §17 Q1 income model, Q2 resource set, Q3 hub land, Q4 fertility, Q8 automation depth. Record decisions in the GDD.
+- [x] **T2 — Decide GDD open questions blocking M1** *(design)*
+  Decided and recorded in GDD §17.1: output + sales + contracts; five archetype resources; fixed build zone that grows; timers/costs only for breeding; base prices with demand saturation; capped offline catch-up; range-based automation first. Still open: Q5 species identity (needed by T14), Q9, Q10, Q11.
 
 ## M1 — Vertical slice
 
@@ -16,7 +16,7 @@ Exit: a new player captures a founder, pens it, earns from it, breeds a child, s
 
 | ID | Task | Deps | Done when |
 |---|---|---|---|
-| T3 | [ ] Fixed-step economy tick + `GAME_CONFIG` economy constants | T2 | Deterministic in vitest, no WebGL |
+| T3 | [ ] Fixed-step economy tick + `GAME_CONFIG` economy constants | T2 ✅ | Deterministic in vitest, no WebGL |
 | T4 | [ ] Derive care/economic stats from the genome | T3 | Every archetype/size/temperament/locomotion covered by tests |
 | T5 | [ ] Roster + per-creature state (hunger, happiness, trust, age, lineage) | T4 | Stores full genomes; serialisable; tested |
 | T6 | [ ] Pen system: enclosure detection, habitat profile, quality score | T4 | Open vs closed pens, capacity, mixed temperaments tested |

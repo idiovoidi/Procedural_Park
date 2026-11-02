@@ -278,7 +278,7 @@ The *Slime Rancher* hook: start by hand-feeding and hand-collecting; progression
 |---|---|---|---|
 | **1 — Hands-on** | Start | Basic pen, trough, market stall | — |
 | **2 — Assist** | Early | **Feeder hopper** (per-pen, holds N servings), **collector bin** (stores output), market cart | Refilling single feedings; carrying small output |
-| **3 — Logistics** | Mid | **Conveyors/pipes**, food silo, resource silo, **auto-sell** valve with price floor | Carrying food between sites; manual selling |
+| **3 — Logistics** | Mid | **Range-based** food silo and resource silo, **auto-sell** valve with price floor (conveyors/pipes are an optional later tier, see §17.1 Q8) | Carrying food between sites; manual selling |
 | **4 — Production** | Mid–late | **Food farms** (berry, fish, crystal, essence generators), processors that combine resources | Buying all food from the store |
 | **5 — Staff** | Late | **Keepers** (NPC workers assigned to pens), **Breeders' assistant** (queues breeding to a target trait) | Routine care and queueing |
 
@@ -400,7 +400,7 @@ Each new system follows the existing pattern: a manager class, typed state in th
 
 - **Fixed-step economy tick** (e.g. 1 tick = 1 simulated second) separate from rendering, so the economy is **deterministic and testable** without WebGL.
 - Creatures far from the player run a **cheap, abstract** simulation (needs + production only); only nearby creatures run full behaviour AI and animation. The existing creature pool ✅ is the base for this.
-- **Offline catch-up** 🆕: on load, compute elapsed time since last save and apply production in bulk with a **cap** (e.g. 8 h) and storage limits, so long-session players aren't punished for closing the tab and idle farming can't be exploited.
+- **Offline catch-up** 🆕: on load, compute elapsed time since last save and apply production in bulk with a **cap** (e.g. 8 h) and storage limits, so long-session players aren't punished for closing the tab and idle farming can't be exploited. In-progress breeding timers complete during the gap, but new breeding can't be queued offline (§17.1 Q6).
 
 ### 13.3 Data and persistence
 
@@ -456,7 +456,7 @@ Ambient layered soundscapes per biome, soft mechanical hum for facilities, disti
 |---|---|---|
 | **1 — Settler** | Tiny hub | First pen, trough, market stall; first wild founders from the starter map |
 | **2 — Keeper** | Small | Feeder hopper, collector bin, Breeding Den, contracts, second map |
-| **3 — Curator** | Medium | Conveyors/silos, auto-sell, food farms, three more maps, Codex milestones |
+| **3 — Curator** | Medium | Silos, auto-sell, food farms, three more maps, Codex milestones |
 | **4 — Director** | Large | Staff, advanced machines, legendary-tier species, arena (battles) |
 | **5 — Legend** | Max | Prestige/cosmetic goals, pedigree trophies, endless contract board |
 
@@ -490,18 +490,25 @@ Ambient layered soundscapes per biome, soft mechanical hum for facilities, disti
 
 ---
 
-## 17. Open questions
+## 17. Decisions and open questions
 
-1. **Income model:** resource output + creature sales + contracts (this doc), or also **guest/visitor income** (Zoo Tycoon style)? Visitors would reward display variety and add a park-rating layer.
-2. **Resource set:** are the five archetype resources the right shape, or should output be one generic currency plus special "ingredient" drops?
-3. **Hub land:** fixed build zone that grows by purchase, or a freeform plot on a large procedural map?
-4. **Fertility model:** timers and costs only, or a genuine **fertility/lifespan** system that creates turnover and a reason to keep breeding?
-5. **Species identity:** since species are fully procedural, should the Codex track **named species by `speciesId`**, or individual notable creatures?
-6. **Offline progress:** how generous should catch-up be (cap, and whether it applies to breeding as well as production)?
-7. **Contracts vs. open market:** pure contracts, a fluctuating market, or both?
-8. **Automation depth:** is a full conveyor/pipe network the right fantasy, or simpler range-based feeders and hoppers?
-9. **Staff:** NPC keepers visible in the world, or abstract "workers" in a menu?
-10. **Mobile scope:** is mobile a first-class target for the vertical slice, or a later port?
+### 17.1 Decided (T2)
+
+| # | Question | Decision | Consequence |
+|---|---|---|---|
+| Q1 | Income model | **Resource output + creature sales + contracts.** Guests/tickets stay out of scope for now. | §5.5 stays deferred; M1 builds output and market, contracts arrive in M2 |
+| Q2 | Resource set | **Five archetype resources** (fibre, down, brine/pearls, essence, shards; names still placeholders). | Resources double as build/upgrade materials, so archetype choice drives progression |
+| Q3 | Hub land | **Fixed build zone that grows by purchase** in chunks. | Pen detection runs on a known grid; expansion is a coin sink |
+| Q4 | Fertility | **Timers and costs only.** No lifespan or fertility limit; creatures never die or retire. | Age stages (hatchling → adult) still change size and output; breeding is limited by cost and cooldown |
+| Q6 | Offline progress | **Capped catch-up** (~8 h): production and food use apply up to storage limits; in-progress breeding timers complete, but new breeding can't be queued offline. | §13.2; implemented in the save/load task |
+| Q7 | Market | **Base prices with demand saturation**; creatures priced from rarity, traits and age; contracts add bonuses. | No random price fluctuation in the slice |
+| Q8 | Automation depth | **Range-based machines first** (feeder hoppers, collector bins, auto-sell valves). Conveyors become an optional advanced tier only if playtesting asks for them. | §8 tier 3 is range-based; conveyors move to a later optional tier |
+
+### 17.2 Still open
+
+5. **Species identity:** since species are fully procedural, should the Codex track **named species by `speciesId`**, or individual notable creatures? *(Needed for the codex rework, T14.)*
+9. **Staff:** NPC keepers visible in the world, or abstract "workers" in a menu? *(M5.)*
+10. **Mobile scope:** is mobile a first-class target for the vertical slice, or a later port? *(M7; affects performance budgets early.)*
 11. **Naming and branding** for the game and for the in-world park-owner role.
 
 ---
