@@ -156,6 +156,8 @@ export class InputManager {
     this.addBinding({ action: 'food.toggleStore', key: 'o', contexts: ['game'], priority: 2 })
     this.addBinding({ action: 'market.toggle', key: 'u', contexts: ['game'], priority: 2 })
     this.addBinding({ action: 'build.toggle', key: 'j', contexts: ['game'], priority: 2 })
+    this.addBinding({ action: 'capture.crate', key: 'y', contexts: ['game'], priority: 2 })
+    this.addBinding({ action: 'capture.lure', key: 'l', contexts: ['game'], priority: 2 })
   }
 
   private setupEventListeners() {

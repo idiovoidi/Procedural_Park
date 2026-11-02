@@ -24,7 +24,7 @@ Exit: a new player captures a founder, pens it, earns from it, breeds a child, s
 | T8 | [x] Care loop: hunger, happiness, trough + hand feeding | T5, T6 | Correct hunger/happiness trajectories; soft failure only |
 | T9 | [x] Production + collection of per-archetype resources | T8 | Output formula matches GDD §7.5; storage cap respected |
 | T10 | [x] Market: sell resources and creatures, pricing, UI | T9 | Coins update; pricing tested |
-| T11 | [ ] Capture loop: feeding/trust, lure, transport crate | T5 | Two founders captured by two methods land in the roster |
+| T11 | [x] Capture loop: feeding/trust, lure, transport crate | T5 | Two founders captured by two methods land in the roster |
 | T12 | [ ] Hub park: resident creatures roaming inside pens | T5, T6 | 20+ residents at target fps, staying inside pens |
 | T13 | [ ] Breeding Den: pairing rules, timer, preview, hatching | T5, T12 | Deterministic, rules tested; breed + hatch works in game |
 | T14 | [ ] Codex and roster UI rework | T5 | No 10-creature cap; bred species recorded; card export round-trips |

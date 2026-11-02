@@ -136,6 +136,9 @@ export class FoodSystemManager {
     )
 
     if (result) {
+      // Feeding a wild creature also builds its trust, which is what lets it be crated
+      this.systems.capture.onFed(nearestCreature, result.foodUsed.id)
+
       // Show feedback based on reaction
       const reactionEmojis = {
         loved: '😍',

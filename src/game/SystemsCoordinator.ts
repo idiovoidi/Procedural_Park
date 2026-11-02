@@ -7,6 +7,7 @@ import { log } from '@core/utils'
 import { GAME_CONFIG } from '@core/constants'
 import {
   BuildModeManager,
+  CaptureManager,
   CreatureManager,
   MultiplayerManager,
   ShaderService,
@@ -61,6 +62,8 @@ export interface GameSystems {
   market: MarketSystem
   /** First-person building of fences, troughs and bins on the hub grid. */
   build: BuildModeManager
+  /** Winning wild creatures' trust and crating them into the roster. */
+  capture: CaptureManager
 }
 
 export class SystemsCoordinator {
@@ -177,6 +180,18 @@ export class SystemsCoordinator {
       heightAt: (x, z) => sceneManager.terrainSystem.getFloorHeightAt(x, z),
     })
 
+    // Capture: trust from feeding and bait, then a crate into the roster and a pen
+    const capture = new CaptureManager({
+      scene: sceneManager.scene,
+      creatures: creatureManager,
+      camera: cameraController,
+      food: foodManager,
+      currency: currencyManager,
+      roster,
+      park,
+      ui: uiManager,
+    })
+
     // Store all systems
     this.systems = {
       scene: sceneManager,
@@ -202,6 +217,7 @@ export class SystemsCoordinator {
       resources,
       market,
       build,
+      capture,
     }
 
     // Setup system callbacks

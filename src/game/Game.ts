@@ -158,6 +158,8 @@ export class Game {
       onToggleFoodStore: () => this.food.toggleStore(),
       onToggleMarket: () => this.market.toggle(),
       onToggleBuild: () => this.systems.build.toggle(),
+      onCrateCreature: () => this.systems.capture.tryCapture(),
+      onPlaceLure: () => this.systems.capture.placeLure(),
     }
 
     new InputHandler(

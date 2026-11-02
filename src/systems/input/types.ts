@@ -47,6 +47,9 @@ export type InputAction =
   | 'market.toggle'
   // Build actions
   | 'build.toggle'
+  // Capture actions
+  | 'capture.crate'
+  | 'capture.lure'
 
 export type InputContext = 'game' | 'ui' | 'menu'
 

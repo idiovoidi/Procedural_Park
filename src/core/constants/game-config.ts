@@ -125,6 +125,37 @@ export const GAME_CONFIG = {
       CREATURE_MAX_PART_PREMIUM: 0.5,
     },
 
+    /** Capturing wild creatures: trust from feeding, lures and the transport crate (GDD 10.2). */
+    CAPTURE: {
+      /** Trust (0..100) gained per feeding: the food's trust bonus x diet efficiency x this. */
+      TRUST_FEED_SCALE: 2.5,
+      /** How readily each temperament warms up to being fed. */
+      TRUST_TEMPERAMENT_MULT: {
+        shy: 0.6,
+        curious: 1.2,
+        playful: 1.2,
+        aggressive: 0.5,
+        territorial: 0.7,
+      },
+      /** Trust needed before a creature will enter a crate: base plus this per rarity tier. */
+      TRUST_REQUIRED_BASE: 60,
+      TRUST_REQUIRED_PER_TIER: 8,
+      /** How close the player must be to crate a creature, in metres. */
+      CAPTURE_RANGE_M: 10,
+      /** Coins for one transport crate. */
+      CRATE_COST: 25,
+      LURE: {
+        DURATION_S: 30,
+        RADIUS_M: 12,
+        /** Trust per second for a creature in range, before multipliers. */
+        TRUST_PER_SEC: 1.2,
+        /** Lures draw shy creatures best; aggressive ones barely respond. */
+        TEMPERAMENT_MULT: { shy: 1.6, curious: 1.2, playful: 1, aggressive: 0.4, territorial: 0.6 },
+        /** Metres per second a lured creature drifts toward the bait. */
+        PULL_SPEED_M_S: 1.5,
+      },
+    },
+
     /** Build mode: what each piece costs, and how aiming works. */
     BUILD: {
       COSTS: {
