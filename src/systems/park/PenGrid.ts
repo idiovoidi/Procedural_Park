@@ -28,7 +28,7 @@ import type {
 
 const { CELL_SIZE_M, INITIAL_BOUNDS } = GAME_CONFIG.PARK
 
-const PROP_KINDS: readonly PropKind[] = ['toy', 'shelter', 'plant', 'trough']
+const PROP_KINDS: readonly PropKind[] = ['toy', 'shelter', 'plant', 'trough', 'bin']
 const BIOMES: readonly BiomeType[] = [
   'forest',
   'meadow',
@@ -518,7 +518,7 @@ export class PenGrid {
     let deep = 0
     let roofed = 0
     const ground: Partial<Record<BiomeType, number>> = {}
-    const props: Record<PropKind, number> = { toy: 0, shelter: 0, plant: 0, trough: 0 }
+    const props: Record<PropKind, number> = { toy: 0, shelter: 0, plant: 0, trough: 0, bin: 0 }
 
     for (const cell of cells) {
       const level = this.getWater(cell)

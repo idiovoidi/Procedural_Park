@@ -93,7 +93,7 @@ export const GAME_CONFIG = {
     /** Happiness (0..1) maps linearly onto this output multiplier range. */
     HAPPINESS_MULTIPLIER: { min: 0.25, max: 1.25 },
 
-    /** Resource units a medium, common, adult, neutral-happiness creature yields per cycle. */
+    /** Resource units a medium, common, adult creature yields per cycle at 75 happiness (1x). */
     BASE_OUTPUT_PER_CYCLE: {
       terrestrial: 6,
       aerial: 5,
@@ -104,6 +104,12 @@ export const GAME_CONFIG = {
 
     /** Food servings a medium creature eats per feeding cycle at 100% diet efficiency. */
     BASE_FOOD_PER_CYCLE: 1,
+
+    /** Collector bins: how much output a pen can store before the rest is wasted. */
+    PRODUCTION: {
+      /** Units (all resource types combined) one collector bin holds. */
+      BIN_CAPACITY_UNITS: 100,
+    },
 
     /** Care loop: feeding, hunger and mood. All values per feeding cycle unless noted. */
     CARE: {

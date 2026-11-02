@@ -22,7 +22,7 @@ Exit: a new player captures a founder, pens it, earns from it, breeds a child, s
 | T6 | [x] Pen system: enclosure detection, habitat profile, quality score | T4 | Open vs closed pens, capacity, mixed temperaments tested |
 | T7 | [ ] Build mode MVP: ghost placement, snapping, fences, trough | T6 | Player builds a closed pen with a trough that the pen system recognises |
 | T8 | [x] Care loop: hunger, happiness, trough + hand feeding | T5, T6 | Correct hunger/happiness trajectories; soft failure only |
-| T9 | [ ] Production + collection of per-archetype resources | T8 | Output formula matches GDD §7.5; storage cap respected |
+| T9 | [x] Production + collection of per-archetype resources | T8 | Output formula matches GDD §7.5; storage cap respected |
 | T10 | [ ] Market: sell resources and creatures, pricing, UI | T9 | Coins update; pricing tested |
 | T11 | [ ] Capture loop: feeding/trust, lure, transport crate | T5 | Two founders captured by two methods land in the roster |
 | T12 | [ ] Hub park: resident creatures roaming inside pens | T5, T6 | 20+ residents at target fps, staying inside pens |

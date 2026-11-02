@@ -18,6 +18,7 @@ import { FoodManager } from '@systems/food'
 import { InputManager } from '@systems/input'
 import { PenGrid } from '@systems/park'
 import { PhotoSystem } from '@systems/photo'
+import { ProductionSystem, ResourceInventory } from '@systems/production'
 import { Roster } from '@systems/roster'
 import { createStateSyncHelpers, type GameStateType, IntegratedStateManager } from '@systems/state'
 import { DebugPanel } from '@ui/debug'
@@ -47,6 +48,9 @@ export interface GameSystems {
   park: PenGrid
   /** Feeding, hunger and mood for owned creatures. */
   care: CareSystem
+  /** Resource output, collector bins and the player's carried resources. */
+  production: ProductionSystem
+  resources: ResourceInventory
 }
 
 export class SystemsCoordinator {
@@ -144,6 +148,11 @@ export class SystemsCoordinator {
     const care = new CareSystem(roster, park)
     simClock.onTick((tick) => care.tick(tick))
 
+    // Production runs after care in each tick, so a creature fed this cycle produces this cycle
+    const resources = new ResourceInventory()
+    const production = new ProductionSystem(roster, park, resources)
+    simClock.onTick((tick) => production.tick(tick))
+
     // Store all systems
     this.systems = {
       scene: sceneManager,
@@ -165,6 +174,8 @@ export class SystemsCoordinator {
       roster,
       park,
       care,
+      production,
+      resources,
     }
 
     // Setup system callbacks
