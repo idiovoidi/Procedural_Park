@@ -118,4 +118,31 @@ export const GAME_CONFIG = {
     /** Pen floor space (square metres) each creature needs, by size. Huge is 8x tiny. */
     HABITAT_AREA_M2: { tiny: 4, small: 6, medium: 10, large: 20, huge: 32 },
   },
+
+  /** Hub build grid and pen quality tuning (GDD section 5.2). */
+  PARK: {
+    /** Edge length of one build-grid cell in metres. */
+    CELL_SIZE_M: 2,
+    /** Build zone at the start, in inclusive cell coordinates (grows by purchase). */
+    INITIAL_BOUNDS: { minX: -6, minZ: -6, maxX: 5, maxZ: 5 },
+
+    /** Share of a pen's cells that must be water for a water-loving creature to be content. */
+    WATER_FRACTION_REQUIRED: 0.15,
+    /** Enrichment props (toys, shelters, plants) wanted per creature, by enrichment need. */
+    ENRICHMENT_PROPS_PER_CREATURE: { low: 0, medium: 0.5, high: 1 },
+    /** Score when the pen's enclosure falls 0, 1 or 2 levels short of what a creature needs. */
+    ENCLOSURE_SHORTFALL_SCORE: [1, 0.4, 0],
+
+    /** Weights of each requirement in the overall quality score (sum to 1). */
+    QUALITY_WEIGHTS: {
+      space: 0.2,
+      water: 0.2,
+      enclosure: 0.2,
+      enrichment: 0.1,
+      biome: 0.2,
+      company: 0.1,
+    },
+    /** Score at or above which a requirement shows green / amber (below amber is red). */
+    STATUS_THRESHOLDS: { good: 0.9, warn: 0.5 },
+  },
 } as const
