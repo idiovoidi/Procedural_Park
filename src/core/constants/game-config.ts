@@ -84,6 +84,12 @@ export const GAME_CONFIG = {
     /** Output multiplier by growth stage (no lifespan: adults stay adults, decision Q4). */
     AGE_MULTIPLIER: { hatchling: 0.25, juvenile: 0.6, adult: 1 },
 
+    /** Sim ticks spent as a hatchling, then as a juvenile, before becoming an adult. */
+    AGE_STAGE_TICKS: { hatchling: 600, juvenile: 1800 },
+
+    /** Stats (0..100) a newly owned creature starts with. */
+    STARTING_STATS: { fullness: 80, happiness: 60, trust: 50 },
+
     /** Happiness (0..1) maps linearly onto this output multiplier range. */
     HAPPINESS_MULTIPLIER: { min: 0.25, max: 1.25 },
 

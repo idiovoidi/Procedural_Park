@@ -16,6 +16,7 @@ import { SimClock } from '@systems/economy'
 import { FoodManager } from '@systems/food'
 import { InputManager } from '@systems/input'
 import { PhotoSystem } from '@systems/photo'
+import { Roster } from '@systems/roster'
 import { createStateSyncHelpers, type GameStateType, IntegratedStateManager } from '@systems/state'
 import { DebugPanel } from '@ui/debug'
 import { UIManager } from '@ui/managers'
@@ -38,6 +39,8 @@ export interface GameSystems {
   currency: CurrencyManager
   /** Fixed-step clock that drives the park economy (production, hunger, breeding timers). */
   simClock: SimClock
+  /** The creatures the player owns (genomes, care stats, age, lineage). */
+  roster: Roster
 }
 
 export class SystemsCoordinator {
@@ -126,6 +129,10 @@ export class SystemsCoordinator {
     // Initialize the economy clock (systems subscribe to its ticks as they are added)
     const simClock = new SimClock()
 
+    // Initialize the roster; owned creatures age with the economy clock
+    const roster = new Roster()
+    simClock.onTick(() => roster.advanceTicks(1))
+
     // Store all systems
     this.systems = {
       scene: sceneManager,
@@ -144,6 +151,7 @@ export class SystemsCoordinator {
       food: foodManager,
       currency: currencyManager,
       simClock,
+      roster,
     }
 
     // Setup system callbacks
