@@ -368,10 +368,10 @@ Serverless **WebRTC peer-to-peer** with manual offer/answer code swap, a status 
 | **MP-4** | **Joint breeding** | Each player brings one parent to a shared Den; each receives an offspring |
 | **MP-5** | **Friend duels** | Deterministic auto-battle (§11) |
 
-### 12.3 Known issues to fix before building on it
+### 12.3 Known issues
 
-- The host's **30 s connection timeout** starts when the offer is generated, so it includes the human copy/paste time → start the timer after the answer is applied.
-- A deliberate **Disconnect is reported as a "Multiplayer error"** → treat user-initiated close as a normal state change.
+- ~~The host's 30 s connection timeout started when the offer was generated, so it included the human copy/paste time.~~ **Fixed (T1):** a 5-minute `signalingTimeout` covers the manual code exchange, and the 30 s `connectionTimeout` starts only once the answer is applied.
+- ~~A deliberate Disconnect was reported as a "Multiplayer error".~~ **Fixed (T1):** Chrome's data-channel close error is now treated as a normal disconnect on both sides.
 - Consider a **lightweight signalling option** (optional, later) for room codes instead of manual blobs, without making a server mandatory.
 
 ---

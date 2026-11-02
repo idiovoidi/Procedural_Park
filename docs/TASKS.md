@@ -5,8 +5,8 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · **← deps** are tasks 
 
 ## Start here (can begin now)
 
-- [ ] **T1 — Fix P2P host timeout and disconnect-as-error** *(M0 cleanup)*
-  Start the 30 s timeout after the answer is applied; treat a user-initiated close as a normal disconnect; then remove the `setTimeout(30000)` patch from `tests/e2e/multiplayer.spec.ts`.
+- [x] **T1 — Fix P2P host timeout and disconnect-as-error** *(M0 cleanup)*
+  Added a 5-min `signalingTimeout` for the code exchange; the 30 s `connectionTimeout` starts when the answer is applied. Deliberate/remote close is no longer an error. Removed the `setTimeout` patch from the E2E spec and added unit tests plus an E2E no-console-errors check.
 - [ ] **T2 — Decide GDD open questions blocking M1** *(design)*
   GDD §17 Q1 income model, Q2 resource set, Q3 hub land, Q4 fertility, Q8 automation depth. Record decisions in the GDD.
 
