@@ -17,7 +17,7 @@ Exit: a new player captures a founder, pens it, earns from it, breeds a child, s
 | ID | Task | Deps | Done when |
 |---|---|---|---|
 | T3 | [x] Fixed-step economy tick + `GAME_CONFIG` economy constants | T2 ✅ | Deterministic in vitest, no WebGL |
-| T4 | [ ] Derive care/economic stats from the genome | T3 | Every archetype/size/temperament/locomotion covered by tests |
+| T4 | [x] Derive care/economic stats from the genome | T3 | Every archetype/size/temperament/locomotion covered by tests |
 | T5 | [ ] Roster + per-creature state (hunger, happiness, trust, age, lineage) | T4 | Stores full genomes; serialisable; tested |
 | T6 | [ ] Pen system: enclosure detection, habitat profile, quality score | T4 | Open vs closed pens, capacity, mixed temperaments tested |
 | T7 | [ ] Build mode MVP: ghost placement, snapping, fences, trough | T6 | Player builds a closed pen with a trough that the pen system recognises |

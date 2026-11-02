@@ -103,6 +103,21 @@ Creatures are the heart of the game and the code already has a solid base: a JSO
 
 `speciesId` is computed from the genome and `species-name.ts` generates names, so **a new combination can become a new, named species** — a built-in "discovery" moment.
 
+#### Derived stat rules (implemented in `src/systems/economy/creature-economy.ts`)
+
+| Need | Rule |
+|---|---|
+| **Resource** | archetype → resource: terrestrial fibre, aerial down, aquatic brine, ethereal essence, crystalline shards (names are placeholders) |
+| **Floor area** | by size: tiny 4 · small 6 · medium 10 · large 20 · huge 32 m² |
+| **Water** | `swim` locomotion or `swimmer` body plan → deep; other aquatic creatures → shallow; everyone else none |
+| **Enclosure** | `fly` → roofed aviary; `hover`/`drift` → tall; all others → ordinary fence |
+| **Enrichment** | playful → high; curious → medium; shy/aggressive/territorial → low |
+| **Preferred scenery** | by archetype (e.g. aquatic → wetland; crystalline → crystal cave, rocky) |
+| **Diet efficiency** | the food table's archetype effectiveness, raised to the power `1 + 0.25 × rarityTierIndex` — a perfect match always stays 100%, a poor match hurts more as rarity rises |
+| **Food use** | medium creature eats 1 serving per cycle × size multiplier ÷ diet efficiency (efficiency floored at 10%) |
+| **Pen sharing** | aggressive never shares; territorial only with its own species; shy/curious/playful mix freely |
+| **Value** | rarity tier multiplier (common 1× … legendary 7×), tiers start at rarity 0 / 0.4 / 0.6 / 0.8 / 0.92 |
+
 ### 4.2 Founders vs. bred creatures
 
 - **Founders** come from `generateGenome(seed)`: fully reproducible from a seed.

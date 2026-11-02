@@ -98,5 +98,18 @@ export const GAME_CONFIG = {
 
     /** Food servings a medium creature eats per feeding cycle at 100% diet efficiency. */
     BASE_FOOD_PER_CYCLE: 1,
+
+    /** Floor for diet efficiency when computing food use, so a bad match is costly but finite. */
+    MIN_DIET_EFFICIENCY: 0.1,
+
+    /**
+     * Rarer creatures are pickier: a food's effectiveness is raised to the power
+     * 1 + this * tierIndex, so a mismatch hurts more as rarity rises while a perfect
+     * match (1.0) is unaffected (GDD 6.4).
+     */
+    DIET_PICKINESS_PER_TIER: 0.25,
+
+    /** Pen floor space (square metres) each creature needs, by size. Huge is 8x tiny. */
+    HABITAT_AREA_M2: { tiny: 4, small: 6, medium: 10, large: 20, huge: 32 },
   },
 } as const
