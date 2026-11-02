@@ -157,6 +157,7 @@ export class Game {
       onRandomizeCreature: () => this.randomizeCreature(),
       onToggleFoodStore: () => this.food.toggleStore(),
       onToggleMarket: () => this.market.toggle(),
+      onToggleBuild: () => this.systems.build.toggle(),
     }
 
     new InputHandler(

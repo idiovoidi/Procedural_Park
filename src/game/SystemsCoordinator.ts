@@ -5,7 +5,12 @@ import { log } from '@core/utils'
  */
 
 import { GAME_CONFIG } from '@core/constants'
-import { CreatureManager, MultiplayerManager, ShaderService } from '@game/managers'
+import {
+  BuildModeManager,
+  CreatureManager,
+  MultiplayerManager,
+  ShaderService,
+} from '@game/managers'
 import { VideoRecorder } from '@game/VideoRecorder'
 import { SceneManager } from '@rendering/scene'
 import type { ShaderConfig } from '@rendering/shaders'
@@ -54,6 +59,8 @@ export interface GameSystems {
   resources: ResourceInventory
   /** Selling resources and creatures for Safari Coins. */
   market: MarketSystem
+  /** First-person building of fences, troughs and bins on the hub grid. */
+  build: BuildModeManager
 }
 
 export class SystemsCoordinator {
@@ -160,6 +167,16 @@ export class SystemsCoordinator {
     const market = new MarketSystem(roster, resources, currencyManager)
     simClock.onTick(() => market.tick())
 
+    // Build mode draws the hub grid and lets the player edit it
+    const build = new BuildModeManager({
+      scene: sceneManager.scene,
+      camera: cameraController,
+      park,
+      currency: currencyManager,
+      ui: uiManager,
+      heightAt: (x, z) => sceneManager.terrainSystem.getFloorHeightAt(x, z),
+    })
+
     // Store all systems
     this.systems = {
       scene: sceneManager,
@@ -184,6 +201,7 @@ export class SystemsCoordinator {
       production,
       resources,
       market,
+      build,
     }
 
     // Setup system callbacks

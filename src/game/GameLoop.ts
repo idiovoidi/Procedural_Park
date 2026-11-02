@@ -62,7 +62,7 @@ export class GameLoop {
    *   with the wall clock on slow devices and after background-tab gaps
    */
   private update(dt: number, now: number, realDt: number): void {
-    const { state, camera, creatures, scene, multiplayer, debug, input, food, simClock } =
+    const { state, camera, creatures, scene, multiplayer, debug, input, food, simClock, build } =
       this.systems
 
     // Always update state machine
@@ -83,6 +83,9 @@ export class GameLoop {
 
       // Advance the park economy in fixed steps, independent of frame rate
       simClock.advanceRealTime(realDt)
+
+      // Show the build ghost where the crosshair points
+      build.update()
 
       // Update mini map
       this.updateMiniMap()

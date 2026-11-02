@@ -4,6 +4,7 @@ import type { ShaderConfig } from '@rendering/shaders'
 import { type ShaderDebugCallbacks, ShaderDebugUI } from '@rendering/shaders'
 import type { FoodItem } from '@systems/food'
 import type * as THREE from 'three'
+import { BuildHud } from '../components/build-hud'
 import { CreatureCollection } from '../components/creature-collection'
 import { CurrencyDisplay } from '../components/currency-display'
 import { FoodInventory } from '../components/food-inventory'
@@ -30,6 +31,7 @@ export class UIManager {
   private currencyDisplay: CurrencyDisplay
   private foodStore: FoodStore
   private marketPanel: MarketPanel
+  private buildHud: BuildHud
   private toggleMarketBtn: HTMLButtonElement
   private toggleMultiplayerBtn: HTMLButtonElement
   private toggleFoodInventoryBtn: HTMLButtonElement
@@ -54,6 +56,7 @@ export class UIManager {
     this.currencyDisplay = new CurrencyDisplay()
     this.foodStore = new FoodStore()
     this.marketPanel = new MarketPanel()
+    this.buildHud = new BuildHud()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
@@ -576,5 +579,12 @@ export class UIManager {
    */
   public getMarketPanel(): MarketPanel {
     return this.marketPanel
+  }
+
+  /**
+   * Get the build-mode toolbar
+   */
+  public getBuildHud(): BuildHud {
+    return this.buildHud
   }
 }

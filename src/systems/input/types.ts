@@ -45,6 +45,8 @@ export type InputAction =
   | 'food.toggleStore'
   // Market actions
   | 'market.toggle'
+  // Build actions
+  | 'build.toggle'
 
 export type InputContext = 'game' | 'ui' | 'menu'
 

@@ -93,6 +93,7 @@ export class PenGrid {
   private lost = new Map<string, Cell[]>()
   private nextPenNumber = 1
   private listeners = new Set<PenListener>()
+  private editListeners = new Set<() => void>()
 
   constructor(bounds: GridBounds = INITIAL_BOUNDS, defaultGround: BiomeType = 'meadow') {
     this.bounds = { ...bounds }
@@ -238,6 +239,28 @@ export class PenGrid {
 
   public getPenAtWorld(x: number, z: number): Readonly<Pen> | undefined {
     return this.getPenAt(worldToCell(x, z))
+  }
+
+  /**
+   * Fires after any edit to the grid (fence, terrain, roof, prop, bounds or a restore), even
+   * when no pen changed. A renderer uses this to redraw; `onChange` is for pen identity.
+   */
+  public onEdit(listener: () => void): () => void {
+    this.editListeners.add(listener)
+    return () => {
+      this.editListeners.delete(listener)
+    }
+  }
+
+  /** Would placing this fence change anything? False for an invalid or identical fence. */
+  public canPlaceFence(edge: Edge, options: FenceOptions = {}): boolean {
+    if (!this.isValidEdge(edge)) return false
+    const existing = this.fences.get(edgeKey(edge))
+    return (
+      !existing ||
+      existing.gate !== (options.gate ?? false) ||
+      existing.tall !== (options.tall ?? false)
+    )
   }
 
   public onChange(listener: PenListener): () => void {
@@ -508,6 +531,7 @@ export class PenGrid {
         for (const listener of this.listeners) listener(change)
       }
     }
+    for (const listener of this.editListeners) listener()
   }
 
   private buildPen(id: string, cells: Cell[]): Pen {

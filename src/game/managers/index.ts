@@ -1,5 +1,6 @@
 // Barrel export for game managers
 
+export { BuildModeManager } from './BuildModeManager'
 export { CreatureManager } from './CreatureManager'
 export { FoodSystemManager } from './FoodSystemManager'
 export { MarketUIManager } from './MarketUIManager'

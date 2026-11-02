@@ -125,6 +125,27 @@ export const GAME_CONFIG = {
       CREATURE_MAX_PART_PREMIUM: 0.5,
     },
 
+    /** Build mode: what each piece costs, and how aiming works. */
+    BUILD: {
+      COSTS: {
+        fence: 3,
+        tallFence: 6,
+        gate: 10,
+        trough: 20,
+        bin: 25,
+        toy: 15,
+        shelter: 20,
+        plant: 10,
+        roof: 8,
+      },
+      /** Share of a piece's cost returned when it is removed. */
+      REFUND_FRACTION: 0.5,
+      /** How far ahead (metres) the player can aim a placement. */
+      MAX_REACH_M: 14,
+      /** Aiming closer than this fraction of a cell to an edge selects that edge for removal. */
+      EDGE_PICK_FRACTION: 0.3,
+    },
+
     /** Collector bins: how much output a pen can store before the rest is wasted. */
     PRODUCTION: {
       /** Units (all resource types combined) one collector bin holds. */

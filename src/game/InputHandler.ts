@@ -30,6 +30,7 @@ export interface InputHandlerCallbacks {
   onRandomizeCreature: () => void
   onToggleFoodStore: () => void
   onToggleMarket: () => void
+  onToggleBuild: () => void
 }
 
 export class InputHandler {
@@ -85,6 +86,9 @@ export class InputHandler {
 
     // Market actions
     this.inputManager.on('market.toggle', () => this.callbacks.onToggleMarket())
+
+    // Build actions
+    this.inputManager.on('build.toggle', () => this.callbacks.onToggleBuild())
   }
 
   /**

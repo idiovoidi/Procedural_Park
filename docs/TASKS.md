@@ -20,7 +20,7 @@ Exit: a new player captures a founder, pens it, earns from it, breeds a child, s
 | T4 | [x] Derive care/economic stats from the genome | T3 | Every archetype/size/temperament/locomotion covered by tests |
 | T5 | [x] Roster + per-creature state (hunger, happiness, trust, age, lineage) | T4 | Stores full genomes; serialisable; tested |
 | T6 | [x] Pen system: enclosure detection, habitat profile, quality score | T4 | Open vs closed pens, capacity, mixed temperaments tested |
-| T7 | [ ] Build mode MVP: ghost placement, snapping, fences, trough | T6 | Player builds a closed pen with a trough that the pen system recognises |
+| T7 | [x] Build mode MVP: ghost placement, snapping, fences, trough | T6 | Player builds a closed pen with a trough that the pen system recognises |
 | T8 | [x] Care loop: hunger, happiness, trough + hand feeding | T5, T6 | Correct hunger/happiness trajectories; soft failure only |
 | T9 | [x] Production + collection of per-archetype resources | T8 | Output formula matches GDD §7.5; storage cap respected |
 | T10 | [x] Market: sell resources and creatures, pricing, UI | T9 | Coins update; pricing tested |
