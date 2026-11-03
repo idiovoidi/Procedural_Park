@@ -27,6 +27,7 @@ import { CurrencyManager } from '@systems/currency'
 import { SimClock } from '@systems/economy'
 import { FoodManager } from '@systems/food'
 import { InputManager } from '@systems/input'
+import { MapManager } from '@systems/maps'
 import { AutoSeller, MarketSystem } from '@systems/market'
 import { PenGrid } from '@systems/park'
 import { PhotoSystem } from '@systems/photo'
@@ -74,6 +75,8 @@ export interface GameSystems {
   market: MarketSystem
   /** Sells output by itself above a price floor, once an auto-sell valve is built. */
   autoSell: AutoSeller
+  /** Which map the player is on and which expeditions are unlocked. */
+  maps: MapManager
   /** Buyers who pay a premium for specific traits (GDD 7.3). */
   contracts: ContractBoard
   /** First-person building of fences, troughs and bins on the hub grid. */
@@ -227,6 +230,7 @@ export class SystemsCoordinator {
     simClock.onTick((tick) => autoSell.tick(tick))
 
     // The Contract Board posts and expires requests on the same clock
+    const maps = new MapManager()
     const contracts = new ContractBoard(roster, currencyManager, GAME_CONFIG.WORLD_SEED)
     simClock.onTick((tick) => contracts.tick(tick))
 
@@ -289,6 +293,7 @@ export class SystemsCoordinator {
       resources,
       market,
       autoSell,
+      maps,
       contracts,
       build,
       capture,

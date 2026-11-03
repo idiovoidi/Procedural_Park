@@ -20,6 +20,7 @@ import type { ContractBoard, ContractSnapshot } from '@systems/contracts'
 import type { CurrencyManager } from '@systems/currency'
 import type { SimClock, SimClockState } from '@systems/economy'
 import type { FoodManager } from '@systems/food'
+import type { MapManager, MapSnapshot } from '@systems/maps'
 import type { AutoSeller, AutoSellSnapshot, MarketSnapshot, MarketSystem } from '@systems/market'
 import type { PenGrid, PenGridSnapshot } from '@systems/park'
 import type {
@@ -45,6 +46,7 @@ export interface ParkTargets {
   market: MarketSystem
   contracts?: ContractBoard
   autoSell?: AutoSeller
+  maps?: MapManager
   currency: CurrencyManager
   food: FoodManager
 }
@@ -70,6 +72,8 @@ export interface ParkSave {
   contracts?: ContractSnapshot
   /** Auto-sell price floor. Absent in older saves. */
   autoSell?: AutoSellSnapshot
+  /** Unlocked expeditions. Absent in older saves. */
+  maps?: MapSnapshot
   /** Genome seeds of wild creatures that have been crated, so they don't respawn. */
   capturedSeeds: number[]
 }
@@ -87,6 +91,7 @@ export type ParkSection =
   | 'market'
   | 'contracts'
   | 'autosell'
+  | 'maps'
   | 'clock'
   | 'captured'
 
@@ -125,6 +130,7 @@ export function capturePark(
     market: t.market.serialize(),
     contracts: t.contracts?.serialize(),
     autoSell: t.autoSell?.serialize(),
+    maps: t.maps?.serialize(),
     capturedSeeds: [...capturedSeeds],
   }
 }
@@ -198,6 +204,10 @@ export function restorePark(
   section('production', () => t.production.restore(data.production))
   section('resources', () => t.resources.restore(data.resources))
   section('market', () => t.market.restore(data.market))
+  if (data.maps !== undefined && t.maps) {
+    const maps = t.maps
+    section('maps', () => maps.restore(data.maps))
+  }
   if (data.autoSell !== undefined && t.autoSell) {
     const seller = t.autoSell
     section('autosell', () => seller.restore(data.autoSell))

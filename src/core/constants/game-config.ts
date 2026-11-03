@@ -4,6 +4,69 @@ export const GAME_CONFIG = {
   CREATURE_COUNT: 60,
   WORLD_SEED: 1337,
 
+  /**
+   * Expedition maps (GDD 10). The hub is the home map and is always open. Each expedition has
+   * its own terrain seed and wild founders: `archetypeLean` is how likely each archetype is to
+   * be kept among the candidates (1 = always), and `rarityBonus` lifts every founder's rarity.
+   * `unlock` is paid once (coins) and needs enough species in the codex.
+   */
+  MAPS: {
+    HUB_ID: 'hub',
+    EXPEDITIONS: [
+      {
+        id: 'greenwood',
+        name: 'Greenwood',
+        description: 'A quiet forest: terrestrial and aerial founders, easy going.',
+        biome: 'forest',
+        seed: 7101,
+        wildCount: 40,
+        archetypeLean: {
+          terrestrial: 1,
+          aerial: 0.8,
+          aquatic: 0.1,
+          ethereal: 0.15,
+          crystalline: 0.05,
+        },
+        rarityBonus: 0.05,
+        unlock: { coins: 0, ownedSpecies: 0 },
+      },
+      {
+        id: 'saltmarsh',
+        name: 'Saltmarsh',
+        description: 'Tidal wetland alive with aquatic and ethereal founders.',
+        biome: 'wetland',
+        seed: 7202,
+        wildCount: 40,
+        archetypeLean: {
+          terrestrial: 0.1,
+          aerial: 0.25,
+          aquatic: 1,
+          ethereal: 0.7,
+          crystalline: 0.05,
+        },
+        rarityBonus: 0.12,
+        unlock: { coins: 600, ownedSpecies: 4 },
+      },
+      {
+        id: 'glimmer-caves',
+        name: 'Glimmer Caves',
+        description: 'Crystal caverns where rare crystalline and ethereal founders glow.',
+        biome: 'crystal_cave',
+        seed: 7303,
+        wildCount: 40,
+        archetypeLean: {
+          terrestrial: 0.05,
+          aerial: 0.05,
+          aquatic: 0.1,
+          ethereal: 0.8,
+          crystalline: 1,
+        },
+        rarityBonus: 0.22,
+        unlock: { coins: 2500, ownedSpecies: 8 },
+      },
+    ],
+  },
+
   // Distance and detection
   MAX_CREATURE_DISTANCE: 25,
   CREATURE_INFO_DISTANCE: 25,

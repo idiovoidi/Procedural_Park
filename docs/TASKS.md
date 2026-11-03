@@ -50,6 +50,19 @@ Exit: a player can run a hands-off park for several minutes without starving cre
 | T19e | [x] Food farms (generators) | T19d | Food no longer has to be bought |
 | T19f | [x] M2 balance sim + E2E | T19a–e | Balance guard rails and E2E cover the hands-off loop |
 
+## M3 — Expeditions (T20 split)
+
+Exit: the player unlocks a second map, travels there, captures a founder the hub never offers, and brings it home.
+
+| ID | Task | Deps | Done when |
+|---|---|---|---|
+| T20a | [x] Map definitions, seeded wild founders per map, MapManager (unlock rules, saves) | T19 | Deterministic founders with a species lean; unlock needs coins + codex species |
+| T20b | [ ] Travel: swap terrain and wild creatures, hide the hub, return home | T20a | Travelling out and back keeps the ranch intact |
+| T20c | [ ] Map UI: travel panel, unlock flow | T20b | Unlock and travel by clicking |
+| T20d | [ ] Special-condition capture + night spawns | T20b | Epic founders need night or an item |
+| T20e | [ ] Expedition pressure: crate capacity, fleeing, bait cost | T20b | Failing costs bait/time, never harm |
+| T20f | [ ] M3 balance + E2E | T20a–e | Guard rails and E2E cover an expedition |
+
 ## Later milestones (split into tasks when reached)
 
 | Epic | Milestone | Scope | Deps |

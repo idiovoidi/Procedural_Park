@@ -8,6 +8,7 @@ import { generateGenome } from '../creatures/genome'
 import { CurrencyManager } from '../currency'
 import { SimClock } from '../economy'
 import { FoodManager } from '../food'
+import { MapManager } from '../maps'
 import { MarketSystem } from '../market'
 import { PenGrid } from '../park'
 import { ProductionSystem, ResourceInventory } from '../production'
@@ -35,6 +36,7 @@ function newWorld(): ParkTargets & { advance: (seconds: number) => void } {
   const market = new MarketSystem(roster, resources, currency)
   const food = new FoodManager()
   const contracts = new ContractBoard(roster, currency, 7)
+  const maps = new MapManager()
   const breeding = new BreedingSystem(roster, grid, currency, 1337)
   const codex = new Codex()
   roster.onChange((c) => {
@@ -59,6 +61,7 @@ function newWorld(): ParkTargets & { advance: (seconds: number) => void } {
     resources,
     market,
     contracts,
+    maps,
     currency,
     food,
     advance: (seconds) => {
@@ -102,6 +105,7 @@ function busyWorld() {
     { ...generateGenome(5), temperament: 'curious', size: 'medium' },
     { penId: pen.id, stats: { fullness: 90, happiness: 90, trust: 90 } }
   )
+  w.maps?.unlock('greenwood', w.currency, { ownedSpecies: 0 })
   const started = w.breeding.start(pen.id, p1.id, p2.id)
   if (!started.ok) throw new Error(`test setup: breeding did not start: ${started.reason}`)
   return { ...w, penId: pen.id, ids: [a.id, b.id] }
@@ -121,6 +125,7 @@ function snapshotOf(w: ParkTargets) {
     resources: w.resources.getAll(),
     demand: w.market.serialize(),
     contracts: w.contracts?.serialize(),
+    maps: w.maps?.serialize(),
     food: w.food.getInventory().map((i) => [i.id, i.quantity]),
   }
 }
@@ -158,6 +163,7 @@ describe('restorePark', () => {
         'contracts',
         'food',
         'grid',
+        'maps',
         'market',
         'production',
         'resources',
