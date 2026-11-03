@@ -4,6 +4,7 @@ import type { ShaderConfig } from '@rendering/shaders'
 import { type ShaderDebugCallbacks, ShaderDebugUI } from '@rendering/shaders'
 import type { FoodItem } from '@systems/food'
 import type * as THREE from 'three'
+import { BreedingPanel } from '../components/breeding-panel'
 import { BuildHud } from '../components/build-hud'
 import { CreatureCollection } from '../components/creature-collection'
 import { CurrencyDisplay } from '../components/currency-display'
@@ -34,6 +35,8 @@ export class UIManager {
   private foodStore: FoodStore
   private marketPanel: MarketPanel
   private buildHud: BuildHud
+  private breedingPanel: BreedingPanel
+  private toggleBreedingBtn: HTMLButtonElement
   private toggleMarketBtn: HTMLButtonElement
   private toggleBuildBtn: HTMLButtonElement
   private toggleMultiplayerBtn: HTMLButtonElement
@@ -61,10 +64,12 @@ export class UIManager {
     this.foodStore = new FoodStore()
     this.marketPanel = new MarketPanel()
     this.buildHud = new BuildHud()
+    this.breedingPanel = new BreedingPanel()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
     this.toggleBuildBtn = document.getElementById('toggleBuild') as HTMLButtonElement
+    this.toggleBreedingBtn = document.getElementById('toggleBreeding') as HTMLButtonElement
     this.toggleFoodInventoryBtn = document.getElementById(
       'toggleFoodInventory'
     ) as HTMLButtonElement
@@ -94,9 +99,15 @@ export class UIManager {
     this.foodInventory.setAudioCallbacks(callbacks)
     this.foodStore.setAudioCallbacks(callbacks)
     this.marketPanel.setAudioCallbacks(callbacks)
+    this.breedingPanel.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
+    this.toggleBreedingBtn?.addEventListener('click', () => {
+      this.audioCallbacks.onClick?.()
+      this.onToggleBreeding?.()
+    })
+
     this.toggleBuildBtn?.addEventListener('click', () => {
       this.audioCallbacks.onClick?.()
       this.onToggleBuild?.()
@@ -177,6 +188,7 @@ export class UIManager {
   public onAutoPerformanceToggle?: SettingsCallbacks['onAutoPerformanceToggle']
   public onToggleMultiplayer?: () => void
   public onToggleBuild?: () => void
+  public onToggleBreeding?: () => void
   public onToggleSaveLoad?: () => void
 
   // Gallery methods
@@ -615,5 +627,12 @@ export class UIManager {
    */
   public getBuildHud(): BuildHud {
     return this.buildHud
+  }
+
+  /**
+   * Get the breeding den panel
+   */
+  public getBreedingPanel(): BreedingPanel {
+    return this.breedingPanel
   }
 }

@@ -26,7 +26,7 @@ Exit: a new player captures a founder, pens it, earns from it, breeds a child, s
 | T10 | [x] Market: sell resources and creatures, pricing, UI | T9 | Coins update; pricing tested |
 | T11 | [x] Capture loop: feeding/trust, lure, transport crate | T5 | Two founders captured by two methods land in the roster |
 | T12 | [x] Hub park: resident creatures roaming inside pens | T5, T6 | 20+ residents at target fps, staying inside pens |
-| T13 | [ ] Breeding Den: pairing rules, timer, preview, hatching | T5, T12 | Deterministic, rules tested; breed + hatch works in game |
+| T13 | [x] Breeding Den: pairing rules, timer, preview, hatching | T5, T12 | Deterministic, rules tested; breed + hatch works in game |
 | T14 | [ ] Codex and roster UI rework | T5 | No 10-creature cap; bred species recorded; card export round-trips |
 | T15 | [ ] Tool belt + HUD for the management loop | T7 | Every slice interaction reachable via the tool belt |
 | T16 | [x] Versioned save/load for slice state + export/import | T5, T6, T9 | Save, reload, migration and offline catch-up tests pass |

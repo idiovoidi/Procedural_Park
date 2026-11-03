@@ -258,7 +258,10 @@ export class CareSystem {
   public serialize(): CareSnapshot {
     return {
       version: 1,
-      troughs: [...this.troughs].map(([penId, food]) => ({ penId, food: { ...food } })),
+      // Troughs that have been eaten empty carry no information, so they are not saved.
+      troughs: [...this.troughs]
+        .filter(([, food]) => Object.keys(food).length > 0)
+        .map(([penId, food]) => ({ penId, food: { ...food } })),
     }
   }
 

@@ -13,6 +13,7 @@
  */
 
 import { GAME_CONFIG } from '@core/constants'
+import type { BreedingSnapshot, BreedingSystem } from '@systems/breeding'
 import type { CareSnapshot, CareSystem } from '@systems/care'
 import type { CurrencyManager } from '@systems/currency'
 import type { SimClock, SimClockState } from '@systems/economy'
@@ -35,6 +36,7 @@ export interface ParkTargets {
   roster: Roster
   grid: PenGrid
   care: CareSystem
+  breeding: BreedingSystem
   production: ProductionSystem
   resources: ResourceInventory
   market: MarketSystem
@@ -52,6 +54,8 @@ export interface ParkSave {
   roster: RosterSnapshot
   grid: PenGridSnapshot
   care: CareSnapshot
+  /** Eggs in progress, parent cooldowns and known species. Absent in older saves. */
+  breeding?: BreedingSnapshot
   production: ProductionSnapshot
   resources: ResourceInventorySnapshot
   market: MarketSnapshot
@@ -65,6 +69,7 @@ export type ParkSection =
   | 'roster'
   | 'grid'
   | 'care'
+  | 'breeding'
   | 'production'
   | 'resources'
   | 'market'
@@ -99,6 +104,7 @@ export function capturePark(
     roster: t.roster.serialize(),
     grid: t.grid.serialize(),
     care: t.care.serialize(),
+    breeding: t.breeding.serialize(),
     production: t.production.serialize(),
     resources: t.resources.serialize(),
     market: t.market.serialize(),
@@ -163,6 +169,8 @@ export function restorePark(
   section('roster', () => t.roster.restore(data.roster).valid)
   section('grid', () => t.grid.restore(data.grid))
   section('care', () => t.care.restore(data.care))
+  // Older saves have no breeding section: that is not a failure, there is simply nothing to restore.
+  if (data.breeding !== undefined) section('breeding', () => t.breeding.restore(data.breeding))
   section('production', () => t.production.restore(data.production))
   section('resources', () => t.resources.restore(data.resources))
   section('market', () => t.market.restore(data.market))
@@ -180,6 +188,7 @@ export function restorePark(
     const clock = data.clock as Partial<SimClockState> | undefined
     if (!isRecord(clock)) return false
     t.clock.restore(clock)
+    t.breeding.syncTick(t.clock.getTick())
 
     const savedAt = data.savedAt
     if (typeof savedAt === 'number' && Number.isFinite(savedAt) && now > savedAt) {

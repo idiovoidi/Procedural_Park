@@ -318,6 +318,15 @@ describe('feedByHand', () => {
 })
 
 describe('save and restore', () => {
+  it('does not save troughs that have been eaten empty', () => {
+    const { care, penId, addCreature, runCycles } = setup()
+    addCreature()
+    care.addFood(penId, 'berry', 1)
+    runCycles(2) // the single serving is eaten
+    expect(care.getTroughTotal(penId)).toBe(0)
+    expect(care.serialize().troughs).toEqual([])
+  })
+
   it('round-trips trough contents', () => {
     const a = setup()
     a.care.addFood(a.penId, 'berry', 3)

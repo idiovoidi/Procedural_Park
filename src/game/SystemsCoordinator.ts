@@ -18,6 +18,7 @@ import { VideoRecorder } from '@game/VideoRecorder'
 import { SceneManager } from '@rendering/scene'
 import type { ShaderConfig } from '@rendering/shaders'
 import { AudioManager } from '@systems/audio'
+import { BreedingSystem } from '@systems/breeding'
 import { CameraController } from '@systems/camera'
 import { CareSystem } from '@systems/care'
 import { CurrencyManager } from '@systems/currency'
@@ -60,6 +61,8 @@ export interface GameSystems {
   park: PenGrid
   /** Feeding, hunger and mood for owned creatures. */
   care: CareSystem
+  /** Pairing creatures in dens, eggs and hatching. */
+  breeding: BreedingSystem
   /** Resource output, collector bins and the player's carried resources. */
   production: ProductionSystem
   resources: ResourceInventory
@@ -191,6 +194,10 @@ export class SystemsCoordinator {
     const care = new CareSystem(roster, park)
     simClock.onTick((tick) => care.tick(tick))
 
+    // Breeding: eggs hatch on the economy clock, so they also hatch while the game is closed
+    const breeding = new BreedingSystem(roster, park, currencyManager, GAME_CONFIG.WORLD_SEED)
+    simClock.onTick((tick) => breeding.tick(tick))
+
     // Production runs after care in each tick, so a creature fed this cycle produces this cycle
     const resources = new ResourceInventory()
     const production = new ProductionSystem(roster, park, resources)
@@ -253,6 +260,7 @@ export class SystemsCoordinator {
       roster,
       park,
       care,
+      breeding,
       production,
       resources,
       market,

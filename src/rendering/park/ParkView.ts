@@ -43,6 +43,7 @@ export class ParkView {
     gate: mat(0xe0b341, { emissive: 0x3a2a00 }),
     trough: mat(0x6b4a2b),
     bin: mat(0x4f78a8, { metalness: 0.4, roughness: 0.5 }),
+    den: mat(0xd77fb0, { emissive: 0x3a1030 }),
     toy: mat(0xf08a3c),
     shelter: mat(0xb08a5a),
     plant: mat(0x4fa84f),
@@ -64,6 +65,7 @@ export class ParkView {
     gateZ: new THREE.BoxGeometry(THICKNESS * 1.6, GATE_H, CELL),
     trough: new THREE.BoxGeometry(CELL * 0.6, 0.4, CELL * 0.3),
     bin: new THREE.CylinderGeometry(CELL * 0.22, CELL * 0.26, 0.9, 10),
+    den: new THREE.SphereGeometry(CELL * 0.38, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2),
     toy: new THREE.SphereGeometry(CELL * 0.17, 10, 8),
     shelter: new THREE.ConeGeometry(CELL * 0.4, 1.1, 5),
     plant: new THREE.ConeGeometry(CELL * 0.22, 0.9, 6),
@@ -187,6 +189,7 @@ export class ParkView {
     const lift: Record<PropKind, number> = {
       trough: 0.2,
       bin: 0.45,
+      den: 0,
       toy: CELL * 0.17,
       shelter: 0.55,
       plant: 0.45,

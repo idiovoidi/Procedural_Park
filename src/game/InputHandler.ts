@@ -32,6 +32,7 @@ export interface InputHandlerCallbacks {
   onToggleFoodStore: () => void
   onToggleMarket: () => void
   onToggleBuild: () => void
+  onToggleBreeding: () => void
   onCrateCreature: () => void
   onPlaceLure: () => void
 }
@@ -93,6 +94,7 @@ export class InputHandler {
 
     // Build actions
     this.inputManager.on('build.toggle', () => this.callbacks.onToggleBuild())
+    this.inputManager.on('breeding.toggle', () => this.callbacks.onToggleBreeding())
 
     // Capture actions
     this.inputManager.on('capture.crate', () => this.callbacks.onCrateCreature())

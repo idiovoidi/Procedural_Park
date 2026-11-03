@@ -1,5 +1,6 @@
 // Barrel export for game managers
 
+export { BreedingUIManager } from './BreedingUIManager'
 export { BuildModeManager } from './BuildModeManager'
 export { CaptureManager } from './CaptureManager'
 export { CreatureManager } from './CreatureManager'

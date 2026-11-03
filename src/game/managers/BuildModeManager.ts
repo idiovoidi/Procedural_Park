@@ -23,8 +23,8 @@ const CELL = GAME_CONFIG.PARK.CELL_SIZE_M
 const BUILD_ZONE_ID = 'build-zone'
 const GHOST_COLORS = { place: 0x44ff88, invalid: 0xff4455, remove: 0xffaa33 }
 
-/** Digit key for each tool slot: 1..9, then 0. */
-const slotKey = (index: number): string => String((index + 1) % 10)
+/** Digit key for each tool slot: 1..9, then 0. Tools past the tenth have no key (click them). */
+const slotKey = (index: number): string => (index < 10 ? String((index + 1) % 10) : '')
 
 interface Dependencies {
   scene: THREE.Scene
@@ -229,7 +229,7 @@ export class BuildModeManager {
   private onKeyDown = (e: KeyboardEvent): void => {
     if (!this.active || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return
     if (e.key < '0' || e.key > '9' || e.key.length !== 1) return
-    const index = (Number(e.key) + 9) % 10 // '1' -> 0 ... '9' -> 8, '0' -> 9
+    const index = (Number(e.key) + 9) % 10 // '1' -> 0 ... '9' -> 8, '0' -> 9 (the tenth tool)
     const tool = BUILD_TOOLS[index]
     if (tool) this.selectTool(tool)
   }

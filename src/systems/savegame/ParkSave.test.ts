@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { GAME_CONFIG } from '../../core/constants'
+import { BreedingSystem } from '../breeding'
 import { CareSystem } from '../care'
 import { generateGenome } from '../creatures/genome'
 import { CurrencyManager } from '../currency'
@@ -31,17 +32,20 @@ function newWorld(): ParkTargets & { advance: (seconds: number) => void } {
   const currency = new CurrencyManager(100)
   const market = new MarketSystem(roster, resources, currency)
   const food = new FoodManager()
+  const breeding = new BreedingSystem(roster, grid, currency, 1337)
 
   clock.onTick(() => roster.advanceTicks(1))
   clock.onTick((tick) => care.tick(tick))
   clock.onTick((tick) => production.tick(tick))
   clock.onTick(() => market.tick())
+  clock.onTick((tick) => breeding.tick(tick))
 
   return {
     clock,
     roster,
     grid,
     care,
+    breeding,
     production,
     resources,
     market,
@@ -68,6 +72,7 @@ function busyWorld() {
   w.grid.addProp({ x: 3, z: 3 }, 'trough')
   w.grid.addProp({ x: 4, z: 3 }, 'bin')
   w.grid.addProp({ x: 3, z: 4 }, 'toy')
+  w.grid.addProp({ x: 2, z: 4 }, 'den')
 
   const a = w.roster.add(generateGenome(1), { name: 'Alpha', penId: pen.id })
   const b = w.roster.add(generateGenome(2), { name: 'Beta', penId: pen.id, ageStage: 'hatchling' })
@@ -78,6 +83,17 @@ function busyWorld() {
   w.resources.add('shards', 2)
   w.market.sellResource('fibre', 4) // depresses demand
   w.food.addFood('berry', 3)
+  // A breeding in progress: two adult parents in the den pen.
+  const p1 = w.roster.add(
+    { ...generateGenome(4), temperament: 'curious', size: 'medium' },
+    { penId: pen.id, stats: { fullness: 90, happiness: 90, trust: 90 } }
+  )
+  const p2 = w.roster.add(
+    { ...generateGenome(5), temperament: 'curious', size: 'medium' },
+    { penId: pen.id, stats: { fullness: 90, happiness: 90, trust: 90 } }
+  )
+  const started = w.breeding.start(pen.id, p1.id, p2.id)
+  if (!started.ok) throw new Error(`test setup: breeding did not start: ${started.reason}`)
   return { ...w, penId: pen.id, ids: [a.id, b.id] }
 }
 
@@ -89,6 +105,7 @@ function snapshotOf(w: ParkTargets) {
     roster: w.roster.list().map((c) => ({ ...c })),
     pens: w.grid.getPens().map((p) => ({ id: p.id, cells: p.cells.length, props: p.props })),
     care: w.care.serialize(),
+    breeding: w.breeding.serialize(),
     production: w.production.serialize(),
     resources: w.resources.getAll(),
     demand: w.market.serialize(),
@@ -120,6 +137,7 @@ describe('restorePark', () => {
     expect(result.failed).toEqual([])
     expect(result.restored.sort()).toEqual(
       [
+        'breeding',
         'captured',
         'care',
         'clock',
@@ -143,10 +161,10 @@ describe('restorePark', () => {
     const b = newWorld()
     restorePark(b, save, 0)
 
-    expect(b.roster.count()).toBe(3)
+    expect(b.roster.count()).toBe(5) // Alpha, Beta, Stray and the two parents of the egg
     expect(b.roster.get(a.ids[0])?.name).toBe('Alpha')
     expect(b.roster.get(a.ids[1])?.ageStage).toBe('hatchling')
-    expect(b.roster.getByPen(a.penId)).toHaveLength(2)
+    expect(b.roster.getByPen(a.penId)).toHaveLength(4)
     expect(b.grid.getPen(a.penId)).toBeDefined() // same pen id after a reload
     expect(b.care.getTroughFood(a.penId)).toEqual({ berry: 12, meat: 6 })
     // New creatures keep getting fresh ids.
@@ -172,6 +190,9 @@ describe('restorePark', () => {
     // And something actually happened while away: output stored, food eaten, creatures aged.
     expect(b.production.getBinTotal(a.penId)).toBeGreaterThan(0)
     expect(b.care.getTroughTotal(a.penId)).toBeLessThan(18)
+    // The egg that was in progress hatched while away, in both worlds.
+    expect(b.roster.count()).toBe(6)
+    expect(b.breeding.getJobs()).toHaveLength(0)
   })
 
   it('caps catch-up at the offline limit', () => {

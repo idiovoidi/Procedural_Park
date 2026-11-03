@@ -48,6 +48,7 @@ export type InputAction =
   | 'market.toggle'
   // Build actions
   | 'build.toggle'
+  | 'breeding.toggle'
   // Capture actions
   | 'capture.crate'
   | 'capture.lure'

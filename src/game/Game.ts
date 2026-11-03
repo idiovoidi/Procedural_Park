@@ -9,7 +9,13 @@ import type { IntegratedStateManager } from '@systems/state'
 import { showErrorScreen } from '@ui/utils/show-error-screen'
 import { GameLoop } from './GameLoop'
 import { InputHandler, type InputHandlerCallbacks } from './InputHandler'
-import { FoodSystemManager, MarketUIManager, PhotoManager, SaveLoadManager } from './managers'
+import {
+  BreedingUIManager,
+  FoodSystemManager,
+  MarketUIManager,
+  PhotoManager,
+  SaveLoadManager,
+} from './managers'
 import { type GameSystems, SystemsCoordinator } from './SystemsCoordinator'
 
 export class Game {
@@ -18,6 +24,7 @@ export class Game {
   private photos!: PhotoManager
   private food!: FoodSystemManager
   private market!: MarketUIManager
+  private breedingUI!: BreedingUIManager
   private saveLoad!: SaveLoadManager
   private recordingIndicator: HTMLElement | null = null
   private container: HTMLElement
@@ -55,6 +62,7 @@ export class Game {
       this.photos = new PhotoManager(this.systems)
       this.food = new FoodSystemManager(this.systems)
       this.market = new MarketUIManager(this.systems)
+      this.breedingUI = new BreedingUIManager(this.systems)
       this.saveLoad = new SaveLoadManager(this.systems, this.photos, () => this.updateLabSign())
 
       // Setup input handler
@@ -87,6 +95,7 @@ export class Game {
       // Initialize food system
       this.food.initialize()
       this.market.initialize()
+      this.breedingUI.initialize()
 
       // Bring back the ranch from the last session, if there was one
       this.saveLoad.restoreOnStartup()
@@ -134,6 +143,10 @@ export class Game {
     ui.onToggleBuild = () => {
       this.systems.build.toggle()
     }
+
+    ui.onToggleBreeding = () => {
+      this.breedingUI.toggle()
+    }
   }
 
   /**
@@ -166,6 +179,7 @@ export class Game {
       onToggleFoodStore: () => this.food.toggleStore(),
       onToggleMarket: () => this.market.toggle(),
       onToggleBuild: () => this.systems.build.toggle(),
+      onToggleBreeding: () => this.breedingUI.toggle(),
       onCrateCreature: () => this.systems.capture.tryCapture(),
       onPlaceLure: () => this.systems.capture.placeLure(),
     }

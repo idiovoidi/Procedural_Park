@@ -125,6 +125,30 @@ export const GAME_CONFIG = {
       CREATURE_MAX_PART_PREMIUM: 0.5,
     },
 
+    /** Breeding (GDD 6): pairing rules, costs, timers and the odds preview. */
+    BREEDING: {
+      /** Sim ticks an egg takes to hatch. */
+      GESTATION_TICKS: 300,
+      /** Sim ticks a parent must rest after a litter before breeding again. */
+      COOLDOWN_TICKS: 900,
+      /** A parent must be at least this happy (0..100) and trusting, and not starving. */
+      MIN_HAPPINESS: 50,
+      MIN_TRUST: 40,
+      /** Parents may differ by at most this many size classes (tiny..huge). */
+      MAX_SIZE_GAP: 1,
+      /** Coins to start a breeding, multiplied by 1 + COST_PER_TIER x the parents' average rarity tier. */
+      BASE_COST: 40,
+      COST_PER_TIER: 0.5,
+      /** Chance a hatchling mutates a little, and how strongly (see `mutate`). */
+      MUTATION_CHANCE: 0.2,
+      MUTATION_RATE: 0.12,
+      /** How many example offspring the preview shows, and how many crossovers it samples for odds. */
+      PREVIEW_CHILDREN: 3,
+      PREVIEW_SAMPLES: 200,
+      /** Stats a newborn starts with (0..100). */
+      NEWBORN_STATS: { fullness: 70, happiness: 70, trust: 60 },
+    },
+
     /** Capturing wild creatures: trust from feeding, lures and the transport crate (GDD 10.2). */
     CAPTURE: {
       /** Trust (0..100) gained per feeding: the food's trust bonus x diet efficiency x this. */
@@ -164,6 +188,7 @@ export const GAME_CONFIG = {
         gate: 10,
         trough: 20,
         bin: 25,
+        den: 60,
         toy: 15,
         shelter: 20,
         plant: 10,
