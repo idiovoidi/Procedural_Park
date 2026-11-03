@@ -65,3 +65,12 @@ An auto-sell valve sells each resource every production cycle while its price is
 player's floor (default 70% of base, adjustable 30-100% in the Market panel). A high floor waits
 for good prices and fills the silos; a low floor sells everything immediately. The balance sim is
 unchanged: its bot already sells every minute and never reaches the base cap.
+
+## Food farms (T19e)
+
+A farm (150 coins) grows 1.5 servings per feeding cycle of the cheap staple (berry or fish) its
+pen's residents digest best; meat, crystal and energy stay store-bought. One farm roughly covers
+one small creature (a berry serving costs 10, so a farm saves ~15 coins/min and pays back in about
+10 minutes); a crowded pen needs several farms, each taking a cell, so food is a layout decision
+and not a free lunch. The sim bot still buys food, so the guard-rail margins are unchanged;
+T19f adds a hands-off bot that relies on farms, hoppers, collectors and valves.

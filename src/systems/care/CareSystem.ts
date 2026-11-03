@@ -148,6 +148,35 @@ export class CareSystem {
     return accepted
   }
 
+  // ---- Food farms ---------------------------------------------------------------------
+
+  /**
+   * The food a pen's farms grow: the farmable staple its residents digest best (summed over
+   * everyone living there), or null if the pen has no farm, nobody lives there, or no resident
+   * eats a farmable food well enough.
+   */
+  public getFarmFood(penId: string): string | null {
+    const pen = this.grid.getPen(penId)
+    if (!pen || pen.props.farm === 0) return null
+    const residents = this.roster.getByPen(penId)
+    let best: { foodId: string; score: number } | null = null
+    for (const foodId of CARE.FARM.FOODS) {
+      let score = 0
+      for (const c of residents) {
+        const eff = dietEfficiency(c.genome, foodId)
+        if (eff >= CARE.FARM.MIN_EFFICIENCY) score += eff
+      }
+      if (score > 0 && (!best || score > best.score)) best = { foodId, score }
+    }
+    return best?.foodId ?? null
+  }
+
+  /** Servings the pen's farms grow per feeding cycle. */
+  public getFarmOutput(penId: string): number {
+    const pen = this.grid.getPen(penId)
+    return pen && this.getFarmFood(penId) ? pen.props.farm * CARE.FARM.SERVINGS_PER_CYCLE : 0
+  }
+
   /** Move food from a pen's hoppers into its troughs, as far as the troughs have room. */
   private refillFromHopper(penId: string): void {
     const hopper = this.hoppers.get(penId)
@@ -173,7 +202,11 @@ export class CareSystem {
     const summary: CycleSummary = { tick, fed: 0, hungry: 0, unpenned: 0, meals: [] }
     this.reports.clear()
 
-    // Hoppers top the troughs up before anyone eats
+    // Farms grow food, then hoppers top the troughs up, all before anyone eats
+    for (const pen of this.grid.getPens()) {
+      const food = this.getFarmFood(pen.id)
+      if (food) this.stock(pen.id, food, this.getFarmOutput(pen.id))
+    }
     for (const penId of [...this.hoppers.keys()]) this.refillFromHopper(penId)
 
     // Score each pen once, with everyone who lives there.

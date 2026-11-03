@@ -47,7 +47,7 @@ Exit: a player can run a hands-off park for several minutes without starving cre
 | T19b | [x] Feeder hopper: per-pen hopper that tops up the trough | T19a | A fed pen runs for many cycles without the player |
 | T19c | [x] Collector range + bin warning: auto-collect nearby bins, warn on bin-less pens | T19b | No output wasted in a pen with a bin |
 | T19d | [x] Silos + auto-sell valve with price floor | T19c | Output sells itself above the floor price |
-| T19e | [ ] Food farms (generators) | T19d | Food no longer has to be bought |
+| T19e | [x] Food farms (generators) | T19d | Food no longer has to be bought |
 | T19f | [ ] M2 balance sim + E2E | T19a–e | Balance guard rails and E2E cover the hands-off loop |
 
 ## Later milestones (split into tasks when reached)

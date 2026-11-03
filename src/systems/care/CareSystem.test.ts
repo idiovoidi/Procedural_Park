@@ -428,3 +428,50 @@ describe('feeder hoppers', () => {
     expect(other.care.getHopperTotal(penId)).toBe(0)
   })
 })
+
+describe('food farms', () => {
+  const FARM = CARE.FARM
+
+  it('grow the farmable staple the residents like best', () => {
+    const { care, grid, penId, addCreature } = setup()
+    grid.addProp({ x: 3, z: 3 }, 'farm')
+    expect(care.getFarmFood(penId)).toBeNull() // nobody lives here yet
+    addCreature()
+    const food = care.getFarmFood(penId)
+    expect(food).not.toBeNull()
+    expect(FARM.FOODS).toContain(food)
+  })
+
+  it('stay idle in a pen without a farm', () => {
+    const { care, penId, addCreature } = setup()
+    addCreature()
+    expect(care.getFarmFood(penId)).toBeNull() // no farm built
+    expect(care.getFarmOutput(penId)).toBe(0)
+  })
+
+  it('fill the trough each cycle, scaling with the number of farms', () => {
+    const one = setup()
+    one.grid.addProp({ x: 3, z: 3 }, 'farm')
+    one.addCreature(genome(), { fullness: 100, happiness: 100, trust: 100 })
+    const before = one.care.getTroughTotal(one.penId)
+    one.runCycles(1)
+    expect(one.care.getTroughTotal(one.penId) + 0).toBeGreaterThanOrEqual(before)
+    expect(one.care.getFarmOutput(one.penId)).toBeCloseTo(FARM.SERVINGS_PER_CYCLE, 10)
+
+    const two = setup()
+    two.grid.addProp({ x: 3, z: 3 }, 'farm')
+    two.grid.addProp({ x: 3, z: 2 }, 'farm')
+    two.addCreature()
+    expect(two.care.getFarmOutput(two.penId)).toBeCloseTo(2 * FARM.SERVINGS_PER_CYCLE, 10)
+  })
+
+  it('keep a creature fed with no food ever bought', () => {
+    const { care, grid, penId, addCreature, runCycles, roster } = setup()
+    grid.addProp({ x: 3, z: 3 }, 'farm')
+    grid.addProp({ x: 3, z: 2 }, 'farm')
+    const c = addCreature(genome(), { fullness: 100, happiness: 100, trust: 100 })
+    expect(care.getTroughTotal(penId)).toBe(0)
+    runCycles(40)
+    expect(roster.get(c.id)?.fullness).toBeGreaterThan(50)
+  })
+})

@@ -237,6 +237,7 @@ export const GAME_CONFIG = {
         collector: 80,
         silo: 120,
         valve: 150,
+        farm: 150,
         den: 60,
         toy: 15,
         shelter: 20,
@@ -278,6 +279,12 @@ export const GAME_CONFIG = {
       TROUGH_CAPACITY_SERVINGS: 20,
       /** Servings one feeder hopper holds; it tops the pen's troughs up every cycle. */
       HOPPER_CAPACITY_SERVINGS: 80,
+      /**
+       * Food farms: each farm grows `SERVINGS_PER_CYCLE` servings every feeding cycle of the
+       * cheap staple its pen's residents like best (only these foods can be farmed; meat, crystal
+       * and energy stay in the store). The servings go to the troughs, then the hoppers.
+       */
+      FARM: { FOODS: ['berry', 'fish'], SERVINGS_PER_CYCLE: 1.5, MIN_EFFICIENCY: 0.5 },
 
       /** Happiness moves this far toward its target each cycle. */
       HAPPINESS_DRIFT_PER_CYCLE: 10,

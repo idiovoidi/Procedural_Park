@@ -38,6 +38,7 @@ const PROP_KINDS: readonly PropKind[] = [
   'collector',
   'silo',
   'valve',
+  'farm',
   'den',
 ]
 const BIOMES: readonly BiomeType[] = [
@@ -563,6 +564,7 @@ export class PenGrid {
       collector: 0,
       silo: 0,
       valve: 0,
+      farm: 0,
       den: 0,
     }
 

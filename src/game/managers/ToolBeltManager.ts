@@ -170,8 +170,12 @@ export class ToolBeltManager {
 
   /** Warnings about the pen's output: no bin to hold it, or a bin about to overflow. */
   private outputProblems(penId: string, residents: number): string[] {
-    const { production, park } = this.systems
+    const { production, park, care } = this.systems
     if (residents === 0) return []
+    const farms = park.getPen(penId)?.props.farm ?? 0
+    if (farms > 0 && !care.getFarmFood(penId)) {
+      return ['farm idle: no resident eats berries or fish well']
+    }
     const capacity = production.getBinCapacity(penId)
     if (capacity === 0) return ['no bin: its output is wasted']
     const collector = (park.getPen(penId)?.props.collector ?? 0) > 0
@@ -221,7 +225,7 @@ export class ToolBeltManager {
     }
     return {
       title: pen.id,
-      summary: `${residents.length} creature${residents.length === 1 ? '' : 's'} · ${Math.round(report.freeAreaM2)} m² free · ${pen.enclosure} enclosure · bin ${Math.floor(production.getBinTotal(pen.id))}/${production.getBinCapacity(pen.id)} · trough ${Math.floor(care.getTroughTotal(pen.id))}/${care.getTroughCapacity(pen.id)}${care.getHopperCapacity(pen.id) > 0 ? ` · hopper ${Math.floor(care.getHopperTotal(pen.id))}/${care.getHopperCapacity(pen.id)}` : ''}`,
+      summary: `${residents.length} creature${residents.length === 1 ? '' : 's'} · ${Math.round(report.freeAreaM2)} m² free · ${pen.enclosure} enclosure · bin ${Math.floor(production.getBinTotal(pen.id))}/${production.getBinCapacity(pen.id)} · trough ${Math.floor(care.getTroughTotal(pen.id))}/${care.getTroughCapacity(pen.id)}${care.getFarmFood(pen.id) ? ` · farm +${care.getFarmOutput(pen.id)} ${care.getFarmFood(pen.id)}/min` : ''}${care.getHopperCapacity(pen.id) > 0 ? ` · hopper ${Math.floor(care.getHopperTotal(pen.id))}/${care.getHopperCapacity(pen.id)}` : ''}`,
       problems: [
         ...[...failing].map((k) => `needs better ${k}`),
         ...this.outputProblems(pen.id, residents.length),
