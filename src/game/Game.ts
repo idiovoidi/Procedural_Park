@@ -127,6 +127,10 @@ export class Game {
     ui.onToggleMultiplayer = () => {
       this.systems.multiplayer.getMultiplayer().toggleUI()
     }
+
+    ui.onToggleBuild = () => {
+      this.systems.build.toggle()
+    }
   }
 
   /**

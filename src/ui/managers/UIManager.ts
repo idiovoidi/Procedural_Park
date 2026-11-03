@@ -33,6 +33,7 @@ export class UIManager {
   private marketPanel: MarketPanel
   private buildHud: BuildHud
   private toggleMarketBtn: HTMLButtonElement
+  private toggleBuildBtn: HTMLButtonElement
   private toggleMultiplayerBtn: HTMLButtonElement
   private toggleFoodInventoryBtn: HTMLButtonElement
   private restartRideBtn: HTMLButtonElement
@@ -60,6 +61,7 @@ export class UIManager {
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
+    this.toggleBuildBtn = document.getElementById('toggleBuild') as HTMLButtonElement
     this.toggleFoodInventoryBtn = document.getElementById(
       'toggleFoodInventory'
     ) as HTMLButtonElement
@@ -92,6 +94,11 @@ export class UIManager {
   }
 
   private setupEventListeners() {
+    this.toggleBuildBtn?.addEventListener('click', () => {
+      this.audioCallbacks.onClick?.()
+      this.onToggleBuild?.()
+    })
+
     this.toggleMarketBtn?.addEventListener('click', () => {
       this.audioCallbacks.onClick?.()
       this.marketPanel.toggle()
@@ -166,6 +173,7 @@ export class UIManager {
   public onShaderPresetLoad?: SettingsCallbacks['onShaderPresetLoad']
   public onAutoPerformanceToggle?: SettingsCallbacks['onAutoPerformanceToggle']
   public onToggleMultiplayer?: () => void
+  public onToggleBuild?: () => void
   public onToggleSaveLoad?: () => void
 
   // Gallery methods

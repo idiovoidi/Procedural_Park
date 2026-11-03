@@ -70,10 +70,12 @@ export class BuildModeManager {
       }))
     )
     hud.setActive(this.controller.getTool())
+    hud.setOnSelect((id) => this.selectTool(id as BuildTool))
 
     window.addEventListener('keydown', this.onKeyDown)
     window.addEventListener('mousedown', this.onMouseDown)
     window.addEventListener('contextmenu', this.onContextMenu)
+    window.addEventListener('wheel', this.onWheel, { passive: true })
   }
 
   public isActive(): boolean {
@@ -148,6 +150,11 @@ export class BuildModeManager {
 
   private updateStatus(target: BuildTarget | null): void {
     const hud = this.deps.ui.getBuildHud()
+    // Clicks only build once the mouse is captured, so say so instead of silently doing nothing.
+    if (!document.pointerLockElement) {
+      hud.setStatus('Click the game view to capture the mouse, then click to build', 'neutral')
+      return
+    }
     if (!target) {
       hud.setStatus('Aim at the ground', 'neutral')
       return
@@ -226,6 +233,15 @@ export class BuildModeManager {
     }
   }
 
+  /** Mouse wheel steps through the tools while the mouse is captured. */
+  private onWheel = (e: WheelEvent): void => {
+    if (!this.active || !document.pointerLockElement || e.deltaY === 0) return
+    const current = BUILD_TOOLS.indexOf(this.controller.getTool())
+    const step = e.deltaY > 0 ? 1 : -1
+    const next = (current + step + BUILD_TOOLS.length) % BUILD_TOOLS.length
+    this.selectTool(BUILD_TOOLS[next])
+  }
+
   private onContextMenu = (e: MouseEvent): void => {
     if (this.active && e.target instanceof HTMLCanvasElement) e.preventDefault()
   }
@@ -234,6 +250,7 @@ export class BuildModeManager {
     window.removeEventListener('keydown', this.onKeyDown)
     window.removeEventListener('mousedown', this.onMouseDown)
     window.removeEventListener('contextmenu', this.onContextMenu)
+    window.removeEventListener('wheel', this.onWheel)
     this.view.dispose()
     this.ghost.removeFromParent()
     this.ghost.geometry.dispose()
