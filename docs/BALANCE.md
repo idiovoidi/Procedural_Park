@@ -74,3 +74,11 @@ one small creature (a berry serving costs 10, so a farm saves ~15 coins/min and 
 10 minutes); a crowded pen needs several farms, each taking a cell, so food is a layout decision
 and not a free lunch. The sim bot still buys food, so the guard-rail margins are unchanged;
 T19f adds a hands-off bot that relies on farms, hoppers, collectors and valves.
+
+## Hands-off park (T19f)
+
+`handsoff.test.ts` builds one pen with every M2 facility (trough, hopper, bin, auto-collector, three
+farms, valve, silo), stocks it once and does nothing for 90 simulated minutes: nobody starves, no
+food is bought, the valve sells the output, waste stays under 10%, and an 8-hour offline catch-up
+keeps earning. A control run without farms starves, so the test proves the farms matter.
+`tests/e2e/hands-off.spec.ts` does the same in the real game for 30 minutes.

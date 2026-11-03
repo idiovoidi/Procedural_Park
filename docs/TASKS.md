@@ -48,13 +48,13 @@ Exit: a player can run a hands-off park for several minutes without starving cre
 | T19c | [x] Collector range + bin warning: auto-collect nearby bins, warn on bin-less pens | T19b | No output wasted in a pen with a bin |
 | T19d | [x] Silos + auto-sell valve with price floor | T19c | Output sells itself above the floor price |
 | T19e | [x] Food farms (generators) | T19d | Food no longer has to be bought |
-| T19f | [ ] M2 balance sim + E2E | T19a–e | Balance guard rails and E2E cover the hands-off loop |
+| T19f | [x] M2 balance sim + E2E | T19a–e | Balance guard rails and E2E cover the hands-off loop |
 
 ## Later milestones (split into tasks when reached)
 
 | Epic | Milestone | Scope | Deps |
 |---|---|---|---|
-| T19 | M2 Automation | Feeders, bins, conveyors, silos, auto-sell, food farms, Contract Board (contracts must pay for traits so breeding earns; see BALANCE.md) | T18 |
+| T19 ✅ | M2 Automation | Feeders, bins, conveyors, silos, auto-sell, food farms, Contract Board (contracts must pay for traits so breeding earns; see BALANCE.md) | T18 |
 | T20 | M3 Expeditions | Map manager, 2–3 maps, study/special-condition capture, night spawns | T19 |
 | T21 | M4 Social | Card trading, friend park visit, shared codex, E2E coverage | T1, T18 |
 | T22 | M5–M6 Depth + Arena | Pedigree, inbreeding, mutations, staff, joint breeding; deterministic auto-battler | T19, T21 |
