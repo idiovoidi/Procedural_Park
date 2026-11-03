@@ -19,6 +19,7 @@ import { SaveLoadMenu } from '../components/save-load-menu'
 import { Settings } from '../components/settings'
 import { Shortcuts } from '../components/shortcuts'
 import { Toast } from '../components/toast'
+import { ToolBelt } from '../components/tool-belt'
 import { WorldMap, type WorldMapSource } from '../components/world-map'
 
 export class UIManager {
@@ -38,6 +39,7 @@ export class UIManager {
   private buildHud: BuildHud
   private breedingPanel: BreedingPanel
   private ranchBook: RanchBook
+  private toolBelt: ToolBelt
   private toggleBreedingBtn: HTMLButtonElement
   private toggleMarketBtn: HTMLButtonElement
   private toggleBuildBtn: HTMLButtonElement
@@ -68,6 +70,7 @@ export class UIManager {
     this.buildHud = new BuildHud()
     this.breedingPanel = new BreedingPanel()
     this.ranchBook = new RanchBook()
+    this.toolBelt = new ToolBelt()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
@@ -648,6 +651,13 @@ export class UIManager {
    */
   public getRanchBook(): RanchBook {
     return this.ranchBook
+  }
+
+  /**
+   * Get the tool belt and pen inspector
+   */
+  public getToolBelt(): ToolBelt {
+    return this.toolBelt
   }
 
   /**

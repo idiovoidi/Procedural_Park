@@ -16,6 +16,7 @@ import {
   PhotoManager,
   RanchBookManager,
   SaveLoadManager,
+  ToolBeltManager,
 } from './managers'
 import { type GameSystems, SystemsCoordinator } from './SystemsCoordinator'
 
@@ -27,6 +28,7 @@ export class Game {
   private market!: MarketUIManager
   private breedingUI!: BreedingUIManager
   private ranchBook!: RanchBookManager
+  private toolBelt!: ToolBeltManager
   private saveLoad!: SaveLoadManager
   private recordingIndicator: HTMLElement | null = null
   private container: HTMLElement
@@ -66,6 +68,16 @@ export class Game {
       this.market = new MarketUIManager(this.systems)
       this.breedingUI = new BreedingUIManager(this.systems)
       this.ranchBook = new RanchBookManager(this.systems)
+      this.toolBelt = new ToolBeltManager(this.systems, {
+        feed: () => this.food.feedNearestCreature(),
+        lure: () => this.systems.capture.placeLure(),
+        crate: () => this.systems.capture.tryCapture(),
+        photo: () => this.photos.takePhoto(),
+        build: () => this.systems.build.toggle(),
+        breed: () => this.breedingUI.toggle(),
+        market: () => this.market.toggle(),
+        book: () => this.ranchBook.toggle(),
+      })
       this.saveLoad = new SaveLoadManager(this.systems, this.photos, () => this.updateLabSign())
 
       // Setup input handler
@@ -100,6 +112,7 @@ export class Game {
       this.market.initialize()
       this.breedingUI.initialize()
       this.ranchBook.initialize()
+      this.toolBelt.initialize()
 
       // Bring back the ranch from the last session, if there was one
       this.saveLoad.restoreOnStartup()

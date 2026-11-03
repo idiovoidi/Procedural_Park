@@ -28,7 +28,7 @@ Exit: a new player captures a founder, pens it, earns from it, breeds a child, s
 | T12 | [x] Hub park: resident creatures roaming inside pens | T5, T6 | 20+ residents at target fps, staying inside pens |
 | T13 | [x] Breeding Den: pairing rules, timer, preview, hatching | T5, T12 | Deterministic, rules tested; breed + hatch works in game |
 | T14 | [x] Codex and roster UI rework | T5 | No 10-creature cap; bred species recorded; card export round-trips |
-| T15 | [ ] Tool belt + HUD for the management loop | T7 | Every slice interaction reachable via the tool belt |
+| T15 | [x] Tool belt + HUD for the management loop | T7 | Every slice interaction reachable via the tool belt |
 | T16 | [x] Versioned save/load for slice state + export/import | T5, T6, T9 | Save, reload, migration and offline catch-up tests pass |
 | T17 | [x] Balance sim script + economy/breeding unit tests | T9, T10, T13 | Baseline shows no runaway or dead-end economy |
 | T18 | [ ] Slice E2E test + playtest tuning pass | T10, T11, T13–T17 | E2E green in CI; playtest notes recorded |
