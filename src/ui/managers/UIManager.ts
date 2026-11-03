@@ -17,6 +17,7 @@ import { SaveLoadMenu } from '../components/save-load-menu'
 import { Settings } from '../components/settings'
 import { Shortcuts } from '../components/shortcuts'
 import { Toast } from '../components/toast'
+import { WorldMap, type WorldMapSource } from '../components/world-map'
 
 export class UIManager {
   private gallery: Gallery
@@ -24,6 +25,7 @@ export class UIManager {
   private toast: Toast
   private shortcuts: Shortcuts
   private miniMap: MiniMap
+  private worldMap: WorldMap
   private saveLoadMenu: SaveLoadMenu
   private playerStats: PlayerStats
   private creatureCollection: CreatureCollection
@@ -50,6 +52,7 @@ export class UIManager {
     this.toast = new Toast()
     this.shortcuts = new Shortcuts()
     this.miniMap = new MiniMap()
+    this.worldMap = new WorldMap()
     this.saveLoadMenu = new SaveLoadMenu()
     this.playerStats = new PlayerStats()
     this.creatureCollection = new CreatureCollection()
@@ -310,6 +313,24 @@ export class UIManager {
 
   public hideSprintIndicator() {
     this.toast.hideSprintIndicator()
+  }
+
+  // World map methods
+  public setWorldMapSource(source: WorldMapSource) {
+    this.worldMap.setSource(source)
+  }
+
+  public toggleWorldMap() {
+    this.worldMap.toggle()
+  }
+
+  public isWorldMapOpen(): boolean {
+    return this.worldMap.isOpen()
+  }
+
+  /** Called with true when the map opens and false when it closes. */
+  public onWorldMapToggle(callback: (open: boolean) => void) {
+    this.worldMap.onToggle(callback)
   }
 
   // Mini-map methods

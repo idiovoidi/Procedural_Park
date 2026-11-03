@@ -1,3 +1,4 @@
+import { GATE_SITE } from '@systems/layout/park-sites'
 import * as THREE from 'three'
 
 export function buildMainGate(): THREE.Group {
@@ -133,8 +134,8 @@ export function buildMainGate(): THREE.Group {
   gateGroup.add(rightLight)
 
   // Position the gate at the park entrance (adjust based on your track)
-  gateGroup.position.set(0, 0, 50)
-  gateGroup.rotation.y = Math.PI // Face inward
+  gateGroup.position.set(GATE_SITE.x, 0, GATE_SITE.z)
+  gateGroup.rotation.y = GATE_SITE.rot // Face inward
 
   return gateGroup
 }

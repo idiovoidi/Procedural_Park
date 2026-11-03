@@ -1,3 +1,6 @@
+import { shapesOverlap } from '@systems/layout/footprint'
+import { parkFootprints } from '@systems/layout/park-sites'
+import { WorldLayout } from '@systems/layout/WorldLayout'
 import * as THREE from 'three'
 import { describe, expect, it } from 'vitest'
 import {
@@ -7,6 +10,9 @@ import {
   forwardDistance,
   MAX_TRACK_RADIUS,
   nearestTrackT,
+  STATIONS,
+  type StationDef,
+  trackFootprints,
 } from './track-path'
 
 const hilly = (x: number, z: number) => Math.sin(x * 0.1) * 2 + Math.cos(z * 0.08) * 1.5
@@ -48,5 +54,46 @@ describe('station helpers', () => {
   it('slows toward a stop but never fully halts', () => {
     expect(easeFactor(0.03, 0.03)).toBe(1)
     expect(easeFactor(0, 0.03)).toBe(0.15)
+  })
+})
+
+describe('track and structures', () => {
+  const sites = parkFootprints().filter((f) => f.kind !== 'boundary')
+
+  it('never overlaps a park structure, for any seed', () => {
+    for (let seed = 0; seed < 60; seed++) {
+      const { trackCurve, stations } = buildTrackPath(() => 0, seed * 17.3, sites)
+      const laid = trackFootprints(trackCurve, stations)
+      for (const piece of laid) {
+        for (const site of sites) {
+          expect(
+            shapesOverlap(piece.shape, site.shape),
+            `seed ${seed}: ${piece.id} hits ${site.id}`
+          ).toBe(false)
+        }
+      }
+    }
+  })
+
+  it('leaves the whole layout free of overlaps, for any seed', () => {
+    for (let seed = 0; seed < 60; seed++) {
+      const { trackCurve, stations } = buildTrackPath(() => 0, seed * 17.3, sites)
+      const layout = new WorldLayout()
+      layout.add(...parkFootprints(), ...trackFootprints(trackCurve, stations))
+      expect(
+        layout.findOverlaps().map((p) => `${p.a.id}/${p.b.id}`),
+        `seed ${seed}`
+      ).toEqual([])
+    }
+  })
+
+  it('keeps stations near where they were meant to be', () => {
+    const { stations } = buildTrackPath(() => 0, 5, sites)
+    expect(stations).toHaveLength(3)
+    stations.forEach((s, i) => {
+      const nominal = STATIONS[i] as StationDef
+      const gap = Math.min(Math.abs(s.t - nominal.t), 1 - Math.abs(s.t - nominal.t))
+      expect(gap).toBeLessThanOrEqual(0.3)
+    })
   })
 })

@@ -1,4 +1,4 @@
-import { STATIONS } from '@systems/track/track-path'
+import { STATION_SIDE_OFFSET, type StationDef, stationYaw } from '@systems/track/track-path'
 import * as THREE from 'three'
 
 const GAUGE_HALF = 0.72
@@ -101,7 +101,6 @@ function buildStation(curve: THREE.Curve<THREE.Vector3>, t: number, name: string
 
   const length = 14
   const width = 3.4
-  const sideOffset = 3.0
   // Platform top sits a little above the sleepers; a deep plinth keeps it grounded.
   const topY = 0.3
   const plinthDepth = 4
@@ -138,12 +137,11 @@ function buildStation(curve: THREE.Curve<THREE.Vector3>, t: number, name: string
   lamp.position.set(0, topY + 3, 0)
   station.add(lamp)
 
-  // Orient: local +Z along the track, +X sideways to the platform side.
-  const basis = new THREE.Matrix4().makeBasis(frame.right, UP, frame.back.clone().negate())
-  station.quaternion.setFromRotationMatrix(basis)
+  // Local +Z runs along the track; the platform sits on the rider's right.
+  station.rotation.y = stationYaw(frame.back.clone().negate())
   station.position
     .copy(frame.point)
-    .addScaledVector(frame.right, sideOffset)
+    .addScaledVector(frame.right, STATION_SIDE_OFFSET)
     .add(new THREE.Vector3(0, -0.02, 0))
   return station
 }
@@ -154,7 +152,8 @@ function buildStation(curve: THREE.Curve<THREE.Vector3>, t: number, name: string
  */
 export function buildTrainTrack(
   trackCurve: THREE.CatmullRomCurve3,
-  heightAt: (x: number, z: number) => number
+  heightAt: (x: number, z: number) => number,
+  stations: readonly StationDef[]
 ): THREE.Group {
   const group = new THREE.Group()
   group.name = 'TrainTrack'
@@ -248,7 +247,7 @@ export function buildTrainTrack(
     group.add(pillars)
   }
 
-  for (const station of STATIONS) {
+  for (const station of stations) {
     group.add(buildStation(trackCurve, station.t, station.name))
   }
 

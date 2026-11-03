@@ -1,4 +1,11 @@
 import { TAU } from '@core/constants'
+import {
+  type Footprint,
+  type Point2,
+  pushOutside,
+  shapesOverlap,
+  signedDistance,
+} from '@systems/layout/footprint'
 import * as THREE from 'three'
 
 /** Eye height of a rider above the top of the sleepers. */
@@ -21,7 +28,17 @@ export const STATIONS: readonly StationDef[] = [
   { t: 0.72, name: 'Lab Junction' },
 ]
 
+/** How far from the rail centre line a station platform's middle sits. */
+export const STATION_SIDE_OFFSET = 3.3
+const PLATFORM_WIDTH = 3.4
+const PLATFORM_LENGTH = 14
+/** Room kept between the rails and any structure, enough for a platform on either side. */
+export const TRACK_CLEARANCE = 6
+const TRACK_HALF_WIDTH = 1.5
+
 export interface TrackPath {
+  /** The stops, nudged along the loop to wherever their platform fits. */
+  stations: StationDef[]
   /** Centre line of the rails (top of the sleepers). */
   trackCurve: THREE.CatmullRomCurve3
   /** The same line lifted to rider eye height; the camera and creatures follow this. */
@@ -49,12 +66,12 @@ function smoothCircular(values: number[], radius: number, passes: number): numbe
  */
 export function buildTrackPath(
   heightAt: (x: number, z: number) => number,
-  seed: number = Math.random() * 1000
+  seed: number = Math.random() * 1000,
+  avoid: readonly Footprint[] = []
 ): TrackPath {
-  const numPoints = 64
-  const xs: number[] = []
-  const zs: number[] = []
-  const ground: number[] = []
+  const numPoints = 96
+  let xs: number[] = []
+  let zs: number[] = []
 
   for (let i = 0; i < numPoints; i++) {
     const angle = (i / numPoints) * TAU
@@ -63,13 +80,45 @@ export function buildTrackPath(
     const r = Math.min(MAX_TRACK_RADIUS, baseRadius + radiusVariation)
 
     const spiral = Math.sin(seed + angle * 2) * 0.12
-    const x = Math.sin(angle + spiral) * r
-    const z = Math.cos(angle + spiral) * r
-    xs.push(x)
-    zs.push(z)
-    ground.push(heightAt(x, z))
+    xs.push(Math.sin(angle + spiral) * r)
+    zs.push(Math.cos(angle + spiral) * r)
   }
 
+  // Steer around structures: push points clear, ease the corners, and repeat until stable.
+  const isClear = (x: number, z: number) =>
+    avoid.every((fp) => signedDistance(fp.shape, x, z) >= TRACK_CLEARANCE)
+  const clearOfStructures = () => {
+    for (let i = 0; i < numPoints; i++) {
+      const x = xs[i] as number
+      const z = zs[i] as number
+      let p: Point2 = { x, z }
+      for (const fp of avoid) p = pushOutside(fp.shape, p.x, p.z, TRACK_CLEARANCE)
+      if (Math.hypot(p.x, p.z) > MAX_TRACK_RADIUS || !isClear(p.x, p.z)) {
+        // Pushing outward would leave the park; slip inside the obstacle's ring instead.
+        const len = Math.hypot(x, z) || 1
+        for (let r = Math.min(len, MAX_TRACK_RADIUS); r >= 8; r -= 0.5) {
+          const cx = (x / len) * r
+          const cz = (z / len) * r
+          if (isClear(cx, cz)) {
+            p = { x: cx, z: cz }
+            break
+          }
+        }
+      }
+      xs[i] = p.x
+      zs[i] = p.z
+    }
+  }
+  if (avoid.length > 0) {
+    for (let pass = 0; pass < 6; pass++) {
+      clearOfStructures()
+      xs = smoothCircular(xs, 1, 1)
+      zs = smoothCircular(zs, 1, 1)
+    }
+    clearOfStructures()
+  }
+
+  const ground = xs.map((x, i) => heightAt(x, zs[i] as number))
   const smoothed = smoothCircular(ground, 3, 2)
   const trackPoints: THREE.Vector3[] = []
   const ridePoints: THREE.Vector3[] = []
@@ -79,10 +128,92 @@ export function buildTrackPath(
     ridePoints.push(new THREE.Vector3(xs[i], y + EYE_HEIGHT, zs[i]))
   }
 
+  const trackCurve = new THREE.CatmullRomCurve3(trackPoints, true, 'centripetal', 0.2)
   return {
-    trackCurve: new THREE.CatmullRomCurve3(trackPoints, true, 'centripetal', 0.2),
+    stations: resolveStations(trackCurve, avoid),
+    trackCurve,
     rideCurve: new THREE.CatmullRomCurve3(ridePoints, true, 'centripetal', 0.2),
   }
+}
+
+/** Yaw (three.js `rotation.y`) that points an object's local +Z along a tangent. */
+export function stationYaw(tangent: { x: number; z: number }): number {
+  return Math.atan2(tangent.x, tangent.z)
+}
+
+/** The platform's footprint for a station at loop position `t`. */
+function platformFootprint(trackCurve: THREE.Curve<THREE.Vector3>, station: StationDef): Footprint {
+  const centre = trackCurve.getPointAt(station.t)
+  const tangent = trackCurve.getTangentAt(station.t)
+  const right = new THREE.Vector3().crossVectors(tangent, new THREE.Vector3(0, 1, 0)).normalize()
+  return {
+    id: `station:${station.name}`,
+    label: station.name,
+    kind: 'station',
+    shape: {
+      type: 'rect',
+      x: centre.x + right.x * STATION_SIDE_OFFSET,
+      z: centre.z + right.z * STATION_SIDE_OFFSET,
+      w: PLATFORM_WIDTH,
+      d: PLATFORM_LENGTH,
+      rot: stationYaw(tangent),
+    },
+  }
+}
+
+/**
+ * Moves each station along the loop, as little as possible, to a straight stretch where
+ * its platform sits beside the rails without crossing them, and clear of every structure
+ * and the other platforms. A station with no such spot keeps its nominal place.
+ */
+export function resolveStations(
+  trackCurve: THREE.CatmullRomCurve3,
+  avoid: readonly Footprint[]
+): StationDef[] {
+  const line = trackFootprints(trackCurve, [])
+  const placed: Footprint[] = []
+  return STATIONS.map((nominal) => {
+    for (let step = 0; step <= 100; step++) {
+      const offsets = step === 0 ? [0] : [step * 0.005, -step * 0.005]
+      for (const offset of offsets) {
+        const t = (((nominal.t + offset) % 1) + 1) % 1
+        const candidate = { ...nominal, t }
+        const platform = platformFootprint(trackCurve, candidate)
+        const blocked = [...avoid, ...placed].some((fp) =>
+          shapesOverlap(platform.shape, fp.shape, 1)
+        )
+        const onRails = line.some((fp) => shapesOverlap(platform.shape, fp.shape, 0.05))
+        if (!blocked && !onRails) {
+          placed.push(platform)
+          return candidate
+        }
+      }
+    }
+    return { ...nominal }
+  })
+}
+
+/** The ground the railway occupies: the line itself, and a platform at each station. */
+export function trackFootprints(
+  trackCurve: THREE.CatmullRomCurve3,
+  stations: readonly StationDef[] = STATIONS
+): Footprint[] {
+  const samples = Math.max(64, Math.ceil(trackCurve.getLength() / 2))
+  const points: Point2[] = []
+  for (let i = 0; i < samples; i++) {
+    const p = trackCurve.getPointAt(i / samples)
+    points.push({ x: p.x, z: p.z })
+  }
+
+  return [
+    {
+      id: 'train-track',
+      label: 'Railway',
+      kind: 'track',
+      shape: { type: 'path', points, halfWidth: TRACK_HALF_WIDTH, closed: true },
+    },
+    ...stations.map((station) => platformFootprint(trackCurve, station)),
+  ]
 }
 
 /** Position (0..1) on a closed curve closest to a world point. */

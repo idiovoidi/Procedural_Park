@@ -1,3 +1,4 @@
+import { STORE_SITE } from '@systems/layout/park-sites'
 import * as THREE from 'three'
 
 export function buildFoodStore(): THREE.Group {
@@ -263,8 +264,8 @@ export function buildFoodStore(): THREE.Group {
   })
 
   // Position the food store near the entrance plaza
-  storeGroup.position.set(-25, 0, 40)
-  storeGroup.rotation.y = Math.PI / 6
+  storeGroup.position.set(STORE_SITE.x, 0, STORE_SITE.z)
+  storeGroup.rotation.y = STORE_SITE.rot
   storeGroup.userData.isFoodStore = true
 
   return storeGroup

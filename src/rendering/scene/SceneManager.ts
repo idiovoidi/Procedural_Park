@@ -1,7 +1,9 @@
 import { disposeThreeObject, log } from '@core/utils'
 import { type ShaderConfig, ShaderManager } from '@rendering/shaders'
+import { parkFootprints } from '@systems/layout/park-sites'
+import { WorldLayout } from '@systems/layout/WorldLayout'
 import { TerrainSystem } from '@systems/terrain'
-import { buildTrackPath } from '@systems/track/track-path'
+import { buildTrackPath, type StationDef, trackFootprints } from '@systems/track/track-path'
 import * as THREE from 'three'
 import { EnvironmentInteractions } from './environment-interactions'
 import { ParkStructures } from './park-structures'
@@ -14,6 +16,10 @@ export class SceneManager {
   public curve: THREE.CatmullRomCurve3
   /** Centre line of the rails themselves. */
   public trackCurve: THREE.CatmullRomCurve3
+  /** Everything standing on the ground, seen from above: drives the map and placement. */
+  public layout: WorldLayout
+  /** Where the tram stops, after being fitted to the layout. */
+  public stations: StationDef[]
   public terrainSystem: TerrainSystem
   public environmentInteractions: EnvironmentInteractions
   public parkStructures: ParkStructures
@@ -71,10 +77,26 @@ export class SceneManager {
 
     // Lay the railway over the terrain; the camera rides it at eye height
     const heightAt = (x: number, z: number) => this.terrainSystem.getFloorHeightAt(x, z)
-    const path = buildTrackPath(heightAt)
+    this.layout = new WorldLayout()
+    const sites = parkFootprints()
+    this.layout.add(...sites)
+    const path = buildTrackPath(
+      heightAt,
+      undefined,
+      sites.filter((f) => f.kind !== 'boundary')
+    )
+    this.stations = path.stations
+    this.layout.add(...trackFootprints(path.trackCurve, path.stations))
+    const clashes = this.layout.findOverlaps()
+    if (clashes.length > 0) {
+      console.warn(
+        'Layout overlaps:',
+        clashes.map(({ a, b }) => `${a.label} / ${b.label}`)
+      )
+    }
     this.trackCurve = path.trackCurve
     this.curve = path.rideCurve
-    this.scene.add(buildTrainTrack(this.trackCurve, heightAt))
+    this.scene.add(buildTrainTrack(this.trackCurve, heightAt, this.stations))
 
     // Build park structures (gate, fence, plaza)
     this.parkStructures = new ParkStructures(this.scene)

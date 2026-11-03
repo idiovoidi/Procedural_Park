@@ -11,6 +11,8 @@ import {
 } from '@systems/build'
 import type { CameraController } from '@systems/camera'
 import type { CurrencyManager } from '@systems/currency'
+import { buildZoneFootprint } from '@systems/layout/park-sites'
+import type { WorldLayout } from '@systems/layout/WorldLayout'
 import type { PenGrid } from '@systems/park'
 import type { UIManager } from '@ui/managers'
 import * as THREE from 'three'
@@ -18,6 +20,7 @@ import * as THREE from 'three'
 const { COSTS, MAX_REACH_M } = GAME_CONFIG.ECONOMY.BUILD
 const CELL = GAME_CONFIG.PARK.CELL_SIZE_M
 
+const BUILD_ZONE_ID = 'build-zone'
 const GHOST_COLORS = { place: 0x44ff88, invalid: 0xff4455, remove: 0xffaa33 }
 
 /** Digit key for each tool slot: 1..9, then 0. */
@@ -30,6 +33,8 @@ interface Dependencies {
   currency: CurrencyManager
   ui: UIManager
   heightAt: (x: number, z: number) => number
+  /** Everything on the ground; build placements must stay clear of it. */
+  layout: WorldLayout
 }
 
 /**
@@ -49,7 +54,12 @@ export class BuildModeManager {
 
   constructor(deps: Dependencies) {
     this.deps = deps
-    this.controller = new BuildController(deps.park, deps.currency)
+    this.controller = new BuildController(deps.park, deps.currency, {
+      // The build zone itself is where building is allowed; everything else is an obstacle.
+      blockReason: (shape) => deps.layout.blockReason(shape, 0, [BUILD_ZONE_ID]),
+    })
+    this.syncBuildZone()
+    deps.park.onEdit(() => this.syncBuildZone())
     this.view = new ParkView(deps.scene, deps.park, deps.heightAt)
 
     this.ghost = new THREE.Mesh(
@@ -76,6 +86,13 @@ export class BuildModeManager {
     window.addEventListener('mousedown', this.onMouseDown)
     window.addEventListener('contextmenu', this.onContextMenu)
     window.addEventListener('wheel', this.onWheel, { passive: true })
+  }
+
+  /** Keeps the map's build-zone outline in step with the grid as the zone grows. */
+  private syncBuildZone(): void {
+    const next = buildZoneFootprint(this.deps.park.getBounds())
+    const current = this.deps.layout.get(BUILD_ZONE_ID)?.shape
+    if (JSON.stringify(current) !== JSON.stringify(next.shape)) this.deps.layout.add(next)
   }
 
   public isActive(): boolean {
