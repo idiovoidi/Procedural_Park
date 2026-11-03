@@ -73,7 +73,7 @@ Exit: two players can trade a creature, share discoveries and walk through each 
 | T21b | [x] Trade UI wired to the live connection | T21a | Offer, accept, decline from the game |
 | T21c | [x] Shared codex | T21b | Species a friend found appear in your codex |
 | T21d | [x] Visit a friend's park (read-only snapshot) | T21b | Guest sees the host's pens and residents |
-| T21e | [ ] Two-browser E2E for trade, codex and visit | T21a–d | E2E green |
+| T21e | [x] Two-browser E2E for trade, codex and visit | T21a–d | E2E green |
 
 ## Later milestones (split into tasks when reached)
 
@@ -81,6 +81,6 @@ Exit: two players can trade a creature, share discoveries and walk through each 
 |---|---|---|---|
 | T19 ✅ | M2 Automation | Feeders, bins, conveyors, silos, auto-sell, food farms, Contract Board (contracts must pay for traits so breeding earns; see BALANCE.md) | T18 |
 | T20 ✅ | M3 Expeditions | Map manager, 2–3 maps, study/special-condition capture, night spawns | T19 |
-| T21 | M4 Social | Card trading, friend park visit, shared codex, E2E coverage | T1, T18 |
+| T21 ✅ | M4 Social | Card trading, friend park visit, shared codex, E2E coverage | T1, T18 |
 | T22 | M5–M6 Depth + Arena | Pedigree, inbreeding, mutations, staff, joint breeding; deterministic auto-battler | T19, T21 |
 | T23 | M7 Platform polish | Gamepad, mobile touch, performance scaling, accessibility (start spikes early if M1 shows perf issues) | — |
