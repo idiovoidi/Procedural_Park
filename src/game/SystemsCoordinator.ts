@@ -28,6 +28,7 @@ import { PhotoSystem } from '@systems/photo'
 import { ProductionSystem, ResourceInventory } from '@systems/production'
 import { Roster } from '@systems/roster'
 import { createStateSyncHelpers, type GameStateType, IntegratedStateManager } from '@systems/state'
+import { STATIONS } from '@systems/track/track-path'
 import { DebugPanel } from '@ui/debug'
 import { UIManager } from '@ui/managers'
 
@@ -101,6 +102,12 @@ export class SystemsCoordinator {
 
     // Setup camera mouse controls
     cameraController.setupMouseControls(sceneManager.getCanvas())
+    cameraController.setGroundHeightSampler((x, z) =>
+      sceneManager.terrainSystem.getFloorHeightAt(x, z)
+    )
+    cameraController.setStations(STATIONS, (station) =>
+      uiManager.showToast(`🚉 ${station.name} — press C to hop off`)
+    )
 
     // Connect shader service to scene manager
     shaderService.setShaderManager(sceneManager.getShaderManager())
