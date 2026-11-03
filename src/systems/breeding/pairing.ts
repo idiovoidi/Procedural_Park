@@ -54,3 +54,9 @@ export function breedingCost(a: Genome, b: Genome): number {
   const avgTier = (getRarityTier(a.rarity).index + getRarityTier(b.rarity).index) / 2
   return Math.round(B.BASE_COST * (1 + B.COST_PER_TIER * avgTier))
 }
+
+/** Rarity added to a litter's average: only when both parents are good enough (the ratchet). */
+export function rarityLift(a: Genome, b: Genome): number {
+  const B = GAME_CONFIG.ECONOMY.BREEDING
+  return Math.min(a.rarity, b.rarity) >= B.RARITY_LIFT_MIN_PARENT ? B.RARITY_LIFT : 0
+}

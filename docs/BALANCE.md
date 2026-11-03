@@ -20,10 +20,15 @@ explore market settings with `BALANCE_SWEEP=1 npx vitest run src/systems/balance
 7. **Sink shortage:** water, ground painting, land and automation are not buildable yet, so coins
    pile up late. Expected until M2.
 
-## Open design issue: breeding has no economic upside
+## Breeding economics
 
-Offspring rarity is about the parents' average (+-0.05), so breeding can never beat the best
-parent, and nothing pays for traits (no contracts yet). In the sim a breeding bot ends *behind* a
-non-breeding bot (net worth @240 min: ~93k vs ~122k) because den fees and feed for extra mouths
-are not repaid. Options: a rarity ratchet (small positive bias for breeding two top-tier parents),
-contracts that pay for specific traits (M2), or both. This needs a design decision; not changed here.
+Offspring rarity used to be the parents' average (+-0.05), so breeding could never beat the best
+parent and a breeding bot ended *behind* a non-breeding one (~93k vs ~122k net worth @240 min).
+
+**Rarity ratchet (decided with the owner, with contracts to follow):** when both parents are at
+least `BREEDING.RARITY_LIFT_MIN_PARENT` (0.3), the child gets `BREEDING.RARITY_LIFT` (+0.03) on top
+of the average. In the sim, bred creatures average ~0.88 rarity vs ~0.77 for founders, reaching
+generation 5 (guarded by a test). The bot still nets less than a non-breeding bot (~100k vs ~122k)
+because it captured a near-max legendary early, so there is no headroom to climb; den fees and
+extra mouths are not repaid. The payoff for breeding must therefore also come from
+**contracts that pay for specific traits (M2, T19)**, planned next.

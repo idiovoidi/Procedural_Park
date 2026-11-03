@@ -1,6 +1,8 @@
 import { GAME_CONFIG } from '@core/constants'
 import { describe, expect, it } from 'vitest'
+import { Bot } from './bot'
 import { runSim } from './sim'
+import { createBalanceWorld } from './world'
 
 /**
  * Guard rails for the economy: a bot plays four simulated hours on the real systems and the
@@ -64,5 +66,20 @@ describe('economy balance', () => {
     const drip = runSim({ minutes: 240, policy: { selling: 'drip' } })
     expect(drip.final.netWorth).toBeGreaterThan(drip.samples[59].netWorth * 1.05)
     expect(margin(drip)).toBeGreaterThan(0.08)
+  })
+
+  it('breeding climbs: bred creatures end rarer than the founders', () => {
+    const w = createBalanceWorld()
+    const bot = new Bot(w)
+    for (let m = 0; m < 240; m++) {
+      w.advance(60)
+      bot.step()
+    }
+    const avg = (xs: ReturnType<typeof w.roster.list>) =>
+      xs.reduce((s, c) => s + c.genome.rarity, 0) / Math.max(1, xs.length)
+    const all = w.roster.list()
+    const bred = all.filter((c) => c.generation > 0)
+    expect(bred.length).toBeGreaterThan(5)
+    expect(avg(bred)).toBeGreaterThan(avg(all.filter((c) => c.generation === 0)))
   })
 })

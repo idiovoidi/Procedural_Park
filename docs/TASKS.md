@@ -41,7 +41,7 @@ Exit: a new player captures a founder, pens it, earns from it, breeds a child, s
 
 | Epic | Milestone | Scope | Deps |
 |---|---|---|---|
-| T19 | M2 Automation | Feeders, bins, conveyors, silos, auto-sell, food farms, Contract Board | T18 |
+| T19 | M2 Automation | Feeders, bins, conveyors, silos, auto-sell, food farms, Contract Board (contracts must pay for traits so breeding earns; see BALANCE.md) | T18 |
 | T20 | M3 Expeditions | Map manager, 2–3 maps, study/special-condition capture, night spawns | T19 |
 | T21 | M4 Social | Card trading, friend park visit, shared codex, E2E coverage | T1, T18 |
 | T22 | M5–M6 Depth + Arena | Pedigree, inbreeding, mutations, staff, joint breeding; deterministic auto-battler | T19, T21 |

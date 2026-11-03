@@ -9,6 +9,7 @@
 import { GAME_CONFIG } from '@core/constants'
 import { crossover, type Genome, hashSeed } from '@systems/creatures/genome'
 import { getRarityTier } from '@systems/economy'
+import { rarityLift } from './pairing'
 
 const B = GAME_CONFIG.ECONOMY.BREEDING
 
@@ -70,7 +71,7 @@ export function describeOffspring(
     { label: b.temperament, chance: 0.5 },
   ])
 
-  const mean = (a.rarity + b.rarity) / 2
+  const mean = (a.rarity + b.rarity) / 2 + rarityLift(a, b)
   const min = Math.max(0, mean - 0.05)
   const max = Math.min(1, mean + 0.05)
 
@@ -78,7 +79,7 @@ export function describeOffspring(
   const counts = PART_TESTS.map(() => 0)
   const n = Math.max(1, Math.floor(samples))
   for (let i = 0; i < n; i++) {
-    const child = crossover(a, b, hashSeed(PREVIEW_SEED, i))
+    const child = crossover(a, b, hashSeed(PREVIEW_SEED, i), rarityLift(a, b))
     PART_TESTS.forEach(([, has], index) => {
       if (has(child)) counts[index]++
     })
@@ -104,6 +105,6 @@ export function sampleOffspring(
   count: number = B.PREVIEW_CHILDREN
 ): Genome[] {
   return Array.from({ length: Math.max(0, count) }, (_, i) =>
-    crossover(a, b, hashSeed(PREVIEW_SEED + 1, i))
+    crossover(a, b, hashSeed(PREVIEW_SEED + 1, i), rarityLift(a, b))
   )
 }

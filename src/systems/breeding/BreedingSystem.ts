@@ -20,7 +20,7 @@ import {
 } from '@systems/creatures/genome'
 import { canAddOccupant, type PenGrid } from '@systems/park'
 import type { OwnedCreature, Roster } from '@systems/roster'
-import { breedingCost, checkPairing, type PairingContext } from './pairing'
+import { breedingCost, checkPairing, type PairingContext, rarityLift } from './pairing'
 
 const B = GAME_CONFIG.ECONOMY.BREEDING
 
@@ -207,7 +207,7 @@ export class BreedingSystem {
     const [pa, pb] = job.parentGenomes
     const seed = hashSeed(this.baseSeed, job.id)
 
-    let child = crossover(pa, pb, seed)
+    let child = crossover(pa, pb, seed, rarityLift(pa, pb))
     let mutated = false
     const rolled = (hashSeed(seed, 0x6d7574) % 10_000) / 10_000
     if (rolled < B.MUTATION_CHANCE) {

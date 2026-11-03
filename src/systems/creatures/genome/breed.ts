@@ -27,7 +27,13 @@ function blendHue(a: number, b: number, weight: number): number {
  * A child is not reproducible from its seed alone (it is not `generateGenome(seed)`),
  * so store the whole genome.
  */
-export function crossover(a: Genome, b: Genome, seed: number): Genome {
+export function crossover(
+  a: Genome,
+  b: Genome,
+  seed: number,
+  /** Added to the parents' average rarity (the breeding ratchet). */
+  rarityLift = 0
+): Genome {
   const rand = createSeededRandom(hashSeed(seed, 0xb7ee))
   const bodyParent = rand() < 0.5 ? a : b
   const pick = <T>(first: T, second: T): T => (rand() < 0.5 ? first : second)
@@ -43,7 +49,7 @@ export function crossover(a: Genome, b: Genome, seed: number): Genome {
     glow: 0,
   }
 
-  const rarity = clamp01((a.rarity + b.rarity) / 2 + (rand() - 0.5) * 0.1)
+  const rarity = clamp01((a.rarity + b.rarity) / 2 + rarityLift + (rand() - 0.5) * 0.1)
   genes.glow = Math.max(0, (rarity - 0.75) / 0.25)
 
   const blend = rand()

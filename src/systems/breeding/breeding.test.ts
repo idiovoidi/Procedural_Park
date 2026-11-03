@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { GAME_CONFIG } from '../../core/constants'
-import { type Genome, generateGenome, validateGenome } from '../creatures/genome'
+import { crossover, type Genome, generateGenome, validateGenome } from '../creatures/genome'
 import { CurrencyManager } from '../currency'
 import { SimClock } from '../economy'
 import { PenGrid } from '../park'
 import { Roster } from '../roster'
 import { BreedingSystem } from './BreedingSystem'
-import { breedingCost, checkPairing, type PairingContext } from './pairing'
+import { breedingCost, checkPairing, type PairingContext, rarityLift } from './pairing'
 import { describeOffspring, sampleOffspring } from './preview'
 
 const B = GAME_CONFIG.ECONOMY.BREEDING
@@ -165,8 +165,8 @@ describe('offspring preview', () => {
 
   it('gives a rarity range around the parents’ average, with tier names', () => {
     const odds = describeOffspring(genome(1, { rarity: 0.5 }), genome(2, { rarity: 0.7 }))
-    expect(odds.rarity.min).toBeCloseTo(0.55, 10)
-    expect(odds.rarity.max).toBeCloseTo(0.65, 10)
+    expect(odds.rarity.min).toBeCloseTo(0.55 + B.RARITY_LIFT, 10)
+    expect(odds.rarity.max).toBeCloseTo(0.65 + B.RARITY_LIFT, 10)
     expect(odds.rarity.tierMin).toBe('uncommon')
     expect(odds.rarity.tierMax).toBe('rare')
   })
@@ -520,5 +520,29 @@ describe('save and restore', () => {
     for (const bad of [null, undefined, 3, {}, { version: 2, jobs: [] }, { version: 1 }]) {
       expect(breeding.restore(bad)).toBe(false)
     }
+  })
+})
+
+describe('rarity ratchet', () => {
+  it('lifts the preview range only when both parents are good enough', () => {
+    const good = describeOffspring(genome(1, { rarity: 0.5 }), genome(2, { rarity: 0.7 }))
+    expect(good.rarity.min).toBeCloseTo(0.6 + B.RARITY_LIFT - 0.05, 10)
+    const weak = describeOffspring(genome(1, { rarity: 0.1 }), genome(2, { rarity: 0.7 }))
+    expect(weak.rarity.min).toBeCloseTo(0.4 - 0.05, 10)
+  })
+
+  it('climbs when the best pair keeps breeding', () => {
+    let a = genome(1, { rarity: 0.5 })
+    const b = genome(2, { rarity: 0.5 })
+    for (let gen = 0; gen < 6; gen++) {
+      const best = Math.max(
+        ...Array.from(
+          { length: 6 },
+          (_, i) => crossover(a, b, 100 + gen * 10 + i, rarityLift(a, b)).rarity
+        )
+      )
+      a = { ...a, rarity: best }
+    }
+    expect(a.rarity).toBeGreaterThan(0.6)
   })
 })

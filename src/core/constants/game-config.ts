@@ -154,6 +154,12 @@ export const GAME_CONFIG = {
       BASE_COST: 40,
       COST_PER_TIER: 0.5,
       /** Chance a hatchling mutates a little, and how strongly (see `mutate`). */
+      /**
+       * Rarity ratchet: when both parents are at least `RARITY_LIFT_MIN_PARENT` rarity, the child's
+       * rarity gets `RARITY_LIFT` added to the parents' average, so a line of good parents climbs.
+       */
+      RARITY_LIFT: 0.03,
+      RARITY_LIFT_MIN_PARENT: 0.3,
       MUTATION_CHANCE: 0.2,
       MUTATION_RATE: 0.12,
       /** How many example offspring the preview shows, and how many crossovers it samples for odds. */
