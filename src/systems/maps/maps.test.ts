@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { GAME_CONFIG } from '../../core/constants'
+import { requiresNight } from '../capture'
 import { MapManager } from './MapManager'
 import {
   EXPEDITION_MAPS,
@@ -135,5 +136,14 @@ describe('map manager', () => {
     expect(other.restore({ version: 1, unlocked: ['bogus', 5, free.id] })).toBe(true)
     expect(other.isUnlocked('bogus')).toBe(false)
     expect(other.isUnlocked(free.id)).toBe(true)
+  })
+})
+
+describe('elusive founders', () => {
+  it('are more common on richer maps', () => {
+    const elusive = (id: string) =>
+      generateWildPopulation(getMapDef(id) as never).filter(requiresNight).length
+    expect(elusive('glimmer-caves')).toBeGreaterThan(elusive('greenwood'))
+    expect(elusive('glimmer-caves')).toBeGreaterThan(0)
   })
 })

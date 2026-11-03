@@ -272,6 +272,11 @@ export const GAME_CONFIG = {
       /** Trust needed before a creature will enter a crate: base plus this per rarity tier. */
       TRUST_REQUIRED_BASE: 60,
       TRUST_REQUIRED_PER_TIER: 8,
+      /**
+       * Special conditions (GDD 10.2): founders at least this rare are elusive. They only come
+       * out at night, so by day they cannot be seen, fed, baited or crated.
+       */
+      NIGHT_ONLY_MIN_RARITY: 0.8,
       /** How close the player must be to crate a creature, in metres. */
       CAPTURE_RANGE_M: 10,
       /** Coins for one transport crate. */

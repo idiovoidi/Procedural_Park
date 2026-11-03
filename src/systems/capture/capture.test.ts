@@ -6,7 +6,7 @@ import { dietEfficiency } from '../economy'
 import { FOOD_ITEMS } from '../food'
 import { PenGrid } from '../park'
 import { Roster } from '../roster'
-import { CaptureSystem, type WildCreature } from './CaptureSystem'
+import { CaptureSystem, requiresNight, type WildCreature } from './CaptureSystem'
 import { findPenFor } from './housing'
 
 const C = GAME_CONFIG.ECONOMY.CAPTURE
@@ -310,5 +310,26 @@ describe('findPenFor', () => {
     // Fill the other pen to capacity (36 m2: three medium creatures use 30).
     for (let i = 0; i < 3; i++) roster.add(genome({ speciesId: 20 + i }), { penId: wetlandPen })
     expect(findPenFor(grid, roster, genome({ archetype: 'terrestrial' }))).toBeNull()
+  })
+})
+
+describe('special-condition capture', () => {
+  const T = GAME_CONFIG.ECONOMY.CAPTURE.NIGHT_ONLY_MIN_RARITY
+
+  it('makes only the rarest founders night-only', () => {
+    const at = (rarity: number): Genome => ({ ...generateGenome(1), rarity })
+    expect(requiresNight(at(0.1))).toBe(false)
+    expect(requiresNight(at(T - 0.01))).toBe(false)
+    expect(requiresNight(at(T))).toBe(true)
+    expect(requiresNight(at(1))).toBe(true)
+  })
+
+  it('leaves most founders always available, and some on every rich map elusive', () => {
+    const wild = Array.from({ length: GAME_CONFIG.CREATURE_COUNT }, (_, i) =>
+      generateGenome(1337 * 31 + i)
+    )
+    const elusive = wild.filter(requiresNight).length
+    expect(elusive).toBeGreaterThan(0)
+    expect(elusive).toBeLessThan(wild.length / 2)
   })
 })

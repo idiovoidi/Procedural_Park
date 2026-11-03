@@ -56,6 +56,11 @@ export type CaptureCheck =
       distance: number
     }
 
+/** Founders this rare are elusive: they only appear at night (special-condition capture). */
+export function requiresNight(genome: Genome): boolean {
+  return genome.rarity >= CAPTURE.NIGHT_ONLY_MIN_RARITY
+}
+
 const clampTrust = (n: number): number => Math.min(MAX_TRUST, Math.max(0, n))
 
 export class CaptureSystem<T extends WildCreature> {

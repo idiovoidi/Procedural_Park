@@ -10,5 +10,5 @@ export type {
   Point2,
   WildCreature,
 } from './CaptureSystem'
-export { CaptureSystem } from './CaptureSystem'
+export { CaptureSystem, requiresNight } from './CaptureSystem'
 export { findPenFor } from './housing'

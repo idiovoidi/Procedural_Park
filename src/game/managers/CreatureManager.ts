@@ -8,6 +8,7 @@ import { disposeThreeObject } from '@core/utils'
 import type { ParkStructures } from '@rendering/scene'
 import type { AudioManager } from '@systems/audio'
 import type { CameraController } from '@systems/camera'
+import { requiresNight } from '@systems/capture'
 import {
   type CreatureInstance,
   type Genome,
@@ -25,6 +26,7 @@ import * as THREE from 'three'
 export class CreatureManager {
   private creatures: CreatureInstance[] = []
   private experimentCreature: CreatureInstance | null = null
+  private night = false
   private scene: THREE.Scene
   private curve: THREE.CatmullRomCurve3
   private audioManager: AudioManager
@@ -66,6 +68,8 @@ export class CreatureManager {
       })
     })
 
+    this.applyNight()
+
     // Update creatures state
     this.syncCreaturesToState()
   }
@@ -92,6 +96,7 @@ export class CreatureManager {
         groundHeightAt: height,
       })
     })
+    this.applyNight()
     this.syncCreaturesToState()
   }
 
@@ -150,6 +155,29 @@ export class CreatureManager {
    */
   public getAllCreatures(): CreatureInstance[] {
     return this.experimentCreature ? [...this.creatures, this.experimentCreature] : this.creatures
+  }
+
+  /**
+   * Elusive founders (the rarest) only come out at night: hide them by day. Call whenever the
+   * time of day changes or the wild population is replaced.
+   */
+  public setNight(isNight: boolean): void {
+    this.night = isNight
+    this.applyNight()
+  }
+
+  /** How many elusive founders are waiting for night. */
+  public countHidden(): number {
+    return this.creatures.filter((c) => !c.group.visible).length
+  }
+
+  private applyNight(): void {
+    for (const c of this.creatures) c.group.visible = this.night || !requiresNight(c.genome)
+  }
+
+  /** Whether a creature can currently be seen, fed, baited and crated. */
+  public isPresent(creature: CreatureInstance): boolean {
+    return creature.group.visible
   }
 
   /**

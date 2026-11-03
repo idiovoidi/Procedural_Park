@@ -168,6 +168,13 @@ export class Game {
 
     ui.onDayNightToggle = (mode) => {
       scene.setDayNightMode(mode)
+      this.systems.creatures.setNight(mode === 'night')
+      const hidden = this.systems.creatures.countHidden()
+      if (mode === 'day' && hidden > 0) {
+        this.systems.ui.showToast(`☀️ ${hidden} elusive founders have gone to ground`)
+      } else if (mode === 'night') {
+        this.systems.ui.showToast('🌙 Night: elusive founders come out to roam')
+      }
     }
 
     ui.onToggleMultiplayer = () => {

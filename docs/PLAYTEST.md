@@ -25,3 +25,11 @@ and hatch, read the Ranch Book, reload.
 - Real mouse placement needs pointer lock, which the E2E does not simulate; it drives the same
   build controller the mouse uses.
 - Breeding only pays with rarer lines or trait contracts (see BALANCE.md).
+
+## Expeditions (T20)
+
+- Founders rarer than 0.8 (epic and legendary) are **elusive**: they only appear at night, anywhere
+  (hub or expedition), so by day roughly one founder in five is out of reach (Night Mode, the top
+  bar). Hidden founders cannot be fed, baited or crated; toasts explain it.
+- Expedition terrain is open wilds (no flat park). Biome colours follow the map seed rather than
+  the map's named biome; per-map biome control is a polish item.

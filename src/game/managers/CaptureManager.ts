@@ -115,7 +115,11 @@ export class CaptureManager {
     const from = { x: pos.x, z: pos.z }
 
     // Look slightly beyond capture range so "too far" can be reported helpfully.
-    const target = this.system.nearest(creatures.getCreatures(), from, CAPTURE_RANGE_M * 2)
+    const target = this.system.nearest(
+      creatures.getCreatures().filter((c) => creatures.isPresent(c)),
+      from,
+      CAPTURE_RANGE_M * 2
+    )
     if (!target) {
       ui.showToast('❌ No creature nearby')
       return
@@ -160,7 +164,10 @@ export class CaptureManager {
       return
     }
     const { creatures } = this.deps
-    const attracted = this.system.update(dt, creatures.getCreatures())
+    const attracted = this.system.update(
+      dt,
+      creatures.getCreatures().filter((c) => creatures.isPresent(c))
+    )
 
     for (const creature of attracted) {
       const dx = lure.x - creature.anchor.x

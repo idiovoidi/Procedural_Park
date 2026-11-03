@@ -52,6 +52,12 @@ export class ExpeditionManager {
     creatures.spawnFounders(generateWildPopulation(def), ARRIVAL)
     capture.applyCaptured() // founders already crated stay gone
     camera.teleport(ARRIVAL.x, ARRIVAL.z)
-    ui.showToast(`🧭 ${def.name}: find a founder to bring home`, 4000)
+    const hidden = creatures.countHidden()
+    ui.showToast(
+      hidden > 0
+        ? `🧭 ${def.name}: ${hidden} elusive founders only roam at night (Night Mode)`
+        : `🧭 ${def.name}: find a founder to bring home`,
+      4000
+    )
   }
 }
