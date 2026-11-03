@@ -132,6 +132,7 @@ export class SaveLoadManager {
       grid: s.park,
       care: s.care,
       breeding: s.breeding,
+      codex: s.codex,
       production: s.production,
       resources: s.resources,
       market: s.market,

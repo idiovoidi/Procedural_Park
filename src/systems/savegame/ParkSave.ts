@@ -15,6 +15,7 @@
 import { GAME_CONFIG } from '@core/constants'
 import type { BreedingSnapshot, BreedingSystem } from '@systems/breeding'
 import type { CareSnapshot, CareSystem } from '@systems/care'
+import type { Codex, CodexSnapshot } from '@systems/codex'
 import type { CurrencyManager } from '@systems/currency'
 import type { SimClock, SimClockState } from '@systems/economy'
 import type { FoodManager } from '@systems/food'
@@ -36,6 +37,7 @@ export interface ParkTargets {
   roster: Roster
   grid: PenGrid
   care: CareSystem
+  codex: Codex
   breeding: BreedingSystem
   production: ProductionSystem
   resources: ResourceInventory
@@ -56,6 +58,8 @@ export interface ParkSave {
   care: CareSnapshot
   /** Eggs in progress, parent cooldowns and known species. Absent in older saves. */
   breeding?: BreedingSnapshot
+  /** Species met. Absent in older saves, where it is rebuilt from the roster. */
+  codex?: CodexSnapshot
   production: ProductionSnapshot
   resources: ResourceInventorySnapshot
   market: MarketSnapshot
@@ -70,6 +74,7 @@ export type ParkSection =
   | 'grid'
   | 'care'
   | 'breeding'
+  | 'codex'
   | 'production'
   | 'resources'
   | 'market'
@@ -105,6 +110,7 @@ export function capturePark(
     grid: t.grid.serialize(),
     care: t.care.serialize(),
     breeding: t.breeding.serialize(),
+    codex: t.codex.serialize(),
     production: t.production.serialize(),
     resources: t.resources.serialize(),
     market: t.market.serialize(),
@@ -171,6 +177,13 @@ export function restorePark(
   section('care', () => t.care.restore(data.care))
   // Older saves have no breeding section: that is not a failure, there is simply nothing to restore.
   if (data.breeding !== undefined) section('breeding', () => t.breeding.restore(data.breeding))
+  // The codex: restore it, or for an older save learn the species from the restored roster.
+  if (data.codex !== undefined) {
+    section('codex', () => t.codex.restore(data.codex))
+  } else {
+    t.codex.restore({ version: 1, nextOrder: 1, entries: [] })
+    t.codex.ingestRoster(t.roster)
+  }
   section('production', () => t.production.restore(data.production))
   section('resources', () => t.resources.restore(data.resources))
   section('market', () => t.market.restore(data.market))

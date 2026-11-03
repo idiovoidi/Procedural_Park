@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { GAME_CONFIG } from '../../core/constants'
 import { BreedingSystem } from '../breeding'
 import { CareSystem } from '../care'
+import { Codex } from '../codex'
 import { generateGenome } from '../creatures/genome'
 import { CurrencyManager } from '../currency'
 import { SimClock } from '../economy'
@@ -33,6 +34,10 @@ function newWorld(): ParkTargets & { advance: (seconds: number) => void } {
   const market = new MarketSystem(roster, resources, currency)
   const food = new FoodManager()
   const breeding = new BreedingSystem(roster, grid, currency, 1337)
+  const codex = new Codex()
+  roster.onChange((c) => {
+    if (c.reason === 'added') codex.recordOwned(c.creature)
+  })
 
   clock.onTick(() => roster.advanceTicks(1))
   clock.onTick((tick) => care.tick(tick))
@@ -45,6 +50,7 @@ function newWorld(): ParkTargets & { advance: (seconds: number) => void } {
     roster,
     grid,
     care,
+    codex,
     breeding,
     production,
     resources,
@@ -106,6 +112,7 @@ function snapshotOf(w: ParkTargets) {
     pens: w.grid.getPens().map((p) => ({ id: p.id, cells: p.cells.length, props: p.props })),
     care: w.care.serialize(),
     breeding: w.breeding.serialize(),
+    codex: w.codex.serialize(),
     production: w.production.serialize(),
     resources: w.resources.getAll(),
     demand: w.market.serialize(),
@@ -141,6 +148,7 @@ describe('restorePark', () => {
         'captured',
         'care',
         'clock',
+        'codex',
         'coins',
         'food',
         'grid',
@@ -260,6 +268,17 @@ describe('restorePark', () => {
     save.capturedSeeds = [1, 'two', Number.NaN, null, 3]
     const b = newWorld()
     expect(restorePark(b, save, 0).capturedSeeds).toEqual([1, 3])
+  })
+
+  it('rebuilds the codex from the roster when loading a save that predates it', () => {
+    const a = busyWorld()
+    const save = JSON.parse(JSON.stringify(capturePark(a, [], 0))) as Record<string, unknown>
+    save.codex = undefined
+    const b = newWorld()
+    const result = restorePark(b, save, 0)
+    expect(result.failed).toEqual([])
+    expect(b.codex.ownedCount()).toBeGreaterThan(0)
+    expect(b.codex.ownedCount()).toBe(new Set(b.roster.list().map((c) => c.genome.speciesId)).size)
   })
 
   it('refuses data that is not a park save, without changing anything', () => {

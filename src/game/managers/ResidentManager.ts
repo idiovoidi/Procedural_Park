@@ -62,6 +62,11 @@ export class ResidentManager {
     return this.residents.size
   }
 
+  /** Every drawn resident, e.g. so a card can be exported of one in view. */
+  public getInstances(): CreatureInstance[] {
+    return [...this.residents.values()].map((r) => r.instance)
+  }
+
   /** The drawn instance of a roster creature, if it is currently in a closed pen. */
   public getInstance(creatureId: string): CreatureInstance | undefined {
     return this.residents.get(creatureId)?.instance

@@ -21,6 +21,7 @@ import { AudioManager } from '@systems/audio'
 import { BreedingSystem } from '@systems/breeding'
 import { CameraController } from '@systems/camera'
 import { CareSystem } from '@systems/care'
+import { Codex } from '@systems/codex'
 import { CurrencyManager } from '@systems/currency'
 import { SimClock } from '@systems/economy'
 import { FoodManager } from '@systems/food'
@@ -61,6 +62,8 @@ export interface GameSystems {
   park: PenGrid
   /** Feeding, hunger and mood for owned creatures. */
   care: CareSystem
+  /** Every species met: photographed, captured or bred. */
+  codex: Codex
   /** Pairing creatures in dens, eggs and hatching. */
   breeding: BreedingSystem
   /** Resource output, collector bins and the player's carried resources. */
@@ -194,6 +197,12 @@ export class SystemsCoordinator {
     const care = new CareSystem(roster, park)
     simClock.onTick((tick) => care.tick(tick))
 
+    // The codex learns every species the player owns, however it was obtained
+    const codex = new Codex()
+    roster.onChange((change) => {
+      if (change.reason === 'added') codex.recordOwned(change.creature)
+    })
+
     // Breeding: eggs hatch on the economy clock, so they also hatch while the game is closed
     const breeding = new BreedingSystem(roster, park, currencyManager, GAME_CONFIG.WORLD_SEED)
     simClock.onTick((tick) => breeding.tick(tick))
@@ -260,6 +269,7 @@ export class SystemsCoordinator {
       roster,
       park,
       care,
+      codex,
       breeding,
       production,
       resources,

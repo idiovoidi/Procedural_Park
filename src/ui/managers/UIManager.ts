@@ -14,6 +14,7 @@ import { Gallery } from '../components/gallery'
 import { MarketPanel } from '../components/market-panel'
 import { MiniMap } from '../components/mini-map'
 import { type InventoryItem, PlayerStats } from '../components/player-stats'
+import { RanchBook } from '../components/ranch-book'
 import { SaveLoadMenu } from '../components/save-load-menu'
 import { Settings } from '../components/settings'
 import { Shortcuts } from '../components/shortcuts'
@@ -36,6 +37,7 @@ export class UIManager {
   private marketPanel: MarketPanel
   private buildHud: BuildHud
   private breedingPanel: BreedingPanel
+  private ranchBook: RanchBook
   private toggleBreedingBtn: HTMLButtonElement
   private toggleMarketBtn: HTMLButtonElement
   private toggleBuildBtn: HTMLButtonElement
@@ -65,6 +67,7 @@ export class UIManager {
     this.marketPanel = new MarketPanel()
     this.buildHud = new BuildHud()
     this.breedingPanel = new BreedingPanel()
+    this.ranchBook = new RanchBook()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
@@ -100,6 +103,7 @@ export class UIManager {
     this.foodStore.setAudioCallbacks(callbacks)
     this.marketPanel.setAudioCallbacks(callbacks)
     this.breedingPanel.setAudioCallbacks(callbacks)
+    this.ranchBook.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
@@ -189,6 +193,7 @@ export class UIManager {
   public onToggleMultiplayer?: () => void
   public onToggleBuild?: () => void
   public onToggleBreeding?: () => void
+  public onToggleRanchBook?: () => void
   public onToggleSaveLoad?: () => void
 
   // Gallery methods
@@ -240,7 +245,9 @@ export class UIManager {
 
   // Creature Collection methods
   public toggleCollection() {
-    this.creatureCollection.toggle()
+    // The collection key now opens the Ranch Book (roster and codex).
+    if (this.onToggleRanchBook) this.onToggleRanchBook()
+    else this.creatureCollection.toggle()
   }
 
   public addCreatureToCollection(
@@ -634,5 +641,19 @@ export class UIManager {
    */
   public getBreedingPanel(): BreedingPanel {
     return this.breedingPanel
+  }
+
+  /**
+   * Get the Ranch Book (roster and codex)
+   */
+  public getRanchBook(): RanchBook {
+    return this.ranchBook
+  }
+
+  /**
+   * Open the older gallery of exported creature cards
+   */
+  public openSavedCards(): void {
+    this.creatureCollection.toggle()
   }
 }

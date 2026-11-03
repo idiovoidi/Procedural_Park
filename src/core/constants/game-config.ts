@@ -149,6 +149,12 @@ export const GAME_CONFIG = {
       NEWBORN_STATS: { fullness: 70, happiness: 70, trust: 60 },
     },
 
+    /** Codex: how species become known (GDD 9). */
+    CODEX: {
+      /** Photos of a wild species needed before its diet and habitat are revealed. */
+      STUDY_PHOTOS_REQUIRED: 2,
+    },
+
     /** Capturing wild creatures: trust from feeding, lures and the transport crate (GDD 10.2). */
     CAPTURE: {
       /** Trust (0..100) gained per feeding: the food's trust bonus x diet efficiency x this. */

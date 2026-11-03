@@ -72,6 +72,17 @@ export class PhotoManager {
     // Show score feedback
     ui.showScoreToast(result.score)
 
+    // Photographing a wild creature adds its species to the codex and studies it
+    if (result.creature) {
+      const { codex } = this.systems
+      const isNew = codex.recordPhoto(result.creature.genome)
+      const entry = codex.get(result.creature.genome.speciesId)
+      if (isNew) ui.showToast(`📖 New species in the codex: ${entry?.name}`, 3000)
+      else if (entry?.studied && entry.photos === GAME_CONFIG.ECONOMY.CODEX.STUDY_PHOTOS_REQUIRED) {
+        ui.showToast(`📖 ${entry.name} studied: its diet and habitat are now known`, 3500)
+      }
+    }
+
     // Update UI state and track discoveries
     const currentUI = state.getUIState()
     const newPhotoCount = currentUI.photoCount + 1
@@ -103,7 +114,7 @@ export class PhotoManager {
     try {
       log.debug('📸 Calling photo.exportCreatureCard...')
       const result = await photo.exportCreatureCard(
-        creatures.getAllCreatures(),
+        [...creatures.getAllCreatures(), ...this.systems.residents.getInstances()],
         this.systems.camera.camera,
         scene.scene,
         GAME_CONFIG.WORLD_SEED
