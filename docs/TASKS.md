@@ -60,15 +60,15 @@ Exit: the player unlocks a second map, travels there, captures a founder the hub
 | T20b | [x] Travel: swap terrain and wild creatures, hide the hub, return home | T20a | Travelling out and back keeps the ranch intact |
 | T20c | [x] Map UI: travel panel, unlock flow | T20b | Unlock and travel by clicking |
 | T20d | [x] Special-condition capture + night spawns | T20b | Epic founders need night or an item |
-| T20e | [ ] Expedition pressure: crate capacity, fleeing, bait cost | T20b | Failing costs bait/time, never harm |
-| T20f | [ ] M3 balance + E2E | T20a–e | Guard rails and E2E cover an expedition |
+| T20e | [x] Expedition pressure: crate capacity, fleeing, bait cost | T20b | Failing costs bait/time, never harm |
+| T20f | [x] M3 balance + E2E | T20a–e | Guard rails and E2E cover an expedition |
 
 ## Later milestones (split into tasks when reached)
 
 | Epic | Milestone | Scope | Deps |
 |---|---|---|---|
 | T19 ✅ | M2 Automation | Feeders, bins, conveyors, silos, auto-sell, food farms, Contract Board (contracts must pay for traits so breeding earns; see BALANCE.md) | T18 |
-| T20 | M3 Expeditions | Map manager, 2–3 maps, study/special-condition capture, night spawns | T19 |
+| T20 ✅ | M3 Expeditions | Map manager, 2–3 maps, study/special-condition capture, night spawns | T19 |
 | T21 | M4 Social | Card trading, friend park visit, shared codex, E2E coverage | T1, T18 |
 | T22 | M5–M6 Depth + Arena | Pedigree, inbreeding, mutations, staff, joint breeding; deterministic auto-battler | T19, T21 |
 | T23 | M7 Platform polish | Gamepad, mobile touch, performance scaling, accessibility (start spikes early if M1 shows perf issues) | — |

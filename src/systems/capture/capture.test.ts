@@ -333,3 +333,36 @@ describe('special-condition capture', () => {
     expect(elusive).toBeLessThan(wild.length / 2)
   })
 })
+
+describe('skittish trust', () => {
+  it('drains over time, never below zero, and forgets creatures at zero', () => {
+    const sys = new CaptureSystem<WildCreature>(() => ({ x: 0, z: 0 }))
+    const c: WildCreature = { genome: { ...generateGenome(1), temperament: 'curious' } }
+    const food = Object.keys(FOOD_ITEMS)[0]
+    sys.feed(c, food)
+    const start = sys.getTrust(c)
+    expect(start).toBeGreaterThan(0)
+
+    sys.decay(4, 0.5)
+    expect(sys.getTrust(c)).toBeCloseTo(start - 2, 10)
+    sys.decay(1000, 0.5)
+    expect(sys.getTrust(c)).toBe(0)
+  })
+
+  it('ignores nonsense and leaves a tended creature gaining on net', () => {
+    const sys = new CaptureSystem<WildCreature>(() => ({ x: 0, z: 0 }))
+    const c: WildCreature = { genome: { ...generateGenome(2), temperament: 'curious' } }
+    sys.feed(c, 'berry')
+    const t = sys.getTrust(c)
+    sys.decay(Number.NaN)
+    sys.decay(-5)
+    sys.decay(5, 0)
+    expect(sys.getTrust(c)).toBe(t)
+    // A feeding every 5 s (the real cooldown) more than covers the drain.
+    const per = GAME_CONFIG.ECONOMY.CAPTURE.SKITTISH_TRUST_LOSS_PER_SEC * 5
+    sys.decay(5)
+    const before = sys.getTrust(c)
+    sys.feed(c, 'berry')
+    expect(sys.getTrust(c) - before).toBeGreaterThan(per)
+  })
+})

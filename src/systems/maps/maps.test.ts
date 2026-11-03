@@ -120,6 +120,29 @@ describe('map manager', () => {
     ])
   })
 
+  it('limits how many founders fit in the crates on a trip, and resets on travel', () => {
+    const m = new MapManager()
+    m.unlock(free.id, wallet(0), { ownedSpecies: 0 })
+    // No limit at the hub.
+    for (let i = 0; i < 10; i++) {
+      expect(m.canCrate()).toBe(true)
+      m.recordCrate()
+    }
+    expect(m.getTripCrates()).toBe(0)
+
+    m.travel(free.id)
+    for (let i = 0; i < GAME_CONFIG.MAPS.CRATE_CARRY_CAPACITY; i++) {
+      expect(m.canCrate()).toBe(true)
+      m.recordCrate()
+    }
+    expect(m.canCrate()).toBe(false)
+
+    m.travel(HUB_ID)
+    m.travel(free.id)
+    expect(m.canCrate()).toBe(true)
+    expect(m.getTripCrates()).toBe(0)
+  })
+
   it('saves what is unlocked, always restarts at the hub, and ignores bad data', () => {
     const m = new MapManager()
     m.unlock(free.id, wallet(0), { ownedSpecies: 0 })
@@ -145,5 +168,27 @@ describe('elusive founders', () => {
       generateWildPopulation(getMapDef(id) as never).filter(requiresNight).length
     expect(elusive('glimmer-caves')).toBeGreaterThan(elusive('greenwood'))
     expect(elusive('glimmer-caves')).toBeGreaterThan(0)
+  })
+})
+
+describe('what an expedition is worth', () => {
+  it('each richer map holds at least as many legendary founders, and Glimmer Caves far more', () => {
+    const legendary = (id: string) =>
+      generateWildPopulation(getMapDef(id) as never).filter((g) => g.rarity >= 0.92).length
+    expect(legendary('saltmarsh')).toBeGreaterThanOrEqual(legendary('greenwood'))
+    expect(legendary('glimmer-caves')).toBeGreaterThan(legendary('saltmarsh') + 3)
+  })
+
+  it('serves each map the archetype that contracts will ask for', () => {
+    const top = (id: string) => {
+      const counts: Record<string, number> = {}
+      for (const g of generateWildPopulation(getMapDef(id) as never)) {
+        counts[g.archetype] = (counts[g.archetype] ?? 0) + 1
+      }
+      return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0]
+    }
+    expect(top('greenwood')).toBe('terrestrial')
+    expect(top('saltmarsh')).toBe('aquatic')
+    expect(['crystalline', 'ethereal']).toContain(top('glimmer-caves'))
   })
 })

@@ -82,3 +82,13 @@ farms, valve, silo), stocks it once and does nothing for 90 simulated minutes: n
 food is bought, the valve sells the output, waste stays under 10%, and an 8-hour offline catch-up
 keeps earning. A control run without farms starves, so the test proves the farms matter.
 `tests/e2e/hands-off.spec.ts` does the same in the real game for 30 minutes.
+
+## Expeditions (T20)
+
+Founders per map (40 each; the hub has 60): Greenwood is the gentle map (mostly terrestrial,
+3 legendary), Saltmarsh leans aquatic/ethereal (unlock 600 coins, 4 species) and Glimmer Caves is
+the legendary hunt (10 legendary founders, unlock 2500 coins, 8 species), but its best founders
+are elusive (night only). Maps matter because contracts ask for specific archetypes: aquatic
+founders only really come from Saltmarsh. Pressure is deliberately soft: three crates per trip,
+founders are skittish (trust drains 0.25/s untended; a feeding every 5 s outpaces it), and nothing
+ever harms the player. The ranch keeps running on the economy clock while away.

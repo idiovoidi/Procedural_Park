@@ -5,6 +5,7 @@ import { CaptureSystem, findPenFor } from '@systems/capture'
 import type { CreatureInstance } from '@systems/creatures'
 import type { CurrencyManager } from '@systems/currency'
 import type { FoodManager } from '@systems/food'
+import type { MapManager } from '@systems/maps'
 import type { PenGrid } from '@systems/park'
 import type { Roster } from '@systems/roster'
 import type { UIManager } from '@ui/managers'
@@ -21,6 +22,7 @@ interface Dependencies {
   currency: CurrencyManager
   roster: Roster
   park: PenGrid
+  maps: MapManager
   ui: UIManager
 }
 
@@ -110,7 +112,11 @@ export class CaptureManager {
 
   /** Try to crate the nearest creature. */
   public tryCapture(): void {
-    const { creatures, camera, currency, roster, park, ui } = this.deps
+    const { creatures, camera, currency, roster, park, ui, maps } = this.deps
+    if (!maps.canCrate()) {
+      ui.showToast('📦 Your crates are full: head home first (Maps)')
+      return
+    }
     const pos = camera.camera.position
     const from = { x: pos.x, z: pos.z }
 
@@ -147,6 +153,15 @@ export class CaptureManager {
     this.captured.add(target.genome.seed)
     creatures.removeCreature(target)
 
+    // Away from home the crate travels with the player and is delivered on return
+    if (!maps.isAtHub()) {
+      maps.recordCrate()
+      ui.showToast(
+        `📦 Crated ${owned.name} (${maps.getTripCrates()}/${GAME_CONFIG.MAPS.CRATE_CARRY_CAPACITY}): it settles in when you get home`
+      )
+      return
+    }
+
     const penId = findPenFor(park, roster, owned.genome)
     if (penId) {
       roster.assignToPen(owned.id, penId)
@@ -158,6 +173,8 @@ export class CaptureManager {
 
   /** Per-frame: run the lure and draw creatures toward it. */
   public update(dt: number): void {
+    // Wild creatures on expeditions are skittish: trust fades unless they are tended
+    if (!this.deps.maps.isAtHub()) this.system.decay(dt)
     const lure = this.system.getLure()
     if (!lure) {
       this.removeMarker()

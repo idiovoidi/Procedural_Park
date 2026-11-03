@@ -6,6 +6,7 @@
  * the terrain and wild creatures on screen is done by whoever listens to `onTravel`.
  */
 
+import { GAME_CONFIG } from '@core/constants'
 import { EXPEDITION_MAPS, getMapDef, HUB_ID, type MapDef } from './maps'
 
 export interface UnlockContext {
@@ -31,6 +32,8 @@ type TravelListener = (mapId: string, previous: string) => void
 export class MapManager {
   private current: string = HUB_ID
   private unlocked = new Set<string>()
+  /** Founders crated on the current trip (reset by travelling). */
+  private tripCrates = 0
   private travelListeners = new Set<TravelListener>()
   private changeListeners = new Set<() => void>()
 
@@ -53,6 +56,21 @@ export class MapManager {
 
   public getMaps(): readonly MapDef[] {
     return EXPEDITION_MAPS
+  }
+
+  /** Whether another founder fits in the crates. There is no limit at the hub. */
+  public canCrate(): boolean {
+    return this.isAtHub() || this.tripCrates < GAME_CONFIG.MAPS.CRATE_CARRY_CAPACITY
+  }
+
+  public getTripCrates(): number {
+    return this.tripCrates
+  }
+
+  /** Note a founder crated on this trip (a no-op at the hub). */
+  public recordCrate(): void {
+    if (!this.isAtHub()) this.tripCrates++
+    this.notifyChange()
   }
 
   /** Whether the player may pay to unlock a map now, and if not, why. */
@@ -91,6 +109,7 @@ export class MapManager {
     if (!this.isUnlocked(id)) return false
     const previous = this.current
     this.current = id
+    this.tripCrates = 0
     for (const listener of this.travelListeners) listener(id, previous)
     this.notifyChange()
     return true

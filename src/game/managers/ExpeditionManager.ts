@@ -1,3 +1,4 @@
+import { findPenFor } from '@systems/capture'
 import { generateWildPopulation, HUB_ID } from '@systems/maps'
 import type { GameSystems } from '../SystemsCoordinator'
 
@@ -25,6 +26,25 @@ export class ExpeditionManager {
     this.systems.maps.onTravel((to) => this.arrive(to))
   }
 
+  /** Crates carried home are opened: each founder goes to a pen with room, if there is one. */
+  private deliverCrates(): void {
+    const { roster, park, ui } = this.systems
+    const waiting = roster.getUnassigned()
+    let housed = 0
+    for (const creature of waiting) {
+      const penId = findPenFor(park, roster, creature.genome)
+      if (penId && roster.assignToPen(creature.id, penId)) housed++
+    }
+    if (waiting.length === 0) ui.showToast('🏠 Back at the hub')
+    else if (housed === waiting.length)
+      ui.showToast(`🏠 Home: ${housed} founder(s) settled into pens`)
+    else {
+      ui.showToast(
+        `🏠 Home: ${housed} housed, ${waiting.length - housed} waiting for a pen with room (J)`
+      )
+    }
+  }
+
   private arrive(mapId: string): void {
     const { scene, build, residents, creatures, capture, camera, ui, maps } = this.systems
     const experiment = creatures.getExperimentCreature()
@@ -38,7 +58,7 @@ export class ExpeditionManager {
       creatures.restoreHubWild()
       capture.applyCaptured()
       camera.teleport(HUB_SPAWN.x, HUB_SPAWN.z)
-      ui.showToast('🏠 Back at the hub')
+      this.deliverCrates()
       return
     }
 

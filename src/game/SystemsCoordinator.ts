@@ -254,6 +254,7 @@ export class SystemsCoordinator {
       currency: currencyManager,
       roster,
       park,
+      maps,
       ui: uiManager,
     })
 

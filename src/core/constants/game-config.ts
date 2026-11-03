@@ -12,6 +12,8 @@ export const GAME_CONFIG = {
    */
   MAPS: {
     HUB_ID: 'hub',
+    /** Founders the player can crate on one expedition before they must head home. */
+    CRATE_CARRY_CAPACITY: 3,
     EXPEDITIONS: [
       {
         id: 'greenwood',
@@ -277,6 +279,8 @@ export const GAME_CONFIG = {
        * out at night, so by day they cannot be seen, fed, baited or crated.
        */
       NIGHT_ONLY_MIN_RARITY: 0.8,
+      /** On expeditions wild creatures are skittish: untended trust drains this much per second. */
+      SKITTISH_TRUST_LOSS_PER_SEC: 0.25,
       /** How close the player must be to crate a creature, in metres. */
       CAPTURE_RANGE_M: 10,
       /** Coins for one transport crate. */

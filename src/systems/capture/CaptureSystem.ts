@@ -111,6 +111,16 @@ export class CaptureSystem<T extends WildCreature> {
     }
   }
 
+  /** Wary wild creatures slowly lose trust unless tended: every trust value drains over time. */
+  public decay(dt: number, perSecond: number = CAPTURE.SKITTISH_TRUST_LOSS_PER_SEC): void {
+    if (!Number.isFinite(dt) || dt <= 0 || perSecond <= 0) return
+    for (const [creature, trust] of this.trust) {
+      const next = trust - perSecond * dt
+      if (next <= 0) this.trust.delete(creature)
+      else this.trust.set(creature, next)
+    }
+  }
+
   // ---- Lure ----------------------------------------------------------------------------------
 
   public getLure(): Readonly<Lure> | null {
