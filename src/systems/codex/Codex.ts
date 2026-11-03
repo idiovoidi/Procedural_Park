@@ -14,7 +14,7 @@ import type { OwnedCreature, Roster } from '@systems/roster'
 
 const { STUDY_PHOTOS_REQUIRED } = GAME_CONFIG.ECONOMY.CODEX
 
-export type HowFound = 'photographed' | 'captured' | 'bred'
+export type HowFound = 'photographed' | 'captured' | 'bred' | 'shared'
 
 export interface CodexEntry {
   speciesId: number
@@ -76,6 +76,18 @@ export class Codex {
     this.refreshStudied(entry)
     this.notify(entry, isNew)
     return isNew
+  }
+
+  /**
+   * A friend found this species (shared codex, GDD 12.2 MP-3). It is logged as discovered, but
+   * not studied: diet and habitat still have to be learned by photographing or owning one.
+   * Species already known are left alone. Returns true if the species is new.
+   */
+  public recordShared(genome: Genome): boolean {
+    if (this.entries.has(genome.speciesId)) return false
+    const { entry } = this.touch(genome, 'shared', generateSpeciesName(genome))
+    this.notify(entry, true)
+    return true
   }
 
   /** Add every creature in the roster (used when loading an older save, or at start-up). */
@@ -162,7 +174,7 @@ export class Codex {
     const s = snapshot as Partial<CodexSnapshot> | null
     if (!s || s.version !== 1 || !Array.isArray(s.entries)) return false
 
-    const how: HowFound[] = ['photographed', 'captured', 'bred']
+    const how: HowFound[] = ['photographed', 'captured', 'bred', 'shared']
     const entries = new Map<number, CodexEntry>()
     for (const raw of s.entries) {
       const e = raw as Partial<CodexEntry> | null

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { Codex } from '../codex'
 import { generateGenome } from '../creatures/genome'
 import { Roster } from '../roster'
+import { CodexShare } from './CodexShare'
 import { CHUNK_CHARS, MAX_MESSAGE_CHARS, SocialChannel } from './channel'
 import { MAX_INCOMING, type TradeEvent, TradeManager } from './TradeManager'
 
@@ -253,5 +255,80 @@ describe('trading', () => {
     expect(tradeA.getOutgoing()).toEqual([])
     expect(tradeB.getIncoming()).toEqual([])
     expect(rosterA.has(c.id)).toBe(true)
+  })
+})
+
+describe('shared codex', () => {
+  const seen = (codex: Codex) => codex.list().map((e) => e.speciesId)
+
+  function codexPair() {
+    const { a, b } = link()
+    const codexA = new Codex()
+    const codexB = new Codex()
+    const shareA = new CodexShare(codexA, a)
+    const shareB = new CodexShare(codexB, b)
+    return { codexA, codexB, shareA, shareB }
+  }
+
+  it('logs for the friend every species a player found, without studying it', () => {
+    const { codexA, codexB, shareA } = codexPair()
+    const g1 = generateGenome(11)
+    const g2 = generateGenome(12)
+    codexA.recordPhoto(g1)
+    codexA.recordOwned({ name: 'Own', genome: g2, parentIds: null })
+    shareA.sendAll()
+
+    expect(seen(codexB).sort()).toEqual([g1.speciesId, g2.speciesId].sort())
+    const entry = codexB.get(g1.speciesId)
+    expect(entry?.foundBy).toBe('shared')
+    expect(entry?.owned).toBe(false)
+    expect(entry?.studied).toBe(false)
+  })
+
+  it('sends a fresh discovery as it happens, and tells the listener how many were new', () => {
+    const { codexA, codexB, shareA, shareB } = codexPair()
+    const learned: number[] = []
+    shareB.onLearned((n) => learned.push(n))
+    const g = generateGenome(13)
+    codexA.onChange((entry, isNew) => {
+      if (isNew) shareA.sendEntry(entry)
+    })
+    codexA.recordPhoto(g)
+    expect(codexB.get(g.speciesId)).toBeDefined()
+    expect(learned).toEqual([1])
+    // Sending again adds nothing new.
+    shareA.sendAll()
+    expect(learned).toEqual([1])
+  })
+
+  it('does not echo what it learned back to the friend, or overwrite what is known', () => {
+    const { codexA, codexB, shareA, shareB } = codexPair()
+    const g = generateGenome(14)
+    codexA.recordPhoto(g)
+    shareA.sendAll()
+    const before = codexA.list().length
+    shareB.sendAll() // B only knows it by sharing: nothing to send back
+    expect(codexA.list().length).toBe(before)
+
+    // A species B owns stays owned when A shares it.
+    const own = generateGenome(15)
+    codexB.recordOwned({ name: 'Mine', genome: own, parentIds: null })
+    codexA.recordPhoto(own)
+    shareA.sendAll()
+    expect(codexB.get(own.speciesId)?.owned).toBe(true)
+    expect(codexB.get(own.speciesId)?.foundBy).toBe('captured')
+  })
+
+  it('ignores invalid genomes and survives a save round trip', () => {
+    const { codexB } = codexPair()
+    const { a, b } = link()
+    const share = new CodexShare(codexB, b)
+    void share
+    a.send({ type: 'codex.share', genomes: [null, 5, { archetype: 'dragon' }, generateGenome(16)] })
+    expect(codexB.count()).toBe(1)
+
+    const restored = new Codex()
+    expect(restored.restore(JSON.parse(JSON.stringify(codexB.serialize())))).toBe(true)
+    expect(restored.list()[0].foundBy).toBe('shared')
   })
 })

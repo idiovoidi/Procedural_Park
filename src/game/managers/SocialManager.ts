@@ -1,6 +1,6 @@
 import type { Genome } from '@systems/creatures/genome'
 import { getRarityTier } from '@systems/economy'
-import { SocialChannel, TradeManager } from '@systems/social'
+import { CodexShare, SocialChannel, TradeManager } from '@systems/social'
 import type { TradePanelView } from '@ui/components/trade-panel'
 import type { GameSystems } from '../SystemsCoordinator'
 
@@ -16,10 +16,12 @@ export class SocialManager {
   private readonly systems: GameSystems
   public readonly channel: SocialChannel
   public readonly trade: TradeManager
+  public readonly codexShare: CodexShare
 
   constructor(systems: GameSystems) {
     this.systems = systems
     this.channel = new SocialChannel((text) => systems.multiplayer.sendSocial(text))
+    this.codexShare = new CodexShare(systems.codex, this.channel)
     this.trade = new TradeManager(systems.roster, this.channel, {
       // A creature in the breeding den cannot leave until its egg has hatched.
       isLocked: (id) => systems.breeding.getJobs().some((j) => j.parentIds.includes(id)),
@@ -33,6 +35,7 @@ export class SocialManager {
     multiplayer.setSocialReceiver((text) => this.channel.receive(text))
     multiplayer.onConnectionChanged = (connected) => {
       if (!connected) this.trade.reset()
+      else this.codexShare.sendAll()
       this.refresh()
     }
 
@@ -82,6 +85,13 @@ export class SocialManager {
       }
       this.refresh()
     })
+    // Discoveries go to the friend as they happen; theirs are logged here.
+    this.systems.codex.onChange((entry, isNew) => {
+      if (isNew && multiplayer.isConnected()) this.codexShare.sendEntry(entry)
+    })
+    this.codexShare.onLearned((n) =>
+      ui.showToast(`📖 Your friend shared ${n} new species with your codex`, 4000)
+    )
     this.systems.roster.onChange(() => this.refresh())
     this.refresh()
   }

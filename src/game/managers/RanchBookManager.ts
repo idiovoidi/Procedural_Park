@@ -16,6 +16,7 @@ const FOUND: Record<CodexEntry['foundBy'], string> = {
   photographed: 'photographed',
   captured: 'captured',
   bred: 'bred',
+  shared: 'shared by a friend',
 }
 
 /**

@@ -10,11 +10,35 @@ declare const sys: () => Systems
 
 test.afterEach(closeContexts)
 
-test('trade a creature with a friend', async ({ browser }) => {
+test('friends share a codex and trade a creature', async ({ browser }) => {
   test.setTimeout(300_000)
   const host = await newPlayer(browser)
   const guest = await newPlayer(browser)
+
+  // The host has met a species before connecting.
+  const early = await host.evaluate(() => {
+    const s = sys()
+    const g = s.creatures.getAllCreatures()[0].genome
+    s.codex.recordPhoto(g)
+    return g.speciesId
+  })
   await connect(host, guest)
+
+  // Shared codex: what the host already knew arrives on connecting, then new finds as they happen.
+  await expect
+    .poll(() => guest.evaluate((id) => sys().codex.get(id)?.foundBy ?? null, early), { timeout: 30_000 })
+    .toBe('shared')
+  const later = await host.evaluate((known) => {
+    const s = sys()
+    const g = s.creatures.getAllCreatures().map((c: { genome: { speciesId: number } }) => c.genome).find((x: { speciesId: number }) => x.speciesId !== known)
+    s.codex.recordPhoto(g)
+    return g.speciesId
+  }, early)
+  await expect
+    .poll(() => guest.evaluate((id) => sys().codex.get(id)?.foundBy ?? null, later), { timeout: 30_000 })
+    .toBe('shared')
+  // ...and a shared species is not yet studied.
+  expect(await guest.evaluate((id) => sys().codex.get(id).studied, later)).toBe(false)
 
   const name = await host.evaluate(() => {
     const s = sys()
