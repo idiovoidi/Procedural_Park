@@ -13,3 +13,4 @@ export {
   TradeManager,
   type TradeOptions,
 } from './TradeManager'
+export { type ParkSnapshotData, type VisitHandlers, VisitShare } from './VisitShare'

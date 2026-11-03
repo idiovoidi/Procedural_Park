@@ -1,8 +1,9 @@
 import type { Genome } from '@systems/creatures/genome'
 import { getRarityTier } from '@systems/economy'
-import { CodexShare, SocialChannel, TradeManager } from '@systems/social'
+import { CodexShare, SocialChannel, TradeManager, VisitShare } from '@systems/social'
 import type { TradePanelView } from '@ui/components/trade-panel'
 import type { GameSystems } from '../SystemsCoordinator'
+import { VisitManager } from './VisitManager'
 
 const describe = (g: Genome): string =>
   `${g.archetype} · ${g.size} · ${getRarityTier(g.rarity).name}`
@@ -17,11 +18,24 @@ export class SocialManager {
   public readonly channel: SocialChannel
   public readonly trade: TradeManager
   public readonly codexShare: CodexShare
+  public readonly visitShare: VisitShare
+  public readonly visit: VisitManager
 
   constructor(systems: GameSystems) {
     this.systems = systems
     this.channel = new SocialChannel((text) => systems.multiplayer.sendSocial(text))
     this.codexShare = new CodexShare(systems.codex, this.channel)
+    this.visit = new VisitManager(systems)
+    this.visitShare = new VisitShare(this.channel, {
+      // What a visitor may see: the pens and the creatures living in them, as data only.
+      getSnapshot: () => ({ grid: systems.park.serialize(), roster: systems.roster.serialize() }),
+      onVisitorArrived: () => systems.ui.showToast('🏡 Your friend is visiting your park', 4000),
+      onVisitorLeft: () => systems.ui.showToast('🏡 Your friend left your park'),
+      onSnapshot: (snapshot) => {
+        this.visit.begin(snapshot)
+        this.refresh()
+      },
+    })
     this.trade = new TradeManager(systems.roster, this.channel, {
       // A creature in the breeding den cannot leave until its egg has hatched.
       isLocked: (id) => systems.breeding.getJobs().some((j) => j.parentIds.includes(id)),
@@ -34,8 +48,11 @@ export class SocialManager {
 
     multiplayer.setSocialReceiver((text) => this.channel.receive(text))
     multiplayer.onConnectionChanged = (connected) => {
-      if (!connected) this.trade.reset()
-      else this.codexShare.sendAll()
+      if (!connected) {
+        this.trade.reset()
+        this.visitShare.reset()
+        this.visit.end(false)
+      } else this.codexShare.sendAll()
       this.refresh()
     }
 
@@ -55,6 +72,19 @@ export class SocialManager {
       },
       onDecline: (id) => {
         this.trade.decline(id)
+        this.refresh()
+      },
+      onVisit: () => {
+        if (!this.systems.maps.isAtHub()) {
+          ui.showToast('🧭 Go home before visiting a friend')
+          return
+        }
+        this.visitShare.request()
+        this.refresh()
+      },
+      onLeaveVisit: () => {
+        this.visit.end()
+        this.visitShare.leave()
         this.refresh()
       },
     })
@@ -118,6 +148,7 @@ export class SocialManager {
             ? 'busy breeding'
             : '',
       })),
+      visit: { visiting: this.visit.isVisiting(), waiting: this.visitShare.isWaiting() },
       outgoing: this.trade.getOutgoing().map((o) => ({ id: o.id, name: o.name })),
       incoming: this.trade.getIncoming().map((i) => ({
         id: i.offer.id,

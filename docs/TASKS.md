@@ -72,7 +72,7 @@ Exit: two players can trade a creature, share discoveries and walk through each 
 | T21a | [x] Social channel (chunked JSON over the data channel) + trade protocol | T20 | A creature moves between rosters atomically; bad data is ignored |
 | T21b | [x] Trade UI wired to the live connection | T21a | Offer, accept, decline from the game |
 | T21c | [x] Shared codex | T21b | Species a friend found appear in your codex |
-| T21d | [ ] Visit a friend's park (read-only snapshot) | T21b | Guest sees the host's pens and residents |
+| T21d | [x] Visit a friend's park (read-only snapshot) | T21b | Guest sees the host's pens and residents |
 | T21e | [ ] Two-browser E2E for trade, codex and visit | T21a–d | E2E green |
 
 ## Later milestones (split into tasks when reached)

@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from '@core/constants'
 import { log } from '@core/utils'
+import type { CreatureInstance } from '@systems/creatures'
 import type { SerializedPhoto } from '@systems/state'
 import type { GameSystems } from '../SystemsCoordinator'
 
@@ -11,6 +12,8 @@ export class PhotoManager {
   private galleryPhotos: SerializedPhoto[] = []
 
   private systems: GameSystems
+  /** Set by the game: the friend's creatures while visiting, so their cards can be exported. */
+  public getVisitedInstances?: () => CreatureInstance[]
 
   constructor(systems: GameSystems) {
     this.systems = systems
@@ -114,7 +117,11 @@ export class PhotoManager {
     try {
       log.debug('📸 Calling photo.exportCreatureCard...')
       const result = await photo.exportCreatureCard(
-        [...creatures.getAllCreatures(), ...this.systems.residents.getInstances()],
+        [
+          ...creatures.getAllCreatures(),
+          ...this.systems.residents.getInstances(),
+          ...(this.getVisitedInstances?.() ?? []),
+        ],
         this.systems.camera.camera,
         scene.scene,
         GAME_CONFIG.WORLD_SEED

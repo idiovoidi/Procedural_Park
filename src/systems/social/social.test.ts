@@ -5,6 +5,7 @@ import { Roster } from '../roster'
 import { CodexShare } from './CodexShare'
 import { CHUNK_CHARS, MAX_MESSAGE_CHARS, SocialChannel } from './channel'
 import { MAX_INCOMING, type TradeEvent, TradeManager } from './TradeManager'
+import { VisitShare } from './VisitShare'
 
 /** Two channels wired back to back. `drop` lets a test lose frames in transit. */
 function link() {
@@ -330,5 +331,65 @@ describe('shared codex', () => {
     const restored = new Codex()
     expect(restored.restore(JSON.parse(JSON.stringify(codexB.serialize())))).toBe(true)
     expect(restored.list()[0].foundBy).toBe('shared')
+  })
+})
+
+describe('visiting a friend', () => {
+  function visitPair() {
+    const { a, b } = link()
+    const log: string[] = []
+    let received: unknown = null
+    const host = new VisitShare(b, {
+      getSnapshot: () => ({ grid: { pens: 2 }, roster: { creatures: 3 } }),
+      onVisitorArrived: () => log.push('arrived'),
+      onVisitorLeft: () => log.push('left'),
+      onSnapshot: () => {},
+    })
+    const guest = new VisitShare(a, {
+      getSnapshot: () => ({ grid: null, roster: null }),
+      onSnapshot: (s) => {
+        received = s
+      },
+    })
+    return { host, guest, log, got: () => received }
+  }
+
+  it('sends the host park to a guest who asked, and tells the host', () => {
+    const { guest, log, got } = visitPair()
+    guest.request()
+    expect(guest.isWaiting()).toBe(false)
+    expect(got()).toEqual({ grid: { pens: 2 }, roster: { creatures: 3 } })
+    expect(log).toEqual(['arrived'])
+    guest.leave()
+    expect(log).toEqual(['arrived', 'left'])
+  })
+
+  it('ignores a park nobody asked for', () => {
+    const { a, b } = link()
+    let called = false
+    const guest = new VisitShare(a, {
+      getSnapshot: () => ({ grid: null, roster: null }),
+      onSnapshot: () => {
+        called = true
+      },
+    })
+    void guest
+    b.send({ type: 'visit.snapshot', grid: {}, roster: {} })
+    expect(called).toBe(false)
+  })
+
+  it('a big park still arrives whole', () => {
+    const { a, b } = link()
+    const big = { creatures: Array.from({ length: 200 }, (_, i) => ({ i, pad: 'p'.repeat(2000) })) }
+    let got: unknown = null
+    new VisitShare(b, { getSnapshot: () => ({ grid: {}, roster: big }), onSnapshot: () => {} })
+    const guest = new VisitShare(a, {
+      getSnapshot: () => ({ grid: null, roster: null }),
+      onSnapshot: (s) => {
+        got = s
+      },
+    })
+    guest.request()
+    expect((got as { roster: typeof big }).roster.creatures).toHaveLength(200)
   })
 })

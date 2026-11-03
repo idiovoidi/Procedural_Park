@@ -28,6 +28,8 @@ export interface TradePanelView {
   outgoing: Array<{ id: string; name: string }>
   /** The friend's offers to me. */
   incoming: TradeOfferRow[]
+  /** Visiting a friend's park. */
+  visit: { visiting: boolean; waiting: boolean }
 }
 
 export interface TradePanelCallbacks {
@@ -35,6 +37,8 @@ export interface TradePanelCallbacks {
   onCancel: (offerId: string) => void
   onAccept: (offerId: string) => void
   onDecline: (offerId: string) => void
+  onVisit: () => void
+  onLeaveVisit: () => void
 }
 
 const STYLE = `
@@ -66,6 +70,8 @@ export class TradePanel {
     onCancel: () => {},
     onAccept: () => {},
     onDecline: () => {},
+    onVisit: () => {},
+    onLeaveVisit: () => {},
   }
   private lastView: TradePanelView | null = null
   private signature = ''
@@ -77,7 +83,7 @@ export class TradePanel {
 
     const modal = el('div', 'market-modal')
     const header = el('div', 'market-header')
-    header.append(el('h2', undefined, '🤝 Trade'))
+    header.append(el('h2', undefined, '🤝 Friends'))
     const close = el('button', 'close-btn', '✕')
     close.addEventListener('click', () => {
       this.audio.onClick?.()
@@ -165,6 +171,23 @@ export class TradePanel {
         )
       )
     }
+
+    nodes.push(el('h3', undefined, 'Your friend’s park'))
+    nodes.push(
+      row(
+        view.visit.visiting ? 'Visiting' : 'Walk through their pens',
+        view.visit.visiting
+          ? 'You are looking at a read-only copy of their park.'
+          : 'A read-only copy: you can look and photograph, but nothing you do reaches their ranch.',
+        view.visit.visiting
+          ? button('Leave', () => this.callbacks.onLeaveVisit())
+          : button(
+              view.visit.waiting ? 'Asking…' : 'Visit',
+              () => this.callbacks.onVisit(),
+              !view.connected || view.visit.waiting
+            )
+      )
+    )
 
     nodes.push(el('h3', undefined, 'Offers from your friend'))
     if (view.incoming.length === 0) nodes.push(el('p', 'tp-none', 'None right now.'))

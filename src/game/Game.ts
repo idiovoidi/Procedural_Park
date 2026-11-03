@@ -134,6 +134,8 @@ export class Game {
       this.expeditions.initialize()
       this.mapsUI.initialize()
       this.social.initialize()
+      this.photos.getVisitedInstances = () => this.social.visit.getInstances()
+      this.gameLoop.addUpdater((dt, now) => this.social.visit.update(dt, now))
       this.toolBelt.initialize()
 
       // Bring back the ranch from the last session, if there was one

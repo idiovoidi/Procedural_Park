@@ -33,3 +33,16 @@ and hatch, read the Ranch Book, reload.
   bar). Hidden founders cannot be fed, baited or crated; toasts explain it.
 - Expedition terrain is open wilds (no flat park). Biome colours follow the map seed rather than
   the map's named biome; per-map biome control is a polish item.
+
+## Friends (T21)
+
+- **Trade:** offer a creature from the Friends panel (belt slot Trade); the friend accepts or
+  declines. The hand-over is atomic (sender removes first, then confirms), so nothing is duplicated.
+  A creature in the breeding den cannot be offered. A swap is two offers.
+- **Shared codex:** on connecting, each side sends the best individual of every species it found;
+  new discoveries follow. Shared species show as "shared by a friend", unstudied.
+- **Visit:** the guest sees a read-only copy of the host's pens and residents (their own park is
+  hidden and locked). The host gets a toast. Photographing a visited creature works through the
+  card export (E); the normal photo score ignores them.
+- Not yet: joint breeding, duels, any trade value/escrow, an in-game friend list (the manual
+  copy/paste connection is still the only way to link up).

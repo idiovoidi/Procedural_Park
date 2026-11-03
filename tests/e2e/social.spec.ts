@@ -11,7 +11,7 @@ declare const sys: () => Systems
 test.afterEach(closeContexts)
 
 test('friends share a codex and trade a creature', async ({ browser }) => {
-  test.setTimeout(300_000)
+  test.setTimeout(420_000)
   const host = await newPlayer(browser)
   const guest = await newPlayer(browser)
 
@@ -63,4 +63,67 @@ test('friends share a codex and trade a creature', async ({ browser }) => {
   await expect
     .poll(() => host.evaluate(() => sys().roster.count()), { timeout: 30_000 })
     .toBe(0)
+
+  // Visit: the host builds a pen with a creature in it, the guest walks through a copy.
+  await host.evaluate(() => {
+    const s = sys()
+    s.currency.addMoney(500, 'test')
+    const c = s.build.getController()
+    for (let i = 0; i < 3; i++) {
+      const mid = (i + 0.5) * 2
+      for (const [x, z] of [
+        [mid, 0],
+        [mid, 6],
+        [0, mid],
+        [6, mid],
+      ]) {
+        c.setTool('fence')
+        if (!c.commit(x, z).ok) throw new Error('fence failed')
+      }
+    }
+    const genome = s.creatures
+      .getAllCreatures()
+      .map((i: { genome: { size: string; temperament: string } }) => i.genome)
+      .find((g: { size: string; temperament: string }) => g.size !== 'huge' && g.temperament !== 'aggressive')
+    s.roster.assignToPen(s.roster.add(genome, { name: 'Host Resident' }).id, s.park.getPens()[0].id)
+  })
+  // The Trade slot toggles: only open the panel if the earlier trade step left it closed.
+  if (!(await guest.locator('#trade-panel').isVisible())) {
+    await click(guest, '#tool-belt [data-tool=trade]')
+  }
+  await guest.locator('#trade-panel .tp-row', { hasText: 'Walk through' }).locator('button:has-text("Visit")').evaluate((b) => (b as HTMLElement).click())
+
+  await expect
+    .poll(
+      () =>
+        guest.evaluate(() => {
+          const s = sys()
+          const own = s.scene.scene.children.filter((o: { name: string }) => o.name === 'ParkView')
+          return {
+            visiting: s.build.isActive() === false && own.some((o: { visible: boolean }) => !o.visible),
+            parks: own.length,
+          }
+        }),
+      { timeout: 30_000 }
+    )
+    .toEqual({ visiting: true, parks: 2 })
+  // The guest has no pens of their own: the pen they see is the host's.
+  expect(await guest.evaluate(() => sys().park.getPens().length)).toBe(0)
+  const seen = await guest.evaluate(() => {
+    const s = sys()
+    const parkViews = s.scene.scene.children.filter((o: { name: string }) => o.name === 'ParkView')
+    return parkViews.map((g: { visible: boolean; children: unknown[] }) => ({ visible: g.visible, pieces: g.children.length }))
+  })
+  expect(seen.some((v: { visible: boolean; pieces: number }) => v.visible && v.pieces > 0)).toBe(true)
+
+  // Leaving puts the guest's own park back.
+  await click(guest, '#trade-panel .tp-row:has-text("Visiting") button')
+  await expect
+    .poll(() =>
+      guest.evaluate(() => {
+        const s = sys()
+        return s.scene.scene.children.filter((o: { name: string }) => o.name === 'ParkView').length
+      })
+    )
+    .toBe(1)
 })

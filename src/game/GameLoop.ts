@@ -10,9 +10,15 @@ export class GameLoop {
   private lastTime = 0
   private isRunning = false
   private animationFrameId: number | null = null
+  private updaters: Array<(dt: number, now: number) => void> = []
 
   constructor(systems: GameSystems) {
     this.systems = systems
+  }
+
+  /** Run `fn` every frame the game is not paused (for managers the loop does not know). */
+  public addUpdater(fn: (dt: number, now: number) => void): void {
+    this.updaters.push(fn)
   }
 
   /**
@@ -104,6 +110,7 @@ export class GameLoop {
 
       // Owned creatures wander inside their pens
       residents.update(dt, now / 1000)
+      for (const fn of this.updaters) fn(dt, now / 1000)
 
       // Update mini map
       this.updateMiniMap()
