@@ -12,11 +12,24 @@
 import SimplePeer from 'simple-peer'
 import type { WebRTCConfig } from '../types'
 
+/**
+ * Chrome reports a locally or remotely requested close as a data-channel error: either
+ * "User-Initiated Abort" or, depending on timing, a bare OperationError with no message.
+ * The bare form is only treated as a close on an established connection, so genuine
+ * failures (which carry a message, or happen before connecting) still surface.
+ */
+function isIntentionalAbort(err: Error, wasConnected: boolean): boolean {
+  if (/User-Initiated Abort/i.test(err.message)) return true
+  return wasConnected && err.name === 'OperationError' && err.message === ''
+}
+
 export class WebRTCPeer {
   private peer: SimplePeer.Instance | null = null
   private config: WebRTCConfig
   private connectionTimeout: NodeJS.Timeout | null = null
   private connected: boolean = false
+  /** True once close() was called on purpose, so teardown errors aren't reported. */
+  private closing: boolean = false
 
   // Event callbacks
   public onSignal: (signalData: string) => void = () => {}
@@ -34,7 +47,8 @@ export class WebRTCPeer {
    */
   public initAsHost(): void {
     this.setupPeer(true)
-    this.startConnectionTimeout()
+    // Waiting for a human to send back the answer code.
+    this.startConnectionTimeout(this.config.signalingTimeout)
   }
 
   /**
@@ -42,7 +56,8 @@ export class WebRTCPeer {
    */
   public initAsGuest(offerData: string): void {
     this.setupPeer(false)
-    this.startConnectionTimeout()
+    // Waiting for a human to relay our answer code to the host.
+    this.startConnectionTimeout(this.config.signalingTimeout)
 
     try {
       const signalData = JSON.parse(offerData)
@@ -79,6 +94,7 @@ export class WebRTCPeer {
    * Close the peer connection
    */
   public close(): void {
+    this.closing = true
     this.clearConnectionTimeout()
 
     if (this.peer) {
@@ -97,6 +113,7 @@ export class WebRTCPeer {
     if (this.peer) {
       this.peer.destroy()
     }
+    this.closing = false
 
     // Create new Simple Peer instance
     this.peer = new SimplePeer({
@@ -144,6 +161,10 @@ export class WebRTCPeer {
 
     // Error event - emitted on errors
     this.peer.on('error', (err: Error) => {
+      // Closing on purpose, or the other player closing, is a normal disconnect: the 'close'
+      // event that follows reports it. Chrome surfaces both as "User-Initiated Abort".
+      if (this.closing || isIntentionalAbort(err, this.connected)) return
+
       this.clearConnectionTimeout()
       this.connected = false
       this.onError(err)
@@ -153,18 +174,19 @@ export class WebRTCPeer {
   /**
    * Start connection timeout timer
    */
-  private startConnectionTimeout(): void {
+  private startConnectionTimeout(durationMs: number): void {
     this.clearConnectionTimeout()
 
     this.connectionTimeout = setTimeout(() => {
       if (!this.connected) {
+        const seconds = Math.round(durationMs / 1000)
         const error = new Error(
-          'Connection timeout: Failed to establish connection within 30 seconds'
+          `Connection timeout: Failed to establish connection within ${seconds} seconds`
         )
         this.onError(error)
         this.close()
       }
-    }, this.config.connectionTimeout)
+    }, durationMs)
   }
 
   /**
@@ -189,6 +211,11 @@ export class WebRTCPeer {
     try {
       const data = JSON.parse(signalData)
       this.peer.signal(data)
+      // Both codes are now exchanged: from here the connection attempt itself is on the clock,
+      // not the humans passing codes around.
+      if (!this.connected) {
+        this.startConnectionTimeout(this.config.connectionTimeout)
+      }
     } catch (error) {
       this.onError(new Error(`Invalid signal data: ${(error as Error).message}`))
     }

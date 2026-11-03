@@ -29,6 +29,10 @@ export interface InputHandlerCallbacks {
   onFeedCreature: () => void
   onRandomizeCreature: () => void
   onToggleFoodStore: () => void
+  onToggleMarket: () => void
+  onToggleBuild: () => void
+  onCrateCreature: () => void
+  onPlaceLure: () => void
 }
 
 export class InputHandler {
@@ -81,6 +85,16 @@ export class InputHandler {
     this.inputManager.on('food.toggleInventory', () => this.callbacks.onToggleFoodInventory())
     this.inputManager.on('food.feedCreature', () => this.callbacks.onFeedCreature())
     this.inputManager.on('food.toggleStore', () => this.callbacks.onToggleFoodStore())
+
+    // Market actions
+    this.inputManager.on('market.toggle', () => this.callbacks.onToggleMarket())
+
+    // Build actions
+    this.inputManager.on('build.toggle', () => this.callbacks.onToggleBuild())
+
+    // Capture actions
+    this.inputManager.on('capture.crate', () => this.callbacks.onCrateCreature())
+    this.inputManager.on('capture.lure', () => this.callbacks.onPlaceLure())
   }
 
   /**

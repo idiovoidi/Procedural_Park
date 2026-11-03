@@ -1,15 +1,19 @@
-import { TAU } from '@core/constants'
 import { disposeThreeObject, log } from '@core/utils'
 import { type ShaderConfig, ShaderManager } from '@rendering/shaders'
 import { TerrainSystem } from '@systems/terrain'
+import { buildTrackPath } from '@systems/track/track-path'
 import * as THREE from 'three'
 import { EnvironmentInteractions } from './environment-interactions'
 import { ParkStructures } from './park-structures'
+import { buildTrainTrack } from './structures/train-track'
 
 export class SceneManager {
   public scene: THREE.Scene
   public renderer: THREE.WebGLRenderer
+  /** Eye-level line the tram camera follows. */
   public curve: THREE.CatmullRomCurve3
+  /** Centre line of the rails themselves. */
+  public trackCurve: THREE.CatmullRomCurve3
   public terrainSystem: TerrainSystem
   public environmentInteractions: EnvironmentInteractions
   public parkStructures: ParkStructures
@@ -65,11 +69,12 @@ export class SceneManager {
     this.terrainSystem.generateTerrain(42)
     this.environmentInteractions.generateInteractionPoints(this.terrainSystem, 123)
 
-    // Create the ride path (now that terrain is available)
-    this.curve = this.createRidePath()
-
-    // Create track visualization
-    this.createTrack()
+    // Lay the railway over the terrain; the camera rides it at eye height
+    const heightAt = (x: number, z: number) => this.terrainSystem.getFloorHeightAt(x, z)
+    const path = buildTrackPath(heightAt)
+    this.trackCurve = path.trackCurve
+    this.curve = path.rideCurve
+    this.scene.add(buildTrainTrack(this.trackCurve, heightAt))
 
     // Build park structures (gate, fence, plaza)
     this.parkStructures = new ParkStructures(this.scene)
@@ -137,55 +142,6 @@ export class SceneManager {
   }
 
   // Removed createGround() - now handled by TerrainSystem
-
-  private createRidePath(): THREE.CatmullRomCurve3 {
-    const pathPoints: THREE.Vector3[] = []
-    const seed = Math.random() * 1000
-    const numPoints = 50 + Math.floor(Math.random() * 30) // 50-80 points (much longer)
-
-    // Create a more varied, randomized path
-    for (let i = 0; i < numPoints; i++) {
-      const t = i / numPoints
-      const angle = t * TAU
-
-      // Base circular path with random variations - larger radius for longer ride
-      const baseRadius = 40 + Math.sin(seed + angle * 3) * 15
-      const radiusVariation = Math.sin(seed * 2 + angle * 5) * 10
-      const r = baseRadius + radiusVariation
-
-      // Add some figure-8 and spiral elements - smoother curves
-      const spiralFactor = Math.sin(seed + angle * 2) * 0.2
-      const figure8Factor = Math.sin(angle * 2) * 0.3
-
-      const x = Math.sin(angle + spiralFactor) * r + Math.sin(angle * 2) * figure8Factor * 20
-      const z = Math.cos(angle + spiralFactor) * r + Math.cos(angle * 2) * figure8Factor * 20
-
-      // Much less height variation for smoother ride
-      const baseHeight = 1.6
-      const heightVariation =
-        Math.sin(seed + angle * 4) * 0.5 + Math.cos(seed * 1.5 + angle * 6) * 0.3
-      const terrainHeight = this.terrainSystem.getHeightAt(x, z)
-      const y = Math.max(baseHeight, terrainHeight + 1.0) + heightVariation
-
-      pathPoints.push(new THREE.Vector3(x, y, z))
-    }
-
-    return new THREE.CatmullRomCurve3(pathPoints, true, 'centripetal', 0.2)
-  }
-
-  private createTrack() {
-    const track = new THREE.Mesh(
-      new THREE.TubeGeometry(this.curve, 600, 0.25, 8, true),
-      new THREE.MeshStandardMaterial({
-        color: 0x2a384a,
-        metalness: 0.35,
-        roughness: 0.6,
-      })
-    )
-    track.castShadow = false
-    track.receiveShadow = true
-    this.scene.add(track)
-  }
 
   // Removed createEnvironment() - now handled by TerrainSystem
 

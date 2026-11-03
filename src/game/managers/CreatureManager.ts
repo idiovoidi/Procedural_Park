@@ -125,6 +125,19 @@ export class CreatureManager {
   }
 
   /**
+   * Take one wild creature out of the world (e.g. once it has been crated) and free its
+   * resources. Returns false if it isn't one of the regular creatures.
+   */
+  public removeCreature(creature: CreatureInstance): boolean {
+    const index = this.creatures.indexOf(creature)
+    if (index < 0) return false
+    this.creatures.splice(index, 1)
+    this.scene.remove(creature.group)
+    disposeThreeObject(creature.group)
+    return true
+  }
+
+  /**
    * Clear all creatures from scene and dispose resources
    */
   public clearCreatures(): void {

@@ -26,14 +26,17 @@ test.afterEach(async () => {
   await Promise.all(contexts.splice(0).map((c) => c.close()))
 })
 
+// Console errors per page, so tests can assert that normal flows log none.
+const consoleErrors = new WeakMap<Page, string[]>()
+
 async function newPlayer(browser: Browser): Promise<Page> {
   // Small viewport: two software-rendered WebGL pages share one CPU.
   const context = await browser.newContext({ viewport: { width: 480, height: 320 } })
   contexts.push(context)
   // Hermetic test: both players are on this machine, so STUN servers are unnecessary. With
   // trickle ICE disabled the app waits for ICE gathering before emitting each offer/answer, and
-  // unreachable STUN servers make that wait many seconds - longer than the app's 30s host timeout
-  // once the rest of the handshake is added. Dropping them also removes any dependency on Google.
+  // unreachable STUN servers make that wait many seconds. Dropping them keeps the test fast and
+  // removes any dependency on Google.
   await context.addInitScript(() => {
     const Native = window.RTCPeerConnection
     const Patched = function (this: unknown, config?: RTCConfiguration) {
@@ -42,17 +45,16 @@ async function newPlayer(browser: Browser): Promise<Page> {
     Patched.prototype = Native.prototype
     window.RTCPeerConnection = Patched
 
-    // The app's host-side connection timeout (30s, see DEFAULT_CONFIG.connectionTimeout) is
-    // sized for a human copy/pasting codes, and it starts when the offer is generated. On a slow
-    // CI runner the scripted handshake can occasionally exceed it, so stretch that one timer.
-    const nativeSetTimeout = window.setTimeout.bind(window)
-    window.setTimeout = ((handler: TimerHandler, ms?: number, ...args: unknown[]) =>
-      nativeSetTimeout(handler, ms === 30_000 ? 300_000 : ms, ...args)) as typeof window.setTimeout
   })
   const page = await context.newPage()
   // Surface app errors (e.g. WebRTC failures) in the test log; they explain most handshake failures.
+  const errors: string[] = []
+  consoleErrors.set(page, errors)
   page.on('console', (msg) => {
-    if (msg.type() === 'error') console.log(`[browser] ${msg.text().split('\n')[0]}`)
+    if (msg.type() !== 'error') return
+    const line = msg.text().split('\n')[0]
+    errors.push(line)
+    console.log(`[browser] ${line}`)
   })
   await page.goto('./', { waitUntil: 'commit' })
   // The HUD button exists in the static HTML before the game has wired up its handlers,
@@ -87,8 +89,7 @@ test.describe('multiplayer', () => {
     const host = await newPlayer(browser)
     const guest = await newPlayer(browser)
 
-    // Open both dialogs up front: the host's connection timeout (30s) starts when the offer is
-    // generated, so keep the window between "Generate Offer" and "Connect" as short as possible.
+    // Open both dialogs up front so the scripted handshake mirrors a person with both windows ready.
     await openMultiplayerModal(host)
     await click(host, '[data-action="show-host"]')
     await openMultiplayerModal(guest)
@@ -138,6 +139,14 @@ test.describe('multiplayer', () => {
       await expect(guest.locator('.mp-status-indicator')).toHaveClass(/disconnected/, {
         timeout: 30_000,
       })
+    })
+
+    await test.step('a deliberate disconnect is not reported as an error', async () => {
+      // Regression: Chrome's "User-Initiated Abort" used to surface as a multiplayer error toast.
+      expect(consoleErrors.get(host)).toEqual([])
+      expect(consoleErrors.get(guest)).toEqual([])
+      await expect(host.locator('.mp-status-indicator')).not.toHaveClass(/error/)
+      await expect(guest.locator('.mp-status-indicator')).not.toHaveClass(/error/)
     })
   })
 })

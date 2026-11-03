@@ -5,17 +5,30 @@ import { log } from '@core/utils'
  */
 
 import { GAME_CONFIG } from '@core/constants'
-import { CreatureManager, MultiplayerManager, ShaderService } from '@game/managers'
+import {
+  BuildModeManager,
+  CaptureManager,
+  CreatureManager,
+  MultiplayerManager,
+  ShaderService,
+} from '@game/managers'
 import { VideoRecorder } from '@game/VideoRecorder'
 import { SceneManager } from '@rendering/scene'
 import type { ShaderConfig } from '@rendering/shaders'
 import { AudioManager } from '@systems/audio'
 import { CameraController } from '@systems/camera'
+import { CareSystem } from '@systems/care'
 import { CurrencyManager } from '@systems/currency'
+import { SimClock } from '@systems/economy'
 import { FoodManager } from '@systems/food'
 import { InputManager } from '@systems/input'
+import { MarketSystem } from '@systems/market'
+import { PenGrid } from '@systems/park'
 import { PhotoSystem } from '@systems/photo'
+import { ProductionSystem, ResourceInventory } from '@systems/production'
+import { Roster } from '@systems/roster'
 import { createStateSyncHelpers, type GameStateType, IntegratedStateManager } from '@systems/state'
+import { STATIONS } from '@systems/track/track-path'
 import { DebugPanel } from '@ui/debug'
 import { UIManager } from '@ui/managers'
 
@@ -35,6 +48,23 @@ export interface GameSystems {
   shaders: ShaderService
   food: FoodManager
   currency: CurrencyManager
+  /** Fixed-step clock that drives the park economy (production, hunger, breeding timers). */
+  simClock: SimClock
+  /** The creatures the player owns (genomes, care stats, age, lineage). */
+  roster: Roster
+  /** The hub build grid: fences, terrain edits and the pens they enclose. */
+  park: PenGrid
+  /** Feeding, hunger and mood for owned creatures. */
+  care: CareSystem
+  /** Resource output, collector bins and the player's carried resources. */
+  production: ProductionSystem
+  resources: ResourceInventory
+  /** Selling resources and creatures for Safari Coins. */
+  market: MarketSystem
+  /** First-person building of fences, troughs and bins on the hub grid. */
+  build: BuildModeManager
+  /** Winning wild creatures' trust and crating them into the roster. */
+  capture: CaptureManager
 }
 
 export class SystemsCoordinator {
@@ -72,6 +102,12 @@ export class SystemsCoordinator {
 
     // Setup camera mouse controls
     cameraController.setupMouseControls(sceneManager.getCanvas())
+    cameraController.setGroundHeightSampler((x, z) =>
+      sceneManager.terrainSystem.getFloorHeightAt(x, z)
+    )
+    cameraController.setStations(STATIONS, (station) =>
+      uiManager.showToast(`🚉 ${station.name} — press C to hop off`)
+    )
 
     // Connect shader service to scene manager
     shaderService.setShaderManager(sceneManager.getShaderManager())
@@ -120,6 +156,49 @@ export class SystemsCoordinator {
     // Initialize currency manager
     const currencyManager = new CurrencyManager(GAME_CONFIG.STARTING_CURRENCY)
 
+    // Initialize the economy clock (systems subscribe to its ticks as they are added)
+    const simClock = new SimClock()
+
+    // Initialize the roster; owned creatures age with the economy clock
+    const roster = new Roster()
+    simClock.onTick(() => roster.advanceTicks(1))
+
+    // Initialize the hub build grid and the care loop that looks after penned creatures
+    const park = new PenGrid()
+    const care = new CareSystem(roster, park)
+    simClock.onTick((tick) => care.tick(tick))
+
+    // Production runs after care in each tick, so a creature fed this cycle produces this cycle
+    const resources = new ResourceInventory()
+    const production = new ProductionSystem(roster, park, resources)
+    simClock.onTick((tick) => production.tick(tick))
+
+    // The market sells what production makes; demand recovers with the clock
+    const market = new MarketSystem(roster, resources, currencyManager)
+    simClock.onTick(() => market.tick())
+
+    // Build mode draws the hub grid and lets the player edit it
+    const build = new BuildModeManager({
+      scene: sceneManager.scene,
+      camera: cameraController,
+      park,
+      currency: currencyManager,
+      ui: uiManager,
+      heightAt: (x, z) => sceneManager.terrainSystem.getFloorHeightAt(x, z),
+    })
+
+    // Capture: trust from feeding and bait, then a crate into the roster and a pen
+    const capture = new CaptureManager({
+      scene: sceneManager.scene,
+      creatures: creatureManager,
+      camera: cameraController,
+      food: foodManager,
+      currency: currencyManager,
+      roster,
+      park,
+      ui: uiManager,
+    })
+
     // Store all systems
     this.systems = {
       scene: sceneManager,
@@ -137,6 +216,15 @@ export class SystemsCoordinator {
       shaders: shaderService,
       food: foodManager,
       currency: currencyManager,
+      simClock,
+      roster,
+      park,
+      care,
+      production,
+      resources,
+      market,
+      build,
+      capture,
     }
 
     // Setup system callbacks

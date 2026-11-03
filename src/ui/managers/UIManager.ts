@@ -4,11 +4,13 @@ import type { ShaderConfig } from '@rendering/shaders'
 import { type ShaderDebugCallbacks, ShaderDebugUI } from '@rendering/shaders'
 import type { FoodItem } from '@systems/food'
 import type * as THREE from 'three'
+import { BuildHud } from '../components/build-hud'
 import { CreatureCollection } from '../components/creature-collection'
 import { CurrencyDisplay } from '../components/currency-display'
 import { FoodInventory } from '../components/food-inventory'
 import { FoodStore } from '../components/food-store'
 import { Gallery } from '../components/gallery'
+import { MarketPanel } from '../components/market-panel'
 import { MiniMap } from '../components/mini-map'
 import { type InventoryItem, PlayerStats } from '../components/player-stats'
 import { SaveLoadMenu } from '../components/save-load-menu'
@@ -28,6 +30,10 @@ export class UIManager {
   private foodInventory: FoodInventory
   private currencyDisplay: CurrencyDisplay
   private foodStore: FoodStore
+  private marketPanel: MarketPanel
+  private buildHud: BuildHud
+  private toggleMarketBtn: HTMLButtonElement
+  private toggleBuildBtn: HTMLButtonElement
   private toggleMultiplayerBtn: HTMLButtonElement
   private toggleFoodInventoryBtn: HTMLButtonElement
   private restartRideBtn: HTMLButtonElement
@@ -50,8 +56,12 @@ export class UIManager {
     this.foodInventory = new FoodInventory()
     this.currencyDisplay = new CurrencyDisplay()
     this.foodStore = new FoodStore()
+    this.marketPanel = new MarketPanel()
+    this.buildHud = new BuildHud()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
+    this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
+    this.toggleBuildBtn = document.getElementById('toggleBuild') as HTMLButtonElement
     this.toggleFoodInventoryBtn = document.getElementById(
       'toggleFoodInventory'
     ) as HTMLButtonElement
@@ -80,9 +90,20 @@ export class UIManager {
     this.creatureCollection.setAudioCallbacks(callbacks)
     this.foodInventory.setAudioCallbacks(callbacks)
     this.foodStore.setAudioCallbacks(callbacks)
+    this.marketPanel.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
+    this.toggleBuildBtn?.addEventListener('click', () => {
+      this.audioCallbacks.onClick?.()
+      this.onToggleBuild?.()
+    })
+
+    this.toggleMarketBtn?.addEventListener('click', () => {
+      this.audioCallbacks.onClick?.()
+      this.marketPanel.toggle()
+    })
+
     this.toggleMultiplayerBtn?.addEventListener('click', () => {
       this.audioCallbacks.onClick?.()
       this.toggleMultiplayer()
@@ -152,6 +173,7 @@ export class UIManager {
   public onShaderPresetLoad?: SettingsCallbacks['onShaderPresetLoad']
   public onAutoPerformanceToggle?: SettingsCallbacks['onAutoPerformanceToggle']
   public onToggleMultiplayer?: () => void
+  public onToggleBuild?: () => void
   public onToggleSaveLoad?: () => void
 
   // Gallery methods
@@ -558,5 +580,19 @@ export class UIManager {
    */
   public closeFoodStore(): void {
     this.foodStore.close()
+  }
+
+  /**
+   * Get the market panel (selling resources and creatures)
+   */
+  public getMarketPanel(): MarketPanel {
+    return this.marketPanel
+  }
+
+  /**
+   * Get the build-mode toolbar
+   */
+  public getBuildHud(): BuildHud {
+    return this.buildHud
   }
 }

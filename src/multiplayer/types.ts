@@ -38,7 +38,10 @@ export interface WebRTCConfig {
   iceServers: RTCIceServer[]
   updateRate: number // Updates per second
   interpolationDelay: number // Milliseconds
-  connectionTimeout: number // Milliseconds
+  /** Milliseconds to establish the connection once both codes have been exchanged. */
+  connectionTimeout: number
+  /** Milliseconds a human may take to copy/paste the offer and answer codes. */
+  signalingTimeout: number
 }
 
 /**
@@ -60,5 +63,6 @@ export const DEFAULT_CONFIG: WebRTCConfig = {
   iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }],
   updateRate: 10, // 10 updates per second
   interpolationDelay: 100, // 100ms interpolation buffer
-  connectionTimeout: 30000, // 30 second timeout
+  connectionTimeout: 30000, // 30 seconds once the answer is applied
+  signalingTimeout: 300000, // 5 minutes for the manual code exchange
 }
