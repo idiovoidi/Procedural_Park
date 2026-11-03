@@ -34,6 +34,8 @@ export class CaptureManager {
   private readonly deps: Dependencies
   private readonly system: CaptureSystem<CreatureInstance>
   private marker: THREE.Mesh | null = null
+  /** Genome seeds of wild creatures that have been crated, so they never respawn. */
+  private captured = new Set<number>()
 
   constructor(deps: Dependencies) {
     this.deps = deps
@@ -45,6 +47,24 @@ export class CaptureManager {
 
   public getSystem(): CaptureSystem<CreatureInstance> {
     return this.system
+  }
+
+  public getCapturedSeeds(): number[] {
+    return [...this.captured]
+  }
+
+  /** Replace the crated list (from a save) and take those creatures out of the wild. */
+  public restoreCaptured(seeds: Iterable<number>): void {
+    this.captured = new Set(seeds)
+    this.applyCaptured()
+  }
+
+  /** Remove any wild creature that has already been crated (call after a respawn). */
+  public applyCaptured(): void {
+    const { creatures } = this.deps
+    for (const creature of [...creatures.getCreatures()]) {
+      if (this.captured.has(creature.genome.seed)) creatures.removeCreature(creature)
+    }
   }
 
   /** A wild creature was just fed: tell the player how its trust is coming along. */
@@ -120,6 +140,7 @@ export class CaptureManager {
       stats: { trust: Math.round(check.trust) },
     })
     this.system.release(target)
+    this.captured.add(target.genome.seed)
     creatures.removeCreature(target)
 
     const penId = findPenFor(park, roster, owned.genome)

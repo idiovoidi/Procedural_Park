@@ -88,6 +88,9 @@ export class Game {
       this.food.initialize()
       this.market.initialize()
 
+      // Bring back the ranch from the last session, if there was one
+      this.saveLoad.restoreOnStartup()
+
       // Hide loading screen and transition to playing state
       setTimeout(() => {
         loadingEl?.classList.add('hidden')

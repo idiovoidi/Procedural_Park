@@ -44,6 +44,8 @@ export class WorldStateManager {
         settings: worldState.settings ?? this.createDefaultSettings(),
         creatures: worldState.creatures,
         experimentCreature: worldState.experimentCreature,
+        // The ranch is validated by restorePark; here it just has to survive being stored.
+        park: worldState.park,
       }
 
       // Save to localStorage
