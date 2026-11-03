@@ -11,6 +11,7 @@ import {
   CaptureManager,
   CreatureManager,
   MultiplayerManager,
+  ResidentManager,
   ShaderService,
 } from '@game/managers'
 import { VideoRecorder } from '@game/VideoRecorder'
@@ -68,6 +69,8 @@ export interface GameSystems {
   build: BuildModeManager
   /** Winning wild creatures' trust and crating them into the roster. */
   capture: CaptureManager
+  /** The owned creatures drawn wandering inside their pens. */
+  residents: ResidentManager
 }
 
 export class SystemsCoordinator {
@@ -220,6 +223,15 @@ export class SystemsCoordinator {
       ui: uiManager,
     })
 
+    // Residents: owned creatures shown inside their closed pens
+    const residents = new ResidentManager({
+      scene: sceneManager.scene,
+      roster,
+      grid: park,
+      camera: cameraController,
+      heightAt: (x, z) => sceneManager.terrainSystem.getFloorHeightAt(x, z),
+    })
+
     // Store all systems
     this.systems = {
       scene: sceneManager,
@@ -246,6 +258,7 @@ export class SystemsCoordinator {
       market,
       build,
       capture,
+      residents,
     }
 
     // Setup system callbacks

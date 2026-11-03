@@ -74,6 +74,7 @@ export class GameLoop {
       simClock,
       build,
       capture,
+      residents,
     } = this.systems
 
     // Always update state machine
@@ -100,6 +101,9 @@ export class GameLoop {
 
       // Run bait: it draws nearby creatures in and builds their trust
       capture.update(dt)
+
+      // Owned creatures wander inside their pens
+      residents.update(dt, now / 1000)
 
       // Update mini map
       this.updateMiniMap()

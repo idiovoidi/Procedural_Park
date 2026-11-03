@@ -4,6 +4,7 @@
  */
 
 export { cellKey, cellToWorld, edgeBetween, edgeKey, PenGrid, worldToCell } from './PenGrid'
+export { clampToPen, pointInPen } from './pen-bounds'
 export { canAddOccupant, findConflicts, freeAreaM2, scorePen, statusFor } from './pen-quality'
 export type {
   Cell,
