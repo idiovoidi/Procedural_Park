@@ -376,11 +376,26 @@ export class StateSync {
     const messageType = view.getUint8(0)
 
     // Validate message type
-    if (messageType < MessageType.STATE_UPDATE || messageType > MessageType.PONG) {
+    if (messageType < MessageType.STATE_UPDATE || messageType > MessageType.SOCIAL) {
       return null
     }
 
     return messageType as MessageType
+  }
+
+  /** Frame a text message: [SOCIAL (1 byte)][UTF-8 text]. */
+  public serializeSocial(text: string): ArrayBuffer {
+    const body = new TextEncoder().encode(text)
+    const out = new Uint8Array(1 + body.byteLength)
+    out[0] = MessageType.SOCIAL
+    out.set(body, 1)
+    return out.buffer
+  }
+
+  /** The text of a SOCIAL frame, or null if the frame is not one. */
+  public deserializeSocial(data: ArrayBuffer): string | null {
+    if (data.byteLength < 1 || new Uint8Array(data)[0] !== MessageType.SOCIAL) return null
+    return new TextDecoder().decode(new Uint8Array(data, 1))
   }
 
   /**

@@ -63,6 +63,18 @@ Exit: the player unlocks a second map, travels there, captures a founder the hub
 | T20e | [x] Expedition pressure: crate capacity, fleeing, bait cost | T20b | Failing costs bait/time, never harm |
 | T20f | [x] M3 balance + E2E | T20a–e | Guard rails and E2E cover an expedition |
 
+## M4 — Social (T21 split)
+
+Exit: two players can trade a creature, share discoveries and walk through each other's ranch.
+
+| ID | Task | Deps | Done when |
+|---|---|---|---|
+| T21a | [x] Social channel (chunked JSON over the data channel) + trade protocol | T20 | A creature moves between rosters atomically; bad data is ignored |
+| T21b | [ ] Trade UI wired to the live connection | T21a | Offer, accept, decline from the game |
+| T21c | [ ] Shared codex | T21b | Species a friend found appear in your codex |
+| T21d | [ ] Visit a friend's park (read-only snapshot) | T21b | Guest sees the host's pens and residents |
+| T21e | [ ] Two-browser E2E for trade, codex and visit | T21a–d | E2E green |
+
 ## Later milestones (split into tasks when reached)
 
 | Epic | Milestone | Scope | Deps |

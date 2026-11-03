@@ -35,6 +35,8 @@ export class WebRTCMultiplayer {
   public onDisconnected: () => void = () => {}
   public onPeerStateUpdate: (state: GameState) => void = () => {}
   public onGameEvent: (event: GameEvent) => void = () => {}
+  /** Text from the peer's social layer (already de-framed, not yet reassembled). */
+  public onSocial: (text: string) => void = () => {}
   public onError: (error: Error) => void = () => {}
 
   constructor(scene: THREE.Scene, config: WebRTCConfig) {
@@ -206,6 +208,16 @@ export class WebRTCMultiplayer {
     }
   }
 
+  /** Send a text message through the social channel (the caller chunks big payloads). */
+  public sendSocial(text: string): void {
+    if (!this.isConnected()) return
+    try {
+      this.peer.send(this.stateSync.serializeSocial(text))
+    } catch (error) {
+      console.error('Failed to send social message:', error)
+    }
+  }
+
   /**
    * Check if currently connected to a peer
    */
@@ -337,6 +349,12 @@ export class WebRTCMultiplayer {
         case MessageType.GAME_EVENT:
           this.handleGameEvent(data)
           break
+
+        case MessageType.SOCIAL: {
+          const text = this.stateSync.deserializeSocial(data)
+          if (text !== null) this.onSocial(text)
+          break
+        }
 
         case MessageType.PING:
           this.handlePing(data)

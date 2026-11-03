@@ -127,3 +127,19 @@ describe('StateSync interpolation buffer', () => {
     expect(sync.getInterpolatedState(0)).toBeNull()
   })
 })
+
+describe('StateSync social frames', () => {
+  it('round-trips unicode text and is recognised as SOCIAL', () => {
+    const sync = new StateSync()
+    const text = JSON.stringify({ hello: 'wörld 🦎', n: [1, 2, 3] })
+    const buf = sync.serializeSocial(text)
+    expect(sync.getMessageType(buf)).toBe(MessageType.SOCIAL)
+    expect(sync.deserializeSocial(buf)).toBe(text)
+  })
+
+  it('refuses frames that are not social, and an empty buffer', () => {
+    const sync = new StateSync()
+    expect(sync.deserializeSocial(sync.serializeEvent({ type: 'photo', timestamp: 1 }))).toBeNull()
+    expect(sync.deserializeSocial(new ArrayBuffer(0))).toBeNull()
+  })
+})
