@@ -234,6 +234,7 @@ export const GAME_CONFIG = {
         trough: 20,
         hopper: 45,
         bin: 25,
+        collector: 80,
         den: 60,
         toy: 15,
         shelter: 20,

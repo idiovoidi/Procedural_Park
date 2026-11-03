@@ -16,9 +16,10 @@ and hatch, read the Ranch Book, reload.
   trough (only the balance bot did). Added the **Stock** slot (looked-at pen; troughs first, then
   feeder hoppers; only foods its residents eat well) and a **Shop** slot (`O`).
 
+- **Silent waste.** The pen inspector now warns "no bin" and "bin nearly full"; an **Auto-collector** (80 coins) empties a pen's bin into the inventory every production cycle.
+
 ## Still open (candidates for the next pass)
 
-- A pen without a bin silently wastes output (inspector shows `bin 0/0`; no explicit warning).
 - Nothing in the UI paints ground, adds water, or buys land (GDD §6): coins pile up late.
 - Residents cannot be hand-fed or photographed; the trough is the only food path.
 - Real mouse placement needs pointer lock, which the E2E does not simulate; it drives the same

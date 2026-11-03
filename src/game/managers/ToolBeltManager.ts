@@ -41,6 +41,9 @@ const REFRESH_MS = 250
 /** Foods a resident digests at least this well count as "theirs" when stocking a pen. */
 const STOCK_MIN_EFFICIENCY = 0.5
 
+/** Warn once a bin is this full (0..1). */
+const BIN_FULL_WARNING = 0.8
+
 const REQUIREMENT_LABEL: Record<string, string> = {
   space: 'space',
   water: 'water',
@@ -165,6 +168,19 @@ export class ToolBeltManager {
     this.refresh()
   }
 
+  /** Warnings about the pen's output: no bin to hold it, or a bin about to overflow. */
+  private outputProblems(penId: string, residents: number): string[] {
+    const { production, park } = this.systems
+    if (residents === 0) return []
+    const capacity = production.getBinCapacity(penId)
+    if (capacity === 0) return ['no bin: its output is wasted']
+    const collector = (park.getPen(penId)?.props.collector ?? 0) > 0
+    if (!collector && production.getBinTotal(penId) >= capacity * BIN_FULL_WARNING) {
+      return ['bin nearly full: collect (Q) or the output is wasted']
+    }
+    return []
+  }
+
   private lookedAtPen() {
     const { camera, park } = this.systems
     const cam = camera.camera
@@ -206,7 +222,10 @@ export class ToolBeltManager {
     return {
       title: pen.id,
       summary: `${residents.length} creature${residents.length === 1 ? '' : 's'} · ${Math.round(report.freeAreaM2)} m² free · ${pen.enclosure} enclosure · bin ${Math.floor(production.getBinTotal(pen.id))}/${production.getBinCapacity(pen.id)} · trough ${Math.floor(care.getTroughTotal(pen.id))}/${care.getTroughCapacity(pen.id)}${care.getHopperCapacity(pen.id) > 0 ? ` · hopper ${Math.floor(care.getHopperTotal(pen.id))}/${care.getHopperCapacity(pen.id)}` : ''}`,
-      problems: [...failing].map((k) => `needs better ${k}`),
+      problems: [
+        ...[...failing].map((k) => `needs better ${k}`),
+        ...this.outputProblems(pen.id, residents.length),
+      ],
       rows: residents.map((c) => ({
         name: c.name,
         fullness: c.fullness,

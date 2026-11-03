@@ -43,7 +43,7 @@ const pen = (overrides: Partial<Pen> = {}): Pen => ({
   waterDeepFraction: 0,
   groundFractions: { meadow: 1 },
   enclosure: 'fenced',
-  props: { toy: 0, shelter: 0, plant: 0, trough: 0, hopper: 0, bin: 0, den: 0 },
+  props: { toy: 0, shelter: 0, plant: 0, trough: 0, hopper: 0, bin: 0, collector: 0, den: 0 },
   gateCount: 0,
   ...overrides,
 })
@@ -204,21 +204,54 @@ describe('enrichment', () => {
     expect(enrich(pen(), [playful()]).score).toBe(0)
     expect(
       enrich(
-        pen({ props: { toy: 1, shelter: 0, plant: 0, trough: 0, hopper: 0, bin: 0, den: 0 } }),
+        pen({
+          props: {
+            toy: 1,
+            shelter: 0,
+            plant: 0,
+            trough: 0,
+            hopper: 0,
+            bin: 0,
+            collector: 0,
+            den: 0,
+          },
+        }),
         [playful()]
       ).score
     ).toBe(1)
     // Troughs aren't enrichment.
     expect(
       enrich(
-        pen({ props: { toy: 0, shelter: 0, plant: 0, trough: 5, hopper: 0, bin: 0, den: 0 } }),
+        pen({
+          props: {
+            toy: 0,
+            shelter: 0,
+            plant: 0,
+            trough: 5,
+            hopper: 0,
+            bin: 0,
+            collector: 0,
+            den: 0,
+          },
+        }),
         [playful()]
       ).score
     ).toBe(0)
     // Two creatures sharing one toy get half.
     expect(
       enrich(
-        pen({ props: { toy: 1, shelter: 0, plant: 0, trough: 0, hopper: 0, bin: 0, den: 0 } }),
+        pen({
+          props: {
+            toy: 1,
+            shelter: 0,
+            plant: 0,
+            trough: 0,
+            hopper: 0,
+            bin: 0,
+            collector: 0,
+            den: 0,
+          },
+        }),
         [playful(), playful()]
       ).score
     ).toBe(0.5)
@@ -228,13 +261,35 @@ describe('enrichment', () => {
     const curious = () => occupant({ temperament: 'curious' })
     expect(
       enrich(
-        pen({ props: { toy: 0, shelter: 1, plant: 0, trough: 0, hopper: 0, bin: 0, den: 0 } }),
+        pen({
+          props: {
+            toy: 0,
+            shelter: 1,
+            plant: 0,
+            trough: 0,
+            hopper: 0,
+            bin: 0,
+            collector: 0,
+            den: 0,
+          },
+        }),
         [curious(), curious()]
       ).score
     ).toBe(1)
     expect(
       enrich(
-        pen({ props: { toy: 0, shelter: 1, plant: 0, trough: 0, hopper: 0, bin: 0, den: 0 } }),
+        pen({
+          props: {
+            toy: 0,
+            shelter: 1,
+            plant: 0,
+            trough: 0,
+            hopper: 0,
+            bin: 0,
+            collector: 0,
+            den: 0,
+          },
+        }),
         [curious(), curious(), curious(), curious()]
       ).score
     ).toBe(0.5)

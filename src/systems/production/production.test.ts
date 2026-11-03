@@ -338,3 +338,23 @@ describe('with the economy clock', () => {
     expect(oneJump).toBeCloseTo(4 * E.BASE_OUTPUT_PER_CYCLE.terrestrial, 10)
   })
 })
+
+describe('auto-collector', () => {
+  it('moves the bin into the inventory every cycle, so nothing overflows', () => {
+    const { grid, penId, production, inventory, runCycles, add } = setup()
+    grid.addProp({ x: 3, z: 2 }, 'collector')
+    add()
+    runCycles(500)
+    expect(production.getLastCycle()?.wasted).toBe(0)
+    expect(inventory.getAll().fibre + inventory.getAll().down).toBeGreaterThan(0)
+    expect(production.getBinTotal(penId)).toBeLessThan(1)
+  })
+
+  it('does nothing without a collector: the bin fills and output is wasted', () => {
+    const { production, inventory, runCycles, add } = setup()
+    add()
+    runCycles(500)
+    expect(production.getLastCycle()?.wasted).toBeGreaterThan(0)
+    expect(Object.values(inventory.getAll()).reduce((a, b) => a + b, 0)).toBe(0)
+  })
+})
