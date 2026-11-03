@@ -46,9 +46,10 @@ describe('resource pricing', () => {
     const { market } = setup()
     const one = market.quoteResource('fibre', 1)
     const ten = market.quoteResource('fibre', 10)
-    expect(one.coins).toBe(4)
-    // 4 coins at demand 1.00, 0.99 ... 0.91 -> sum = 4 * (10 - 0.01 * 45) = 38.2
-    expect(ten.coins).toBe(Math.floor(4 * (10 - M.DEMAND_DROP_PER_UNIT * 45)))
+    const base = M.BASE_UNIT_PRICE.fibre
+    expect(one.coins).toBe(Math.floor(base))
+    // The price drops by DROP per unit: base * (10 - DROP * (0 + 1 + ... + 9)).
+    expect(ten.coins).toBe(Math.floor(base * (10 - M.DEMAND_DROP_PER_UNIT * 45)))
     expect(ten.coins).toBeLessThan(10 * one.coins)
     expect(ten.demandAfter).toBeCloseTo(1 - 10 * M.DEMAND_DROP_PER_UNIT, 10)
   })
@@ -135,17 +136,32 @@ describe('selling resources', () => {
 })
 
 describe('demand recovery', () => {
-  it('climbs back toward full demand over time and stops at 1', () => {
+  it('regains a share of the missing demand each tick, and settles back at 1', () => {
     const { market, inventory } = setup()
     inventory.add('fibre', 30)
-    market.sellResource('fibre', 30) // demand 0.7
+    market.sellResource('fibre', 30)
     const before = market.getDemand('fibre')
 
     market.tick()
-    expect(market.getDemand('fibre')).toBeCloseTo(before + M.DEMAND_RECOVERY_PER_TICK, 10)
+    expect(market.getDemand('fibre')).toBeCloseTo(
+      before + M.DEMAND_RECOVERY_RATE * (1 - before),
+      10
+    )
 
-    for (let i = 0; i < 2000; i++) market.tick()
+    for (let i = 0; i < 5000; i++) market.tick()
     expect(market.getDemand('fibre')).toBe(1)
+  })
+
+  it('recovers faster the more depressed the market is', () => {
+    const gain = (sold: number) => {
+      const { market, inventory } = setup()
+      inventory.add('fibre', sold)
+      market.sellResource('fibre', sold)
+      const d0 = market.getDemand('fibre')
+      market.tick()
+      return market.getDemand('fibre') - d0
+    }
+    expect(gain(60)).toBeGreaterThan(gain(10))
   })
 
   it('does not disturb resources that are already at full demand', () => {

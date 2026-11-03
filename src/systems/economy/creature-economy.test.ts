@@ -39,8 +39,18 @@ describe('getRarityTier', () => {
   })
 
   it('returns the tier index and multiplier', () => {
-    expect(getRarityTier(0.95)).toEqual({ name: 'legendary', index: 4, multiplier: 7 })
-    expect(getRarityTier(0.1)).toEqual({ name: 'common', index: 0, multiplier: 1 })
+    expect(getRarityTier(0.95)).toEqual({
+      name: 'legendary',
+      index: 4,
+      multiplier: 7,
+      outputMultiplier: 3,
+    })
+    expect(getRarityTier(0.1)).toEqual({
+      name: 'common',
+      index: 0,
+      multiplier: 1,
+      outputMultiplier: 1,
+    })
   })
 
   it('clamps out-of-range and non-finite rarity', () => {

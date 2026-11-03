@@ -72,13 +72,18 @@ export const GAME_CONFIG = {
     /** Output and food scale with body size. */
     SIZE_MULTIPLIER: { tiny: 0.5, small: 0.75, medium: 1, large: 1.5, huge: 2 },
 
-    /** Value multiplier by rarity tier; `min` is the lowest rarity (0..1) in the tier. */
+    /**
+     * Rarity tiers; `min` is the lowest rarity (0..1) in the tier. `multiplier` scales what a
+     * creature sells for; `outputMultiplier` scales what it produces. Output is deliberately
+     * gentler than value, so a rare creature is worth far more to sell without a single
+     * legendary out-earning a whole ranch of ordinary ones.
+     */
     RARITY_TIERS: [
-      { name: 'common', min: 0, multiplier: 1 },
-      { name: 'uncommon', min: 0.4, multiplier: 1.6 },
-      { name: 'rare', min: 0.6, multiplier: 2.5 },
-      { name: 'epic', min: 0.8, multiplier: 4 },
-      { name: 'legendary', min: 0.92, multiplier: 7 },
+      { name: 'common', min: 0, multiplier: 1, outputMultiplier: 1 },
+      { name: 'uncommon', min: 0.4, multiplier: 1.6, outputMultiplier: 1.3 },
+      { name: 'rare', min: 0.6, multiplier: 2.5, outputMultiplier: 1.7 },
+      { name: 'epic', min: 0.8, multiplier: 4, outputMultiplier: 2.3 },
+      { name: 'legendary', min: 0.92, multiplier: 7, outputMultiplier: 3 },
     ],
 
     /** Output multiplier by growth stage (no lifespan: adults stay adults, decision Q4). */
@@ -107,14 +112,23 @@ export const GAME_CONFIG = {
 
     /** Market prices and demand (GDD 7.2, 7.7; decision Q7: base price with demand saturation). */
     MARKET: {
-      /** Coins per unit at full demand. */
-      BASE_UNIT_PRICE: { fibre: 4, down: 5, brine: 6, essence: 12, shards: 14 },
+      /**
+       * Coins per unit at full demand. Set so a well-kept common creature of every archetype
+       * earns a similar margin over its own cheapest adequate food: fibre 3 vs a 10-coin berry,
+       * down 5 vs berry at 70%, brine 9 vs fish, essence 12 vs berry at 50%, shards 30 vs a
+       * 50-coin crystal. (See docs/BALANCE.md.)
+       */
+      BASE_UNIT_PRICE: { fibre: 3, down: 5, brine: 9, essence: 12, shards: 30 },
       /** Demand lost for every unit sold (demand starts at 1). */
-      DEMAND_DROP_PER_UNIT: 0.01,
+      DEMAND_DROP_PER_UNIT: 0.005,
       /** Demand never falls below this, so a flooded market still pays something. */
       MIN_DEMAND: 0.25,
-      /** Demand regained per economy tick while below 1. */
-      DEMAND_RECOVERY_PER_TICK: 0.0005,
+      /**
+       * Share of the missing demand regained every economy tick. Recovery is proportional to
+       * how far demand has fallen, so a flooded market bounces back faster than a slightly
+       * dented one, and steady selling settles at a price instead of sinking to the floor.
+       */
+      DEMAND_RECOVERY_RATE: 0.008,
 
       /** Coins for a medium, common, adult creature with no extra parts. */
       CREATURE_BASE_VALUE: 40,

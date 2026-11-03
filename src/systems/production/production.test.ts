@@ -69,8 +69,8 @@ describe('outputPerCycle (GDD 7.5)', () => {
     const base = E.BASE_OUTPUT_PER_CYCLE.terrestrial
     expect(outputPerCycle(inputs({ size: 'huge' }))).toBeCloseTo(base * 2, 10)
     expect(outputPerCycle(inputs({ size: 'tiny' }))).toBeCloseTo(base * 0.5, 10)
-    expect(outputPerCycle(inputs({ rarity: 0.99 }))).toBeCloseTo(base * 7, 10) // legendary
-    expect(outputPerCycle(inputs({ rarity: 0.5 }))).toBeCloseTo(base * 1.6, 10) // uncommon
+    expect(outputPerCycle(inputs({ rarity: 0.99 }))).toBeCloseTo(base * 3, 10) // legendary (output curve)
+    expect(outputPerCycle(inputs({ rarity: 0.5 }))).toBeCloseTo(base * 1.3, 10) // uncommon
     expect(outputPerCycle(inputs({}, 100))).toBeCloseTo(base * 1.25, 10)
     expect(outputPerCycle(inputs({}, 0))).toBeCloseTo(base * 0.25, 10)
     expect(outputPerCycle(inputs({}, 75, 'hatchling'))).toBeCloseTo(base * 0.25, 10)
@@ -79,7 +79,7 @@ describe('outputPerCycle (GDD 7.5)', () => {
 
   it('compounds every factor together', () => {
     // crystalline 3 x large 1.5 x epic 4 x happiness 100 (1.25) x juvenile 0.6
-    const expected = 3 * 1.5 * 4 * 1.25 * 0.6
+    const expected = 3 * 1.5 * 2.3 * 1.25 * 0.6
     expect(
       outputPerCycle(
         inputs({ archetype: 'crystalline', size: 'large', rarity: 0.85 }, 100, 'juvenile')

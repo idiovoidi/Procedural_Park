@@ -16,7 +16,8 @@
     "jscpd": "jscpd --min-lines 5 --min-tokens 50 src/",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "balance": "BALANCE_REPORT=1 vitest run src/systems/balance/report.test.ts --reporter=verbose"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.13",
