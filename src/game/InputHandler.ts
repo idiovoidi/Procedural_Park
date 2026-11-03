@@ -19,6 +19,7 @@ export interface InputHandlerCallbacks {
   onToggleShader: () => void
   onToggleCreatureInfo: () => void
   onToggleGallery: () => void
+  onToggleMap: () => void
   onToggleCollection: () => void
   onToggleMultiplayer: () => void
   onToggleSettings: () => void
@@ -75,6 +76,7 @@ export class InputHandler {
 
     // UI toggles
     this.inputManager.on('ui.toggleGallery', () => this.callbacks.onToggleGallery())
+    this.inputManager.on('ui.toggleMap', () => this.callbacks.onToggleMap())
     this.inputManager.on('ui.toggleCollection', () => this.callbacks.onToggleCollection())
     this.inputManager.on('ui.toggleMultiplayer', () => this.callbacks.onToggleMultiplayer())
     this.inputManager.on('ui.toggleSettings', () => this.callbacks.onToggleSettings())

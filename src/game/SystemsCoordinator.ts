@@ -1,4 +1,5 @@
 import { log } from '@core/utils'
+import * as THREE from 'three'
 /**
  * SystemsCoordinator
  * Initializes and coordinates all game systems
@@ -28,9 +29,11 @@ import { PhotoSystem } from '@systems/photo'
 import { ProductionSystem, ResourceInventory } from '@systems/production'
 import { Roster } from '@systems/roster'
 import { createStateSyncHelpers, type GameStateType, IntegratedStateManager } from '@systems/state'
-import { STATIONS } from '@systems/track/track-path'
+import { MAP_SIZE, WATER_LEVEL } from '@systems/terrain/terrain-height'
 import { DebugPanel } from '@ui/debug'
 import { UIManager } from '@ui/managers'
+
+const mapDirection = new THREE.Vector3()
 
 export interface GameSystems {
   scene: SceneManager
@@ -105,7 +108,24 @@ export class SystemsCoordinator {
     cameraController.setGroundHeightSampler((x, z) =>
       sceneManager.terrainSystem.getFloorHeightAt(x, z)
     )
-    cameraController.setStations(STATIONS, (station) =>
+    uiManager.setWorldMapSource({
+      mapSize: MAP_SIZE,
+      waterLevel: WATER_LEVEL,
+      heightAt: (x, z) => sceneManager.terrainSystem.getHeightAt(x, z),
+      biomeAt: (x, z) => sceneManager.terrainSystem.getBiomeAt(x, z),
+      layout: sceneManager.layout,
+      getPlayer: () => {
+        const pos = cameraController.camera.position
+        const dir = cameraController.camera.getWorldDirection(mapDirection)
+        return { x: pos.x, z: pos.z, heading: Math.atan2(dir.z, dir.x) }
+      },
+      getCreatures: () =>
+        creatureManager
+          .getCreatures()
+          .map((c) => ({ x: c.group.position.x, z: c.group.position.z })),
+    })
+    uiManager.onWorldMapToggle((open) => cameraController.setInputSuspended(open))
+    cameraController.setStations(sceneManager.stations, (station) =>
       uiManager.showToast(`🚉 ${station.name} — press C to hop off`)
     )
 

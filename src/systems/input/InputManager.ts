@@ -119,6 +119,7 @@ export class InputManager {
       priority: 3,
     })
     this.addBinding({ action: 'ui.toggleDayNight', key: 'n', contexts: ['game'], priority: 2 })
+    this.addBinding({ action: 'ui.toggleMap', key: 'Tab', contexts: ['game', 'ui'], priority: 3 })
 
     // Shader actions
     this.addBinding({ action: 'shader.toggle', key: 'v', contexts: ['game'], priority: 2 })

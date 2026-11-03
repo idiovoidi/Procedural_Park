@@ -1,3 +1,4 @@
+import { RANGER_SITE } from '@systems/layout/park-sites'
 import * as THREE from 'three'
 
 export function buildRangerStation(): THREE.Group {
@@ -180,8 +181,8 @@ export function buildRangerStation(): THREE.Group {
   stationGroup.add(flag)
 
   // Position the ranger station near the entrance but off to the side
-  stationGroup.position.set(25, 0, 40)
-  stationGroup.rotation.y = -Math.PI / 6
+  stationGroup.position.set(RANGER_SITE.x, 0, RANGER_SITE.z)
+  stationGroup.rotation.y = RANGER_SITE.rot
 
   return stationGroup
 }

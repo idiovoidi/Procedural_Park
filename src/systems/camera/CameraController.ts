@@ -55,6 +55,7 @@ export class CameraController {
   private onStationArrive: ((station: StationDef) => void) | null = null
 
   private inputManager: InputManager | null = null
+  private inputSuspended = false
   private canvas: HTMLCanvasElement | null = null
 
   private handleResize = () => {
@@ -148,8 +149,21 @@ export class CameraController {
     }
   }
 
+  /** While true (the map is open) movement and look input are ignored. */
+  public setInputSuspended(suspended: boolean) {
+    this.inputSuspended = suspended
+  }
+
   private updateFromInputManager() {
     if (!this.inputManager) return
+    if (this.inputSuspended) {
+      this.moveForward = false
+      this.moveBackward = false
+      this.moveLeft = false
+      this.moveRight = false
+      this.isSprinting = false
+      return
+    }
 
     // Update movement keys
     this.moveForward = this.inputManager.isKeyDown('w')

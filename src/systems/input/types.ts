@@ -31,6 +31,7 @@ export type InputAction =
   | 'ui.toggleMultiplayer'
   | 'ui.togglePlayerStats'
   | 'ui.toggleDayNight'
+  | 'ui.toggleMap'
   // Shader actions
   | 'shader.toggle'
   | 'shader.adjustThresholdUp'

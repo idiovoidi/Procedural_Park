@@ -149,6 +149,7 @@ export class Game {
         // TODO: Implement toggle creature info
       },
       onToggleGallery: () => this.systems.ui.toggleGallery(),
+      onToggleMap: () => this.systems.ui.toggleWorldMap(),
       onToggleCollection: () => this.systems.ui.toggleCollection(),
       onToggleMultiplayer: () => this.systems.ui.toggleMultiplayer(),
       onToggleSettings: () => this.systems.ui.toggleSettings(),
