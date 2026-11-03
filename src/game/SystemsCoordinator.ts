@@ -27,10 +27,10 @@ import { CurrencyManager } from '@systems/currency'
 import { SimClock } from '@systems/economy'
 import { FoodManager } from '@systems/food'
 import { InputManager } from '@systems/input'
-import { MarketSystem } from '@systems/market'
+import { AutoSeller, MarketSystem } from '@systems/market'
 import { PenGrid } from '@systems/park'
 import { PhotoSystem } from '@systems/photo'
-import { ProductionSystem, ResourceInventory } from '@systems/production'
+import { inventoryCapacity, ProductionSystem, ResourceInventory } from '@systems/production'
 import { Roster } from '@systems/roster'
 import { createStateSyncHelpers, type GameStateType, IntegratedStateManager } from '@systems/state'
 import { MAP_SIZE, WATER_LEVEL } from '@systems/terrain/terrain-height'
@@ -72,6 +72,8 @@ export interface GameSystems {
   resources: ResourceInventory
   /** Selling resources and creatures for Safari Coins. */
   market: MarketSystem
+  /** Sells output by itself above a price floor, once an auto-sell valve is built. */
+  autoSell: AutoSeller
   /** Buyers who pay a premium for specific traits (GDD 7.3). */
   contracts: ContractBoard
   /** First-person building of fences, troughs and bins on the hub grid. */
@@ -219,6 +221,11 @@ export class SystemsCoordinator {
     const market = new MarketSystem(roster, resources, currencyManager)
     simClock.onTick(() => market.tick())
 
+    // Silos raise how much of each resource can be held; valves sell it above a price floor
+    resources.setCapacity(inventoryCapacity(park))
+    const autoSell = new AutoSeller(market, resources, park)
+    simClock.onTick((tick) => autoSell.tick(tick))
+
     // The Contract Board posts and expires requests on the same clock
     const contracts = new ContractBoard(roster, currencyManager, GAME_CONFIG.WORLD_SEED)
     simClock.onTick((tick) => contracts.tick(tick))
@@ -281,6 +288,7 @@ export class SystemsCoordinator {
       production,
       resources,
       market,
+      autoSell,
       contracts,
       build,
       capture,

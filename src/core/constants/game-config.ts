@@ -235,6 +235,8 @@ export const GAME_CONFIG = {
         hopper: 45,
         bin: 25,
         collector: 80,
+        silo: 120,
+        valve: 150,
         den: 60,
         toy: 15,
         shelter: 20,
@@ -253,6 +255,15 @@ export const GAME_CONFIG = {
     PRODUCTION: {
       /** Units (all resource types combined) one collector bin holds. */
       BIN_CAPACITY_UNITS: 100,
+      /** Units of each resource the player can carry without a silo. */
+      INVENTORY_BASE_CAPACITY: 150,
+      /** Extra units of each resource every resource silo adds (silos work park-wide). */
+      SILO_CAPACITY: 500,
+      /**
+       * Auto-sell valve: while at least one valve stands, every production cycle sells a resource
+       * as long as its price stays at or above `floor` x its base price. The player sets the floor.
+       */
+      AUTO_SELL: { DEFAULT_FLOOR: 0.7, MIN_FLOOR: 0.3, MAX_FLOOR: 1, FLOOR_STEP: 0.05 },
     },
 
     /** Care loop: feeding, hunger and mood. All values per feeding cycle unless noted. */

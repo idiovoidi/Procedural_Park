@@ -15,6 +15,8 @@ export interface MarketResourceRow {
   label: string
   icon: string
   owned: number
+  /** How many units can be held (raised by silos). */
+  capacity: number
   /** Coins the next unit would fetch. */
   unitPrice: number
   /** 0..1 */
@@ -33,12 +35,16 @@ export interface MarketView {
   balance: number
   resources: MarketResourceRow[]
   creatures: MarketCreatureRow[]
+  /** The auto-sell valve: only shown once one is built. */
+  autoSell: { available: boolean; floor: number }
 }
 
 export interface MarketPanelCallbacks {
   onSellResource: (type: string, units: number) => void
   onSellAllResources: () => void
   onSellCreature: (id: string) => void
+  /** Move the auto-sell price floor up (+1) or down (-1) one step. */
+  onNudgeFloor: (direction: 1 | -1) => void
 }
 
 const CONFIRM_MS = 3000
@@ -64,6 +70,7 @@ export class MarketPanel {
     onSellResource: () => {},
     onSellAllResources: () => {},
     onSellCreature: () => {},
+    onNudgeFloor: () => {},
   }
   /** Creature id awaiting a confirming second click, and when that offer lapses. */
   private pendingSale: { id: string; timer: ReturnType<typeof setTimeout> } | null = null
@@ -76,6 +83,7 @@ export class MarketPanel {
   private signature = ''
   private refs: {
     sellAll: HTMLButtonElement | null
+    floor: HTMLElement | null
     resources: Map<
       string,
       {
@@ -88,7 +96,7 @@ export class MarketPanel {
       }
     >
     creatures: Map<string, HTMLElement>
-  } = { sellAll: null, resources: new Map(), creatures: new Map() }
+  } = { sellAll: null, floor: null, resources: new Map(), creatures: new Map() }
 
   constructor() {
     this.container = el('div', 'modal-overlay')
@@ -171,6 +179,7 @@ export class MarketPanel {
 
     const signature = [
       this.pendingSale?.id ?? '',
+      view.autoSell.available ? 'valve' : 'no-valve',
       ...view.creatures.map((c) => `${c.id}:${c.name}:${c.description}`),
     ].join('|')
     if (signature !== this.signature || this.body.childElementCount === 0) {
@@ -186,10 +195,13 @@ export class MarketPanel {
     if (this.refs.sellAll) {
       this.refs.sellAll.disabled = view.resources.every((r) => r.owned === 0)
     }
+    if (this.refs.floor) {
+      this.refs.floor.textContent = `${Math.round(view.autoSell.floor * 100)}%`
+    }
     for (const r of view.resources) {
       const ref = this.refs.resources.get(r.type)
       if (!ref) continue
-      ref.owned.textContent = `×${r.owned}`
+      ref.owned.textContent = `×${r.owned}/${r.capacity}`
       ref.price.textContent = `🪙 ${r.unitPrice.toFixed(1)} each`
       const pct = `${Math.round(r.demand * 100)}%`
       ref.bar.style.width = pct
@@ -212,7 +224,7 @@ export class MarketPanel {
     const head = el('div', 'market-section-head')
     head.append(el('h3', undefined, 'Resources'))
     const sellAll = el('button', 'market-btn', 'Sell all')
-    this.refs = { sellAll, resources: new Map(), creatures: new Map() }
+    this.refs = { sellAll, floor: null, resources: new Map(), creatures: new Map() }
     sellAll.disabled = view.resources.every((r) => r.owned === 0)
     sellAll.addEventListener('click', () => {
       this.audio.onClick?.()
@@ -221,10 +233,31 @@ export class MarketPanel {
     head.append(sellAll)
     section.append(head)
 
+    if (view.autoSell.available) {
+      const row = el('div', 'market-row')
+      row.append(el('span', 'market-icon', '🚰'), el('span', 'market-name', 'Auto-sell floor'))
+      const down = el('button', 'market-btn', '−')
+      const floor = el('span', 'market-owned', `${Math.round(view.autoSell.floor * 100)}%`)
+      const up = el('button', 'market-btn', '+')
+      down.addEventListener('click', () => {
+        this.audio.onClick?.()
+        this.callbacks.onNudgeFloor(-1)
+      })
+      up.addEventListener('click', () => {
+        this.audio.onClick?.()
+        this.callbacks.onNudgeFloor(1)
+      })
+      row.append(down, floor, up)
+      row.title =
+        'Valves sell your stock every minute while the price is at or above this share of base'
+      this.refs.floor = floor
+      section.append(row)
+    }
+
     for (const r of view.resources) {
       const row = el('div', 'market-row')
       row.append(el('span', 'market-icon', r.icon), el('span', 'market-name', r.label))
-      const ownedEl = el('span', 'market-owned', `×${r.owned}`)
+      const ownedEl = el('span', 'market-owned', `×${r.owned}/${r.capacity}`)
       const priceEl = el('span', 'market-price', `🪙 ${r.unitPrice.toFixed(1)} each`)
       row.append(ownedEl, priceEl)
 

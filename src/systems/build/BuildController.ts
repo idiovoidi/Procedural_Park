@@ -30,6 +30,8 @@ export type BuildTool =
   | 'hopper'
   | 'bin'
   | 'collector'
+  | 'silo'
+  | 'valve'
   | 'den'
   | 'toy'
   | 'shelter'
@@ -45,6 +47,8 @@ export const BUILD_TOOLS: readonly BuildTool[] = [
   'hopper',
   'bin',
   'collector',
+  'silo',
+  'valve',
   'den',
   'toy',
   'shelter',
@@ -61,6 +65,8 @@ export const TOOL_LABELS: Record<BuildTool, string> = {
   hopper: 'Feeder hopper',
   bin: 'Collector bin',
   collector: 'Auto-collector',
+  silo: 'Resource silo',
+  valve: 'Auto-sell valve',
   den: 'Breeding den',
   toy: 'Toy',
   shelter: 'Shelter',
@@ -139,6 +145,8 @@ const PROP_TOOLS: Partial<Record<BuildTool, PropKind>> = {
   hopper: 'hopper',
   bin: 'bin',
   collector: 'collector',
+  silo: 'silo',
+  valve: 'valve',
   den: 'den',
   toy: 'toy',
   shelter: 'shelter',

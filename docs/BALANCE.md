@@ -54,3 +54,14 @@ bot reaches ~122k):
 At 8 the breeding line beats plain production by ~20% without running away, and breeding on its
 own (no contracts) is clearly the worse path, which is the point: contracts are the bridge between
 breeding and income. A guard-rail test asserts both bounds (1.05x to 3x).
+
+## Silos and the auto-sell valve (T19d)
+
+Without a silo the player holds at most `INVENTORY_BASE_CAPACITY` (150) of each resource; each
+silo adds `SILO_CAPACITY` (500) of every resource, park-wide. A bin that cannot unload into a full
+inventory simply keeps its output, which is the soft pressure to build silos or to sell.
+
+An auto-sell valve sells each resource every production cycle while its price is at or above the
+player's floor (default 70% of base, adjustable 30-100% in the Market panel). A high floor waits
+for good prices and fills the silos; a low floor sells everything immediately. The balance sim is
+unchanged: its bot already sells every minute and never reaches the base cap.

@@ -277,6 +277,8 @@ describe('pen profile', () => {
       trough: 1,
       hopper: 0,
       collector: 0,
+      silo: 0,
+      valve: 0,
       bin: 0,
       den: 0,
     })

@@ -1,3 +1,4 @@
+import { GAME_CONFIG } from '@core/constants'
 import { getRarityTier, RESOURCE_BY_ARCHETYPE } from '@systems/economy'
 import { creatureValue } from '@systems/market'
 import { RESOURCE_TYPES } from '@systems/production'
@@ -38,6 +39,12 @@ export class MarketUIManager {
         const coins = sold.reduce((sum, q) => sum + q.coins, 0)
         if (sold.length > 0) ui.showToast(`🪙 +${coins} from selling everything`)
       },
+      onNudgeFloor: (direction) => {
+        const { autoSell } = this.systems
+        autoSell.setFloor(
+          autoSell.getFloor() + direction * GAME_CONFIG.ECONOMY.PRODUCTION.AUTO_SELL.FLOOR_STEP
+        )
+      },
       onSellCreature: (id) => {
         const sale = market.sellCreature(id)
         if (sale) ui.showToast(`🪙 +${sale.coins}: sold ${sale.name}`)
@@ -47,6 +54,7 @@ export class MarketUIManager {
     // Redraw whenever anything the panel shows changes.
     const refresh = () => this.refresh()
     market.onChange(refresh)
+    this.systems.autoSell.onChange(refresh)
     resources.onChange(refresh)
     roster.onChange(refresh)
     currency.onBalanceChange(refresh)
@@ -72,6 +80,7 @@ export class MarketUIManager {
         label: RESOURCE_DISPLAY[type].label,
         icon: RESOURCE_DISPLAY[type].icon,
         owned: resources.get(type),
+        capacity: Math.round(resources.getCapacity(type)),
         unitPrice: market.getUnitPrice(type),
         demand: market.getDemand(type),
       })),
@@ -81,6 +90,10 @@ export class MarketUIManager {
         description: `${c.genome.archetype} · ${getRarityTier(c.genome.rarity).name} · ${c.ageStage} · makes ${RESOURCE_BY_ARCHETYPE[c.genome.archetype]}`,
         value: creatureValue(c),
       })),
+      autoSell: {
+        available: this.systems.autoSell.isAvailable(),
+        floor: this.systems.autoSell.getFloor(),
+      },
     }
   }
 }

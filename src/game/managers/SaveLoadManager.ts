@@ -137,6 +137,7 @@ export class SaveLoadManager {
       resources: s.resources,
       market: s.market,
       contracts: s.contracts,
+      autoSell: s.autoSell,
       currency: s.currency,
       food: s.food,
     }

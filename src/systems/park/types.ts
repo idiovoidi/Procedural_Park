@@ -53,6 +53,8 @@ export type PropKind =
   | 'hopper'
   | 'bin'
   | 'collector'
+  | 'silo'
+  | 'valve'
   | 'den'
 export const ENRICHMENT_PROPS: readonly PropKind[] = ['toy', 'shelter', 'plant']
 
