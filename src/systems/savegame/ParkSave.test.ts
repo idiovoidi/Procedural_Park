@@ -3,6 +3,7 @@ import { GAME_CONFIG } from '../../core/constants'
 import { BreedingSystem } from '../breeding'
 import { CareSystem } from '../care'
 import { Codex } from '../codex'
+import { ContractBoard } from '../contracts'
 import { generateGenome } from '../creatures/genome'
 import { CurrencyManager } from '../currency'
 import { SimClock } from '../economy'
@@ -33,6 +34,7 @@ function newWorld(): ParkTargets & { advance: (seconds: number) => void } {
   const currency = new CurrencyManager(100)
   const market = new MarketSystem(roster, resources, currency)
   const food = new FoodManager()
+  const contracts = new ContractBoard(roster, currency, 7)
   const breeding = new BreedingSystem(roster, grid, currency, 1337)
   const codex = new Codex()
   roster.onChange((c) => {
@@ -43,6 +45,7 @@ function newWorld(): ParkTargets & { advance: (seconds: number) => void } {
   clock.onTick((tick) => care.tick(tick))
   clock.onTick((tick) => production.tick(tick))
   clock.onTick(() => market.tick())
+  clock.onTick((tick) => contracts.tick(tick))
   clock.onTick((tick) => breeding.tick(tick))
 
   return {
@@ -55,6 +58,7 @@ function newWorld(): ParkTargets & { advance: (seconds: number) => void } {
     production,
     resources,
     market,
+    contracts,
     currency,
     food,
     advance: (seconds) => {
@@ -116,6 +120,7 @@ function snapshotOf(w: ParkTargets) {
     production: w.production.serialize(),
     resources: w.resources.getAll(),
     demand: w.market.serialize(),
+    contracts: w.contracts?.serialize(),
     food: w.food.getInventory().map((i) => [i.id, i.quantity]),
   }
 }
@@ -150,6 +155,7 @@ describe('restorePark', () => {
         'clock',
         'codex',
         'coins',
+        'contracts',
         'food',
         'grid',
         'market',

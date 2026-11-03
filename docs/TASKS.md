@@ -37,6 +37,19 @@ Exit: a new player captures a founder, pens it, earns from it, breeds a child, s
 
 `T2 → T3 → T4 → (T5 ∥ T6) → (T7 ∥ T8 ∥ T11 ∥ T12 ∥ T14) → T9 → T10 → T13 → (T15 ∥ T16 ∥ T17) → T18`
 
+## M2 — Automation and contracts (T19 split)
+
+Exit: a player can run a hands-off park for several minutes without starving creatures, and breeding has a reason to exist.
+
+| ID | Task | Deps | Done when |
+|---|---|---|---|
+| T19a | [ ] Contract Board: seeded trait requests, fulfil with a creature, panel, save, balance | T18 | Contracts pay a premium over market, are always satisfiable, survive save/load |
+| T19b | [ ] Feeder hopper: per-pen hopper that tops up the trough | T19a | A fed pen runs for many cycles without the player |
+| T19c | [ ] Collector range + bin warning: auto-collect nearby bins, warn on bin-less pens | T19b | No output wasted in a pen with a bin |
+| T19d | [ ] Silos + auto-sell valve with price floor | T19c | Output sells itself above the floor price |
+| T19e | [ ] Food farms (generators) | T19d | Food no longer has to be bought |
+| T19f | [ ] M2 balance sim + E2E | T19a–e | Balance guard rails and E2E cover the hands-off loop |
+
 ## Later milestones (split into tasks when reached)
 
 | Epic | Milestone | Scope | Deps |

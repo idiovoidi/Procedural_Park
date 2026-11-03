@@ -11,8 +11,12 @@ import { createBalanceWorld } from './world'
  */
 const MARKET = GAME_CONFIG.ECONOMY.MARKET as unknown as Record<string, number>
 
-const margin = (r: ReturnType<typeof runSim>) =>
-  1 - (r.totals.spent.foodPurchases ?? 0) / (r.totals.earned.resourceSales || 1)
+/** Share of sales (resources, creatures, contracts) left after paying for food. */
+const margin = (r: ReturnType<typeof runSim>) => {
+  const e = r.totals.earned
+  const sales = (e.resourceSales ?? 0) + (e.creatureSales ?? 0) + (e.contracts ?? 0)
+  return 1 - (r.totals.spent.foodPurchases ?? 0) / (sales || 1)
+}
 
 describe('economy balance', () => {
   const run = runSim({ minutes: 240 })
@@ -47,6 +51,13 @@ describe('economy balance', () => {
   it('does not starve or waste its animals', () => {
     expect(run.starvingShare).toBeLessThan(0.03)
     expect(run.wastedShare).toBeLessThan(0.15)
+  })
+
+  it('contracts make breeding worth it', () => {
+    const hands = runSim({ minutes: 240, policy: { breeds: false, contracts: false } })
+    expect(run.totals.earned.contracts ?? 0).toBeGreaterThan(0)
+    expect(run.final.netWorth).toBeGreaterThan(hands.final.netWorth * 1.05)
+    expect(run.final.netWorth).toBeLessThan(hands.final.netWorth * 3)
   })
 
   it('survives a harsher market', () => {

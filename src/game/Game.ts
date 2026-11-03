@@ -11,6 +11,7 @@ import { GameLoop } from './GameLoop'
 import { InputHandler, type InputHandlerCallbacks } from './InputHandler'
 import {
   BreedingUIManager,
+  ContractUIManager,
   FoodSystemManager,
   MarketUIManager,
   PhotoManager,
@@ -29,6 +30,7 @@ export class Game {
   private breedingUI!: BreedingUIManager
   private ranchBook!: RanchBookManager
   private toolBelt!: ToolBeltManager
+  private contractsUI!: ContractUIManager
   private saveLoad!: SaveLoadManager
   private recordingIndicator: HTMLElement | null = null
   private container: HTMLElement
@@ -68,6 +70,7 @@ export class Game {
       this.market = new MarketUIManager(this.systems)
       this.breedingUI = new BreedingUIManager(this.systems)
       this.ranchBook = new RanchBookManager(this.systems)
+      this.contractsUI = new ContractUIManager(this.systems)
       this.toolBelt = new ToolBeltManager(this.systems, {
         feed: () => this.food.feedNearestCreature(),
         lure: () => this.systems.capture.placeLure(),
@@ -78,6 +81,7 @@ export class Game {
         breed: () => this.breedingUI.toggle(),
         market: () => this.market.toggle(),
         book: () => this.ranchBook.toggle(),
+        board: () => this.contractsUI.toggle(),
       })
       this.saveLoad = new SaveLoadManager(this.systems, this.photos, () => this.updateLabSign())
 
@@ -113,6 +117,7 @@ export class Game {
       this.market.initialize()
       this.breedingUI.initialize()
       this.ranchBook.initialize()
+      this.contractsUI.initialize()
       this.toolBelt.initialize()
 
       // Bring back the ranch from the last session, if there was one

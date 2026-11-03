@@ -41,7 +41,8 @@ function merge(list: Outcome[]): Outcome[] {
     .sort((x, y) => y.chance - x.chance)
 }
 
-const PART_TESTS: Array<[string, (g: Genome) => boolean]> = [
+/** Optional body parts a creature may or may not have, with a test for each. */
+export const OPTIONAL_PARTS: ReadonlyArray<readonly [string, (g: Genome) => boolean]> = [
   ['wings', (g) => g.wings.pairs > 0],
   ['tail', (g) => g.tails.count > 0],
   ['horns', (g) => g.horns.count > 0],
@@ -76,15 +77,15 @@ export function describeOffspring(
   const max = Math.min(1, mean + 0.05)
 
   // Parts depend on which parent's body the child gets, so sample the real crossover.
-  const counts = PART_TESTS.map(() => 0)
+  const counts = OPTIONAL_PARTS.map(() => 0)
   const n = Math.max(1, Math.floor(samples))
   for (let i = 0; i < n; i++) {
     const child = crossover(a, b, hashSeed(PREVIEW_SEED, i), rarityLift(a, b))
-    PART_TESTS.forEach(([, has], index) => {
+    OPTIONAL_PARTS.forEach(([, has], index) => {
       if (has(child)) counts[index]++
     })
   }
-  const parts = PART_TESTS.map(([label], index) => ({ label, chance: counts[index] / n }))
+  const parts = OPTIONAL_PARTS.map(([label], index) => ({ label, chance: counts[index] / n }))
     .filter((o) => o.chance > 0)
     .sort((x, y) => y.chance - x.chance)
 

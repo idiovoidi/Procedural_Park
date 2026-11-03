@@ -6,6 +6,7 @@ import type { FoodItem } from '@systems/food'
 import type * as THREE from 'three'
 import { BreedingPanel } from '../components/breeding-panel'
 import { BuildHud } from '../components/build-hud'
+import { ContractBoardPanel } from '../components/contract-board'
 import { CreatureCollection } from '../components/creature-collection'
 import { CurrencyDisplay } from '../components/currency-display'
 import { FoodInventory } from '../components/food-inventory'
@@ -40,6 +41,7 @@ export class UIManager {
   private breedingPanel: BreedingPanel
   private ranchBook: RanchBook
   private toolBelt: ToolBelt
+  private contractBoard: ContractBoardPanel
   private toggleBreedingBtn: HTMLButtonElement
   private toggleMarketBtn: HTMLButtonElement
   private toggleBuildBtn: HTMLButtonElement
@@ -71,6 +73,7 @@ export class UIManager {
     this.breedingPanel = new BreedingPanel()
     this.ranchBook = new RanchBook()
     this.toolBelt = new ToolBelt()
+    this.contractBoard = new ContractBoardPanel()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
@@ -107,6 +110,7 @@ export class UIManager {
     this.marketPanel.setAudioCallbacks(callbacks)
     this.breedingPanel.setAudioCallbacks(callbacks)
     this.ranchBook.setAudioCallbacks(callbacks)
+    this.contractBoard.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
@@ -656,6 +660,10 @@ export class UIManager {
   /**
    * Get the tool belt and pen inspector
    */
+  public getContractBoard(): ContractBoardPanel {
+    return this.contractBoard
+  }
+
   public getToolBelt(): ToolBelt {
     return this.toolBelt
   }

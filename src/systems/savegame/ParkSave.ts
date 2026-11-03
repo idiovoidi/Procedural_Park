@@ -16,6 +16,7 @@ import { GAME_CONFIG } from '@core/constants'
 import type { BreedingSnapshot, BreedingSystem } from '@systems/breeding'
 import type { CareSnapshot, CareSystem } from '@systems/care'
 import type { Codex, CodexSnapshot } from '@systems/codex'
+import type { ContractBoard, ContractSnapshot } from '@systems/contracts'
 import type { CurrencyManager } from '@systems/currency'
 import type { SimClock, SimClockState } from '@systems/economy'
 import type { FoodManager } from '@systems/food'
@@ -42,6 +43,7 @@ export interface ParkTargets {
   production: ProductionSystem
   resources: ResourceInventory
   market: MarketSystem
+  contracts?: ContractBoard
   currency: CurrencyManager
   food: FoodManager
 }
@@ -63,6 +65,8 @@ export interface ParkSave {
   production: ProductionSnapshot
   resources: ResourceInventorySnapshot
   market: MarketSnapshot
+  /** Open contracts. Absent in older saves (the board then starts fresh). */
+  contracts?: ContractSnapshot
   /** Genome seeds of wild creatures that have been crated, so they don't respawn. */
   capturedSeeds: number[]
 }
@@ -78,6 +82,7 @@ export type ParkSection =
   | 'production'
   | 'resources'
   | 'market'
+  | 'contracts'
   | 'clock'
   | 'captured'
 
@@ -114,6 +119,7 @@ export function capturePark(
     production: t.production.serialize(),
     resources: t.resources.serialize(),
     market: t.market.serialize(),
+    contracts: t.contracts?.serialize(),
     capturedSeeds: [...capturedSeeds],
   }
 }
@@ -187,6 +193,10 @@ export function restorePark(
   section('production', () => t.production.restore(data.production))
   section('resources', () => t.resources.restore(data.resources))
   section('market', () => t.market.restore(data.market))
+  if (data.contracts !== undefined && t.contracts) {
+    const board = t.contracts
+    section('contracts', () => board.restore(data.contracts))
+  }
 
   section('captured', () => {
     if (!Array.isArray(data.capturedSeeds)) return false

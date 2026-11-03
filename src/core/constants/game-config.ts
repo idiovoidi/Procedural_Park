@@ -139,6 +139,25 @@ export const GAME_CONFIG = {
       CREATURE_MAX_PART_PREMIUM: 0.5,
     },
 
+    /** Contract Board (GDD 7.3): buyers who pay a premium for creatures with specific traits. */
+    CONTRACTS: {
+      BOARD_SLOTS: 4,
+      /** Sim ticks a contract stays on the board before it is replaced. */
+      DURATION_TICKS: 7200,
+      /** Sim ticks before a fulfilled slot posts a new contract. */
+      REPLACE_DELAY_TICKS: 120,
+      /**
+       * Reward = value of an ideal matching adult x SCALE x (BASE + PER_REQUIREMENT x requirements).
+       * SCALE is large because a creature is worth far more as a producer than at market: a contract
+       * has to beat what the bot loses by giving one up (see docs/BALANCE.md).
+       */
+      REWARD_SCALE: 8,
+      REWARD_BASE: 1.15,
+      REWARD_PER_REQUIREMENT: 0.35,
+      /** How many requirements a contract has, by slot number (the last entry repeats). */
+      REQUIREMENTS_BY_SLOT: [1, 2, 2, 3],
+    },
+
     /** Breeding (GDD 6): pairing rules, costs, timers and the odds preview. */
     BREEDING: {
       /** Sim ticks an egg takes to hatch. */

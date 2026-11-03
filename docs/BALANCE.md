@@ -32,3 +32,25 @@ generation 5 (guarded by a test). The bot still nets less than a non-breeding bo
 because it captured a near-max legendary early, so there is no headroom to climb; den fees and
 extra mouths are not repaid. The payoff for breeding must therefore also come from
 **contracts that pay for specific traits (M2, T19)**, planned next.
+
+## Contracts (T19a)
+
+The Contract Board posts four seeded requests (archetype, size, minimum rarity tier, optional
+parts) built from a real template creature, so each is satisfiable. A contract pays the template's
+market value x `CONTRACTS.REWARD_SCALE` x (1.15 + 0.35 per requirement).
+
+`REWARD_SCALE` is 8 because a creature is worth far more as a producer than at market: at scale 1-3
+a bot that gave up a producer to deliver a contract ended *behind* a plain production bot. Sweep
+(net worth @240 min; the bot delivers everything except its two rarest adults; a plain production
+bot reaches ~122k):
+
+| scale | contracts + breeding | contracts, no breeding |
+|---|---|---|
+| 1 | 94k | 65k |
+| 3 | 109k | 73k |
+| 6 | 132k | 85k |
+| 10 | 162k | 100k |
+
+At 8 the breeding line beats plain production by ~20% without running away, and breeding on its
+own (no contracts) is clearly the worse path, which is the point: contracts are the bridge between
+breeding and income. A guard-rail test asserts both bounds (1.05x to 3x).

@@ -10,6 +10,7 @@ import { BreedingSystem } from '@systems/breeding'
 import { BuildController } from '@systems/build'
 import { CareSystem } from '@systems/care'
 import { Codex } from '@systems/codex'
+import { ContractBoard } from '@systems/contracts'
 import type { Genome } from '@systems/creatures/genome'
 import { generateGenome, hashSeed } from '@systems/creatures/genome'
 import { CurrencyManager } from '@systems/currency'
@@ -23,6 +24,7 @@ import { Roster } from '@systems/roster'
 export type LedgerCategory =
   | 'resourceSales'
   | 'creatureSales'
+  | 'contracts'
   | 'feedRewards'
   | 'foodPurchases'
   | 'building'
@@ -40,6 +42,7 @@ export class Ledger extends CurrencyManager {
       // MarketSystem reasons: "Sold 12 fibre" (resources) or "Sold <name>" (a creature)
       return /^Sold \d+ /.test(reason) ? 'resourceSales' : 'creatureSales'
     }
+    if (reason.startsWith('Contract ')) return 'contracts'
     if (reason.startsWith('Fed ')) return 'feedRewards'
     if (reason === 'Food') return 'foodPurchases'
     if (reason.startsWith('Built ')) return 'building'
@@ -73,6 +76,7 @@ export interface BalanceWorld {
   resources: ResourceInventory
   production: ProductionSystem
   market: MarketSystem
+  contracts: ContractBoard
   breeding: BreedingSystem
   codex: Codex
   currency: Ledger
@@ -132,6 +136,8 @@ export function createBalanceWorld(): BalanceWorld {
     }
   })
   clock.onTick(() => market.tick())
+  const contracts = new ContractBoard(roster, currency, GAME_CONFIG.WORLD_SEED)
+  clock.onTick((tick) => contracts.tick(tick))
   clock.onTick((tick) => breeding.tick(tick))
 
   const wild = Array.from({ length: GAME_CONFIG.CREATURE_COUNT }, (_, i) =>
@@ -146,6 +152,7 @@ export function createBalanceWorld(): BalanceWorld {
     resources,
     production,
     market,
+    contracts,
     breeding,
     codex,
     currency,

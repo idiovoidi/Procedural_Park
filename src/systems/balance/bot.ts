@@ -31,6 +31,8 @@ export interface BotPolicy {
   dripFloor: number
   /** Whether the bot builds dens and breeds. */
   breeds: boolean
+  /** Whether the bot delivers matching creatures to the Contract Board. */
+  contracts: boolean
   /** Game seconds a feeding takes (the real game enforces a 5 s cooldown per creature). */
   secondsPerFeed: number
   /** Edge length of the pens the bot builds, in cells. */
@@ -42,6 +44,7 @@ export const DEFAULT_POLICY: BotPolicy = {
   selling: 'all',
   dripFloor: 0.6,
   breeds: true,
+  contracts: true,
   secondsPerFeed: 5,
   penSize: 4,
 }
@@ -67,10 +70,31 @@ export class Bot {
   /** One minute of play. Call after advancing the clock by a minute. */
   public step(): void {
     this.collectAndSell()
+    if (this.policy.contracts) this.fulfilContracts()
     this.cull()
     this.restock()
     if (this.policy.breeds) this.maybeBreed()
     this.expand()
+  }
+
+  /**
+   * Deliver creatures to the Contract Board, cheapest match first, but never the two rarest
+   * adults (they are the breeding line the bot is climbing with).
+   */
+  private fulfilContracts(): void {
+    const { roster, contracts } = this.w
+    for (const contract of contracts.getContracts()) {
+      const keep = new Set(
+        roster
+          .list()
+          .filter((c) => c.ageStage === 'adult')
+          .sort((a, b) => b.genome.rarity - a.genome.rarity)
+          .slice(0, 2)
+          .map((c) => c.id)
+      )
+      const pick = contracts.getCandidates(contract.id).find((c) => !keep.has(c.id))
+      if (pick) contracts.fulfil(contract.id, pick.id)
+    }
   }
 
   /** Sell adults that lose money (saturated markets, poor pens): keeping them only costs food. */

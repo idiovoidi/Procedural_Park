@@ -3,6 +3,7 @@
 export { BreedingUIManager } from './BreedingUIManager'
 export { BuildModeManager } from './BuildModeManager'
 export { CaptureManager } from './CaptureManager'
+export { ContractUIManager } from './ContractUIManager'
 export { CreatureManager } from './CreatureManager'
 export { FoodSystemManager } from './FoodSystemManager'
 export { MarketUIManager } from './MarketUIManager'

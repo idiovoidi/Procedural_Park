@@ -22,6 +22,7 @@ import { BreedingSystem } from '@systems/breeding'
 import { CameraController } from '@systems/camera'
 import { CareSystem } from '@systems/care'
 import { Codex } from '@systems/codex'
+import { ContractBoard } from '@systems/contracts'
 import { CurrencyManager } from '@systems/currency'
 import { SimClock } from '@systems/economy'
 import { FoodManager } from '@systems/food'
@@ -71,6 +72,8 @@ export interface GameSystems {
   resources: ResourceInventory
   /** Selling resources and creatures for Safari Coins. */
   market: MarketSystem
+  /** Buyers who pay a premium for specific traits (GDD 7.3). */
+  contracts: ContractBoard
   /** First-person building of fences, troughs and bins on the hub grid. */
   build: BuildModeManager
   /** Winning wild creatures' trust and crating them into the roster. */
@@ -216,6 +219,10 @@ export class SystemsCoordinator {
     const market = new MarketSystem(roster, resources, currencyManager)
     simClock.onTick(() => market.tick())
 
+    // The Contract Board posts and expires requests on the same clock
+    const contracts = new ContractBoard(roster, currencyManager, GAME_CONFIG.WORLD_SEED)
+    simClock.onTick((tick) => contracts.tick(tick))
+
     // Build mode draws the hub grid and lets the player edit it
     const build = new BuildModeManager({
       scene: sceneManager.scene,
@@ -274,6 +281,7 @@ export class SystemsCoordinator {
       production,
       resources,
       market,
+      contracts,
       build,
       capture,
       residents,

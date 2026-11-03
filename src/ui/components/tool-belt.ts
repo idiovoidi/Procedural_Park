@@ -94,7 +94,7 @@ export class ToolBelt {
       const el = document.createElement('div')
       el.className = 'tb-slot'
       el.dataset.tool = slot.id
-      el.title = `${slot.label} (${slot.key})`
+      el.title = slot.key ? `${slot.label} (${slot.key})` : slot.label
       const icon = document.createElement('span')
       icon.className = 'tb-icon'
       icon.textContent = slot.icon
@@ -103,7 +103,8 @@ export class ToolBelt {
       const key = document.createElement('span')
       key.className = 'tb-key'
       key.textContent = slot.key
-      el.append(icon, label, key)
+      el.append(icon, label)
+      if (slot.key) el.append(key)
       el.addEventListener('click', () => this.onUse(slot.id))
       this.belt.append(el)
       this.slots.set(slot.id, el)
