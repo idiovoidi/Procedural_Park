@@ -12,6 +12,7 @@ import { CurrencyDisplay } from '../components/currency-display'
 import { FoodInventory } from '../components/food-inventory'
 import { FoodStore } from '../components/food-store'
 import { Gallery } from '../components/gallery'
+import { MapPanel } from '../components/map-panel'
 import { MarketPanel } from '../components/market-panel'
 import { MiniMap } from '../components/mini-map'
 import { type InventoryItem, PlayerStats } from '../components/player-stats'
@@ -42,6 +43,7 @@ export class UIManager {
   private ranchBook: RanchBook
   private toolBelt: ToolBelt
   private contractBoard: ContractBoardPanel
+  private mapPanel: MapPanel
   private toggleBreedingBtn: HTMLButtonElement
   private toggleMarketBtn: HTMLButtonElement
   private toggleBuildBtn: HTMLButtonElement
@@ -74,6 +76,7 @@ export class UIManager {
     this.ranchBook = new RanchBook()
     this.toolBelt = new ToolBelt()
     this.contractBoard = new ContractBoardPanel()
+    this.mapPanel = new MapPanel()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
@@ -111,6 +114,7 @@ export class UIManager {
     this.breedingPanel.setAudioCallbacks(callbacks)
     this.ranchBook.setAudioCallbacks(callbacks)
     this.contractBoard.setAudioCallbacks(callbacks)
+    this.mapPanel.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
@@ -660,6 +664,10 @@ export class UIManager {
   /**
    * Get the tool belt and pen inspector
    */
+  public getMapPanel(): MapPanel {
+    return this.mapPanel
+  }
+
   public getContractBoard(): ContractBoardPanel {
     return this.contractBoard
   }

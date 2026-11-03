@@ -17,6 +17,7 @@ export interface ToolBeltActions {
   market: () => void
   book: () => void
   board: () => void
+  maps: () => void
 }
 
 const SLOTS: ToolBeltSlot[] = [
@@ -32,6 +33,7 @@ const SLOTS: ToolBeltSlot[] = [
   { id: 'market', icon: '💰', label: 'Market', key: 'U' },
   { id: 'book', icon: '📖', label: 'Book', key: 'K' },
   { id: 'board', icon: '📜', label: 'Board', key: '' },
+  { id: 'maps', icon: '🧭', label: 'Maps', key: '' },
 ]
 
 /** How far ahead of the camera to look for a pen (metres), and how often to refresh (ms). */
@@ -90,6 +92,7 @@ export class ToolBeltManager {
     if (ui.getBreedingPanel().isOpen()) active.add('breed')
     if (ui.getRanchBook().isOpen()) active.add('book')
     if (ui.getContractBoard().isOpen()) active.add('board')
+    if (ui.getMapPanel().isOpen()) active.add('maps')
     belt.setActive(active)
     belt.setPen(this.inspect())
   }

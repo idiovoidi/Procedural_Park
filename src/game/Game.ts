@@ -14,6 +14,7 @@ import {
   ContractUIManager,
   ExpeditionManager,
   FoodSystemManager,
+  MapUIManager,
   MarketUIManager,
   PhotoManager,
   RanchBookManager,
@@ -33,6 +34,7 @@ export class Game {
   private toolBelt!: ToolBeltManager
   private contractsUI!: ContractUIManager
   private expeditions!: ExpeditionManager
+  private mapsUI!: MapUIManager
   private saveLoad!: SaveLoadManager
   private recordingIndicator: HTMLElement | null = null
   private container: HTMLElement
@@ -74,6 +76,7 @@ export class Game {
       this.ranchBook = new RanchBookManager(this.systems)
       this.contractsUI = new ContractUIManager(this.systems)
       this.expeditions = new ExpeditionManager(this.systems)
+      this.mapsUI = new MapUIManager(this.systems)
       this.toolBelt = new ToolBeltManager(this.systems, {
         feed: () => this.food.feedNearestCreature(),
         lure: () => this.systems.capture.placeLure(),
@@ -87,6 +90,7 @@ export class Game {
         market: () => this.market.toggle(),
         book: () => this.ranchBook.toggle(),
         board: () => this.contractsUI.toggle(),
+        maps: () => this.mapsUI.toggle(),
       })
       this.saveLoad = new SaveLoadManager(this.systems, this.photos, () => this.updateLabSign())
 
@@ -124,6 +128,7 @@ export class Game {
       this.ranchBook.initialize()
       this.contractsUI.initialize()
       this.expeditions.initialize()
+      this.mapsUI.initialize()
       this.toolBelt.initialize()
 
       // Bring back the ranch from the last session, if there was one
