@@ -27,6 +27,7 @@ export type BuildTool =
   | 'tallFence'
   | 'gate'
   | 'trough'
+  | 'hopper'
   | 'bin'
   | 'den'
   | 'toy'
@@ -40,6 +41,7 @@ export const BUILD_TOOLS: readonly BuildTool[] = [
   'tallFence',
   'gate',
   'trough',
+  'hopper',
   'bin',
   'den',
   'toy',
@@ -54,6 +56,7 @@ export const TOOL_LABELS: Record<BuildTool, string> = {
   tallFence: 'Tall fence',
   gate: 'Gate',
   trough: 'Trough',
+  hopper: 'Feeder hopper',
   bin: 'Collector bin',
   den: 'Breeding den',
   toy: 'Toy',
@@ -130,6 +133,7 @@ export interface BuildResult {
 
 const PROP_TOOLS: Partial<Record<BuildTool, PropKind>> = {
   trough: 'trough',
+  hopper: 'hopper',
   bin: 'bin',
   den: 'den',
   toy: 'toy',

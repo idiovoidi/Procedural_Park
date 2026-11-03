@@ -1,3 +1,4 @@
+import { getCreatureEconomyProfile } from '@systems/economy'
 import { scorePen } from '@systems/park'
 import type { PenInspectorView, ToolBeltSlot } from '@ui/components/tool-belt'
 import type { GameSystems } from '../SystemsCoordinator'
@@ -8,6 +9,8 @@ export interface ToolBeltActions {
   lure: () => void
   crate: () => void
   collect: () => void
+  stock: () => void
+  shop: () => void
   photo: () => void
   build: () => void
   breed: () => void
@@ -20,6 +23,8 @@ const SLOTS: ToolBeltSlot[] = [
   { id: 'feed', icon: '🍖', label: 'Feed', key: 'F' },
   { id: 'lure', icon: '🪤', label: 'Bait', key: 'L' },
   { id: 'crate', icon: '📦', label: 'Crate', key: 'Y' },
+  { id: 'shop', icon: '🛒', label: 'Shop', key: 'O' },
+  { id: 'stock', icon: '🥣', label: 'Stock', key: '' },
   { id: 'collect', icon: '🧺', label: 'Collect', key: 'Q' },
   { id: 'photo', icon: '📷', label: 'Photo', key: 'T' },
   { id: 'build', icon: '🔨', label: 'Build', key: 'J' },
@@ -32,6 +37,9 @@ const SLOTS: ToolBeltSlot[] = [
 /** How far ahead of the camera to look for a pen (metres), and how often to refresh (ms). */
 const LOOK_AHEAD_M = [2, 5, 8]
 const REFRESH_MS = 250
+
+/** Foods a resident digests at least this well count as "theirs" when stocking a pen. */
+const STOCK_MIN_EFFICIENCY = 0.5
 
 const REQUIREMENT_LABEL: Record<string, string> = {
   space: 'space',
@@ -110,6 +118,53 @@ export class ToolBeltManager {
     this.refresh()
   }
 
+  /**
+   * Put food from the player's bag into the pen being looked into: troughs first, then the
+   * feeder hoppers. Only foods its residents eat well are used.
+   */
+  public stock(): void {
+    const { ui, food, care, roster } = this.systems
+    const pen = this.lookedAtPen()
+    if (!pen) {
+      ui.showToast('🥣 Look into a pen to stock it')
+      return
+    }
+    const residents = roster.getByPen(pen.id)
+    if (residents.length === 0) {
+      ui.showToast('🥣 Nobody lives here yet')
+      return
+    }
+    if (care.getTroughCapacity(pen.id) === 0) {
+      ui.showToast('🥣 This pen needs a trough first')
+      return
+    }
+
+    // Foods any resident eats well, best first.
+    const wanted = new Map<string, number>()
+    for (const c of residents) {
+      for (const d of getCreatureEconomyProfile(c.genome).diet) {
+        if (d.efficiency >= STOCK_MIN_EFFICIENCY) {
+          wanted.set(d.foodId, Math.max(wanted.get(d.foodId) ?? 0, d.efficiency))
+        }
+      }
+    }
+    const order = [...wanted].sort((a, b) => b[1] - a[1]).map(([id]) => id)
+
+    const parts: string[] = []
+    for (const foodId of order) {
+      const item = food.getInventory().find((i) => i.id === foodId)
+      if (!item) continue
+      const accepted = care.stock(pen.id, foodId, item.quantity)
+      if (accepted > 0 && food.removeFood(foodId, accepted)) parts.push(`${accepted} ${foodId}`)
+    }
+    ui.showToast(
+      parts.length > 0
+        ? `🥣 Stocked ${pen.id}: ${parts.join(', ')}`
+        : '🥣 Nothing to stock: buy food they like in the Shop, or the pen is full'
+    )
+    this.refresh()
+  }
+
   private lookedAtPen() {
     const { camera, park } = this.systems
     const cam = camera.camera
@@ -130,7 +185,7 @@ export class ToolBeltManager {
 
   /** The pen under the camera or just ahead of it, described for the inspector. */
   private inspect(): PenInspectorView | null {
-    const { roster, production } = this.systems
+    const { roster, production, care } = this.systems
     const pen = this.lookedAtPen()
     if (!pen) return null
 
@@ -150,7 +205,7 @@ export class ToolBeltManager {
     }
     return {
       title: pen.id,
-      summary: `${residents.length} creature${residents.length === 1 ? '' : 's'} · ${Math.round(report.freeAreaM2)} m² free · ${pen.enclosure} enclosure · bin ${Math.floor(production.getBinTotal(pen.id))}/${production.getBinCapacity(pen.id)}`,
+      summary: `${residents.length} creature${residents.length === 1 ? '' : 's'} · ${Math.round(report.freeAreaM2)} m² free · ${pen.enclosure} enclosure · bin ${Math.floor(production.getBinTotal(pen.id))}/${production.getBinCapacity(pen.id)} · trough ${Math.floor(care.getTroughTotal(pen.id))}/${care.getTroughCapacity(pen.id)}${care.getHopperCapacity(pen.id) > 0 ? ` · hopper ${Math.floor(care.getHopperTotal(pen.id))}/${care.getHopperCapacity(pen.id)}` : ''}`,
       problems: [...failing].map((k) => `needs better ${k}`),
       rows: residents.map((c) => ({
         name: c.name,

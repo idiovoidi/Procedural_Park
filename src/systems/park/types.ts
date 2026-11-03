@@ -45,7 +45,7 @@ export interface Fence {
 export type WaterLevel = 'none' | 'shallow' | 'deep'
 
 /** Things placed on a cell. Toys, shelters and plants count as enrichment; troughs feed, bins store output, dens let a pair breed. */
-export type PropKind = 'toy' | 'shelter' | 'plant' | 'trough' | 'bin' | 'den'
+export type PropKind = 'toy' | 'shelter' | 'plant' | 'trough' | 'hopper' | 'bin' | 'den'
 export const ENRICHMENT_PROPS: readonly PropKind[] = ['toy', 'shelter', 'plant']
 
 /** How well a pen holds a creature, lowest to highest. A higher level satisfies a lower need. */

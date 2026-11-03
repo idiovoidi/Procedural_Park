@@ -375,3 +375,56 @@ describe('with the economy clock', () => {
     expect(oneJump.food).toBeCloseTo(15, 10) // five cycles, one serving each
   })
 })
+
+describe('feeder hoppers', () => {
+  it('hold servings only in a pen that has a hopper', () => {
+    const { care, penId } = setup()
+    // No hopper: stock() fills the trough and the rest is refused.
+    expect(care.stock(penId, 'berry', CARE.TROUGH_CAPACITY_SERVINGS + 30)).toBe(
+      CARE.TROUGH_CAPACITY_SERVINGS
+    )
+    expect(care.getHopperTotal(penId)).toBe(0)
+  })
+
+  it('take the overflow once the troughs are full', () => {
+    const { care, grid, penId } = setup()
+    grid.addProp({ x: 2, z: 3 }, 'hopper')
+    const total = CARE.TROUGH_CAPACITY_SERVINGS + 30
+    expect(care.stock(penId, 'berry', total)).toBe(total)
+    expect(care.getTroughTotal(penId)).toBe(CARE.TROUGH_CAPACITY_SERVINGS)
+    expect(care.getHopperTotal(penId)).toBe(30)
+    expect(care.stock(penId, 'berry', 999)).toBe(CARE.HOPPER_CAPACITY_SERVINGS - 30)
+  })
+
+  it('keep a pen fed for many cycles without anyone refilling the trough', () => {
+    const { care, grid, penId, addCreature, runCycles, roster } = setup()
+    grid.addProp({ x: 2, z: 3 }, 'hopper')
+    const c = addCreature(genome(), { fullness: 100, happiness: 100, trust: 100 })
+    const food = 'berry'
+    care.stock(penId, food, CARE.TROUGH_CAPACITY_SERVINGS + CARE.HOPPER_CAPACITY_SERVINGS)
+    // More cycles than the trough alone could cover.
+    runCycles(CARE.TROUGH_CAPACITY_SERVINGS + 30)
+    expect(roster.get(c.id)?.fullness).toBeGreaterThan(0)
+    expect(care.getHopperTotal(penId)).toBeLessThan(CARE.HOPPER_CAPACITY_SERVINGS)
+  })
+
+  it('survive a save and restore, tolerating bad data', () => {
+    const { care, grid, penId } = setup()
+    grid.addProp({ x: 2, z: 3 }, 'hopper')
+    care.stock(penId, 'berry', CARE.TROUGH_CAPACITY_SERVINGS + 10)
+    const snap = JSON.parse(JSON.stringify(care.serialize()))
+
+    const other = setup()
+    other.care.restore(snap)
+    expect(other.care.getHopperFood(penId)).toEqual({ berry: 10 })
+
+    expect(
+      other.care.restore({
+        version: 1,
+        troughs: [],
+        hoppers: [{ penId, food: { berry: -3, junk: 4 } }, 7],
+      })
+    ).toBe(true)
+    expect(other.care.getHopperTotal(penId)).toBe(0)
+  })
+})

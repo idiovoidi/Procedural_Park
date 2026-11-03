@@ -44,7 +44,7 @@ Exit: a player can run a hands-off park for several minutes without starving cre
 | ID | Task | Deps | Done when |
 |---|---|---|---|
 | T19a | [ ] Contract Board: seeded trait requests, fulfil with a creature, panel, save, balance | T18 | Contracts pay a premium over market, are always satisfiable, survive save/load |
-| T19b | [ ] Feeder hopper: per-pen hopper that tops up the trough | T19a | A fed pen runs for many cycles without the player |
+| T19b | [x] Feeder hopper: per-pen hopper that tops up the trough | T19a | A fed pen runs for many cycles without the player |
 | T19c | [ ] Collector range + bin warning: auto-collect nearby bins, warn on bin-less pens | T19b | No output wasted in a pen with a bin |
 | T19d | [ ] Silos + auto-sell valve with price floor | T19c | Output sells itself above the floor price |
 | T19e | [ ] Food farms (generators) | T19d | Food no longer has to be bought |

@@ -76,6 +76,8 @@ export class Game {
         lure: () => this.systems.capture.placeLure(),
         crate: () => this.systems.capture.tryCapture(),
         collect: () => this.toolBelt.collect(),
+        stock: () => this.toolBelt.stock(),
+        shop: () => this.food.toggleStore(),
         photo: () => this.photos.takePhoto(),
         build: () => this.systems.build.toggle(),
         breed: () => this.breedingUI.toggle(),

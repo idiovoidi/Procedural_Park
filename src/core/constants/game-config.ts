@@ -232,6 +232,7 @@ export const GAME_CONFIG = {
         tallFence: 6,
         gate: 10,
         trough: 20,
+        hopper: 45,
         bin: 25,
         den: 60,
         toy: 15,
@@ -263,6 +264,8 @@ export const GAME_CONFIG = {
       EAT_AT_OR_BELOW: 85,
       /** Servings one trough holds. */
       TROUGH_CAPACITY_SERVINGS: 20,
+      /** Servings one feeder hopper holds; it tops the pen's troughs up every cycle. */
+      HOPPER_CAPACITY_SERVINGS: 80,
 
       /** Happiness moves this far toward its target each cycle. */
       HAPPINESS_DRIFT_PER_CYCLE: 10,

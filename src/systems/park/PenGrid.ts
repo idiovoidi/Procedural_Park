@@ -28,7 +28,15 @@ import type {
 
 const { CELL_SIZE_M, INITIAL_BOUNDS } = GAME_CONFIG.PARK
 
-const PROP_KINDS: readonly PropKind[] = ['toy', 'shelter', 'plant', 'trough', 'bin', 'den']
+const PROP_KINDS: readonly PropKind[] = [
+  'toy',
+  'shelter',
+  'plant',
+  'trough',
+  'hopper',
+  'bin',
+  'den',
+]
 const BIOMES: readonly BiomeType[] = [
   'forest',
   'meadow',
@@ -547,6 +555,7 @@ export class PenGrid {
       shelter: 0,
       plant: 0,
       trough: 0,
+      hopper: 0,
       bin: 0,
       den: 0,
     }

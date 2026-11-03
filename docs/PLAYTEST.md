@@ -12,6 +12,10 @@ and hatch, read the Ranch Book, reload.
   `bin used/capacity`.
 - **Cluttered bottom bar.** Key-hint strip duplicated the new tool belt; trimmed.
 
+- **Troughs could not be stocked.** Nothing in the game moved food from the player's bag into a
+  trough (only the balance bot did). Added the **Stock** slot (looked-at pen; troughs first, then
+  feeder hoppers; only foods its residents eat well) and a **Shop** slot (`O`).
+
 ## Still open (candidates for the next pass)
 
 - A pen without a bin silently wastes output (inspector shows `bin 0/0`; no explicit warning).

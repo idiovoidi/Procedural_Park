@@ -56,6 +56,8 @@ export interface HandFeedResult {
 export interface CareSnapshot {
   version: 1
   troughs: Array<{ penId: string; food: FoodStock }>
+  /** Feeder hopper contents. Absent in older saves. */
+  hoppers?: Array<{ penId: string; food: FoodStock }>
 }
 
 export function reactionFor(efficiency: number): Reaction {
@@ -71,6 +73,7 @@ export class CareSystem {
   private readonly roster: Roster
   private readonly grid: PenGrid
   private troughs = new Map<string, FoodStock>()
+  private hoppers = new Map<string, FoodStock>()
   private reports = new Map<string, PenQualityReport>()
   private lastSummary: CycleSummary | null = null
 
@@ -111,6 +114,53 @@ export class CareSystem {
     return accepted
   }
 
+  // ---- Feeder hoppers -----------------------------------------------------------------
+
+  /** Total capacity of a pen's feeder hoppers in servings. */
+  public getHopperCapacity(penId: string): number {
+    const pen = this.grid.getPen(penId)
+    return pen ? pen.props.hopper * CARE.HOPPER_CAPACITY_SERVINGS : 0
+  }
+
+  public getHopperFood(penId: string): Readonly<FoodStock> {
+    return this.hoppers.get(penId) ?? {}
+  }
+
+  public getHopperTotal(penId: string): number {
+    return Object.values(this.getHopperFood(penId)).reduce((a, b) => a + b, 0)
+  }
+
+  /**
+   * Stock a pen the way a player would: the troughs first (so the creatures can eat right
+   * away), then whatever room is left in the hoppers. Returns the servings accepted.
+   */
+  public stock(penId: string, foodId: string, servings: number): number {
+    if (!FOOD_ITEMS[foodId] || !Number.isFinite(servings) || servings <= 0) return 0
+    let accepted = this.addFood(penId, foodId, servings)
+    const room = this.getHopperCapacity(penId) - this.getHopperTotal(penId)
+    const toHopper = Math.max(0, Math.min(servings - accepted, room))
+    if (toHopper > 0) {
+      const stock = this.hoppers.get(penId) ?? {}
+      stock[foodId] = (stock[foodId] ?? 0) + toHopper
+      this.hoppers.set(penId, stock)
+      accepted += toHopper
+    }
+    return accepted
+  }
+
+  /** Move food from a pen's hoppers into its troughs, as far as the troughs have room. */
+  private refillFromHopper(penId: string): void {
+    const hopper = this.hoppers.get(penId)
+    if (!hopper) return
+    for (const foodId of Object.keys(hopper)) {
+      const moved = this.addFood(penId, foodId, hopper[foodId])
+      if (moved <= 0) continue
+      hopper[foodId] -= moved
+      if (hopper[foodId] <= 1e-9) delete hopper[foodId]
+    }
+    if (Object.keys(hopper).length === 0) this.hoppers.delete(penId)
+  }
+
   // ---- The care cycle ---------------------------------------------------------------------
 
   /**
@@ -122,6 +172,9 @@ export class CareSystem {
 
     const summary: CycleSummary = { tick, fed: 0, hungry: 0, unpenned: 0, meals: [] }
     this.reports.clear()
+
+    // Hoppers top the troughs up before anyone eats
+    for (const penId of [...this.hoppers.keys()]) this.refillFromHopper(penId)
 
     // Score each pen once, with everyone who lives there.
     const byPen = new Map<string, OwnedCreature[]>()
@@ -262,6 +315,9 @@ export class CareSystem {
       troughs: [...this.troughs]
         .filter(([, food]) => Object.keys(food).length > 0)
         .map(([penId, food]) => ({ penId, food: { ...food } })),
+      hoppers: [...this.hoppers]
+        .filter(([, food]) => Object.keys(food).length > 0)
+        .map(([penId, food]) => ({ penId, food: { ...food } })),
     }
   }
 
@@ -281,6 +337,18 @@ export class CareSystem {
         }
       }
       if (Object.keys(food).length > 0) this.troughs.set(entry.penId, food)
+    }
+    this.hoppers = new Map()
+    for (const entry of Array.isArray(s.hoppers) ? s.hoppers : []) {
+      if (typeof entry?.penId !== 'string' || typeof entry.food !== 'object' || !entry.food)
+        continue
+      const food: FoodStock = {}
+      for (const [id, amount] of Object.entries(entry.food)) {
+        if (FOOD_ITEMS[id] && typeof amount === 'number' && Number.isFinite(amount) && amount > 0) {
+          food[id] = amount
+        }
+      }
+      if (Object.keys(food).length > 0) this.hoppers.set(entry.penId, food)
     }
     this.reports.clear()
     this.lastSummary = null
