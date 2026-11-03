@@ -31,7 +31,7 @@ Exit: a new player captures a founder, pens it, earns from it, breeds a child, s
 | T15 | [x] Tool belt + HUD for the management loop | T7 | Every slice interaction reachable via the tool belt |
 | T16 | [x] Versioned save/load for slice state + export/import | T5, T6, T9 | Save, reload, migration and offline catch-up tests pass |
 | T17 | [x] Balance sim script + economy/breeding unit tests | T9, T10, T13 | Baseline shows no runaway or dead-end economy |
-| T18 | [ ] Slice E2E test + playtest tuning pass | T10, T11, T13–T17 | E2E green in CI; playtest notes recorded |
+| T18 | [x] Slice E2E test + playtest tuning pass | T10, T11, T13–T17 | E2E green in CI; playtest notes recorded |
 
 ### Suggested order
 

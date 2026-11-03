@@ -52,6 +52,8 @@ export type InputAction =
   // Capture actions
   | 'capture.crate'
   | 'capture.lure'
+  // Production actions
+  | 'production.collect'
 
 export type InputContext = 'game' | 'ui' | 'menu'
 

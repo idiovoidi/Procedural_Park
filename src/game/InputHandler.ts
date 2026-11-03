@@ -35,6 +35,7 @@ export interface InputHandlerCallbacks {
   onToggleBreeding: () => void
   onCrateCreature: () => void
   onPlaceLure: () => void
+  onCollect: () => void
 }
 
 export class InputHandler {
@@ -99,6 +100,7 @@ export class InputHandler {
     // Capture actions
     this.inputManager.on('capture.crate', () => this.callbacks.onCrateCreature())
     this.inputManager.on('capture.lure', () => this.callbacks.onPlaceLure())
+    this.inputManager.on('production.collect', () => this.callbacks.onCollect())
   }
 
   /**

@@ -160,6 +160,7 @@ export class InputManager {
     this.addBinding({ action: 'breeding.toggle', key: 'z', contexts: ['game'], priority: 2 })
     this.addBinding({ action: 'capture.crate', key: 'y', contexts: ['game'], priority: 2 })
     this.addBinding({ action: 'capture.lure', key: 'l', contexts: ['game'], priority: 2 })
+    this.addBinding({ action: 'production.collect', key: 'q', contexts: ['game'], priority: 2 })
   }
 
   private setupEventListeners() {

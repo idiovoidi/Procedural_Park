@@ -7,6 +7,7 @@ export interface ToolBeltActions {
   feed: () => void
   lure: () => void
   crate: () => void
+  collect: () => void
   photo: () => void
   build: () => void
   breed: () => void
@@ -18,6 +19,7 @@ const SLOTS: ToolBeltSlot[] = [
   { id: 'feed', icon: '🍖', label: 'Feed', key: 'F' },
   { id: 'lure', icon: '🪤', label: 'Bait', key: 'L' },
   { id: 'crate', icon: '📦', label: 'Crate', key: 'Y' },
+  { id: 'collect', icon: '🧺', label: 'Collect', key: 'Q' },
   { id: 'photo', icon: '📷', label: 'Photo', key: 'T' },
   { id: 'build', icon: '🔨', label: 'Build', key: 'J' },
   { id: 'breed', icon: '🥚', label: 'Breed', key: 'Z' },
@@ -78,9 +80,35 @@ export class ToolBeltManager {
     belt.setPen(this.inspect())
   }
 
-  /** The pen under the camera or just ahead of it, described for the inspector. */
-  private inspect(): PenInspectorView | null {
-    const { camera, park, roster } = this.systems
+  /**
+   * Empty the collector bins of the pen being looked into (every pen if none is) into the
+   * inventory, so the output can be sold.
+   */
+  public collect(): void {
+    const { production, park, ui } = this.systems
+    const looked = this.lookedAtPen()
+    const pens = looked ? [looked] : park.getPens()
+    const total: Record<string, number> = {}
+    for (const pen of pens) {
+      for (const [type, units] of Object.entries(production.collect(pen.id))) {
+        total[type] = (total[type] ?? 0) + (units ?? 0)
+      }
+    }
+    const parts = Object.entries(total)
+      .filter(([, n]) => n > 0)
+      .map(([type, n]) => `${n} ${type}`)
+    ui.showToast(
+      parts.length > 0
+        ? `🧺 Collected ${parts.join(', ')}`
+        : looked
+          ? '🧺 Nothing to collect here yet'
+          : '🧺 Nothing to collect yet'
+    )
+    this.refresh()
+  }
+
+  private lookedAtPen() {
+    const { camera, park } = this.systems
     const cam = camera.camera
     const dir = cam.getWorldDirection(cam.position.clone())
     const points = [
@@ -90,11 +118,17 @@ export class ToolBeltManager {
         z: cam.position.z + dir.z * d,
       })),
     ]
-    let pen = null
     for (const p of points) {
-      pen = park.getPenAtWorld(p.x, p.z)
-      if (pen) break
+      const pen = park.getPenAtWorld(p.x, p.z)
+      if (pen) return pen
     }
+    return null
+  }
+
+  /** The pen under the camera or just ahead of it, described for the inspector. */
+  private inspect(): PenInspectorView | null {
+    const { roster, production } = this.systems
+    const pen = this.lookedAtPen()
     if (!pen) return null
 
     const residents = roster.getByPen(pen.id)
@@ -113,7 +147,7 @@ export class ToolBeltManager {
     }
     return {
       title: pen.id,
-      summary: `${residents.length} creature${residents.length === 1 ? '' : 's'} · ${Math.round(report.freeAreaM2)} m² free · ${pen.enclosure} enclosure`,
+      summary: `${residents.length} creature${residents.length === 1 ? '' : 's'} · ${Math.round(report.freeAreaM2)} m² free · ${pen.enclosure} enclosure · bin ${Math.floor(production.getBinTotal(pen.id))}/${production.getBinCapacity(pen.id)}`,
       problems: [...failing].map((k) => `needs better ${k}`),
       rows: residents.map((c) => ({
         name: c.name,

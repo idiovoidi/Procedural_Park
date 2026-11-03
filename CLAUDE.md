@@ -33,4 +33,4 @@ or pull requests unless the owner asks for one in that session.
 - Run `npx biome check --write src` before committing; import order and formatting are enforced.
 - New systems follow the existing pattern: a manager/class with its own state, change callbacks,
   `serialize`/`restore` that tolerate bad data, a barrel `index.ts`, and vitest tests next to it.
-- Game keys: `J` build, `Z` breeding den, `U` market, `F` feed, `L` bait, `Y` crate, `T` photo, `B` food inventory.
+- Game keys: `J` build, `Z` breeding den, `U` market, `F` feed, `L` bait, `Y` crate, `Q` collect bins, `T` photo, `B` food inventory.

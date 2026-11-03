@@ -72,6 +72,7 @@ export class Game {
         feed: () => this.food.feedNearestCreature(),
         lure: () => this.systems.capture.placeLure(),
         crate: () => this.systems.capture.tryCapture(),
+        collect: () => this.toolBelt.collect(),
         photo: () => this.photos.takePhoto(),
         build: () => this.systems.build.toggle(),
         breed: () => this.breedingUI.toggle(),
@@ -203,6 +204,7 @@ export class Game {
       onToggleBreeding: () => this.breedingUI.toggle(),
       onCrateCreature: () => this.systems.capture.tryCapture(),
       onPlaceLure: () => this.systems.capture.placeLure(),
+      onCollect: () => this.toolBelt.collect(),
     }
 
     new InputHandler(
