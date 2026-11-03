@@ -73,6 +73,16 @@ export class WorldLayout {
     return this.insideBoundary(shape) && this.overlapsFor(shape, margin, ignoreIds).length === 0
   }
 
+  /**
+   * Why a shape can't stand somewhere, in plain words, or null if it can. Used to explain a
+   * refused placement ("Blocked by entrance plaza").
+   */
+  public blockReason(shape: Shape, margin = 0, ignoreIds: readonly string[] = []): string | null {
+    if (!this.insideBoundary(shape)) return 'Outside the park fence'
+    const hit = this.overlapsFor(shape, margin, ignoreIds)[0]
+    return hit ? `Blocked by ${hit.label.toLowerCase()}` : null
+  }
+
   /** Whether a shape lies wholly inside the boundary fence (true if there is no fence). */
   public insideBoundary(shape: Shape): boolean {
     const fence = this.listByKind('boundary')[0]

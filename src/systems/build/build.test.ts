@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { GAME_CONFIG } from '../../core/constants'
 import { CurrencyManager } from '../currency'
+import { parkFootprints } from '../layout/park-sites'
+import { WorldLayout } from '../layout/WorldLayout'
 import { type Cell, PenGrid } from '../park'
-import { BUILD_TOOLS, BuildController, type BuildTool, nearestEdge } from './BuildController'
+import {
+  BUILD_TOOLS,
+  BuildController,
+  type BuildSite,
+  type BuildTool,
+  nearestEdge,
+} from './BuildController'
 
 const { COSTS, REFUND_FRACTION } = GAME_CONFIG.ECONOMY.BUILD
 const CELL = GAME_CONFIG.PARK.CELL_SIZE_M
@@ -327,5 +335,64 @@ describe('grid edit events', () => {
     grid.onEdit(() => edits++)
     grid.restore(grid.serialize())
     expect(edits).toBe(1)
+  })
+})
+
+describe('BuildController with a site', () => {
+  const makeLayout = () => {
+    const layout = new WorldLayout()
+    layout.add(...parkFootprints())
+    return layout
+  }
+  const siteFor = (layout: WorldLayout): BuildSite => ({
+    blockReason: (shape) => layout.blockReason(shape, 0, ['build-zone']),
+  })
+  /** A grid grown far enough south to reach the entrance plaza (z 30..60). */
+  const grownGrid = () => {
+    const grid = new PenGrid()
+    grid.expandBounds({ maxZ: 20 })
+    return grid
+  }
+
+  it('builds normally inside the free build zone', () => {
+    const build = new BuildController(
+      new PenGrid(),
+      new CurrencyManager(1000),
+      siteFor(makeLayout())
+    )
+    build.setTool('roof')
+    expect(build.commit(1, 1).ok).toBe(true)
+  })
+
+  it('refuses a roof on the entrance plaza and says why', () => {
+    const wallet = new CurrencyManager(1000)
+    const build = new BuildController(grownGrid(), wallet, siteFor(makeLayout()))
+    build.setTool('roof')
+    const result = build.commit(0.5, 41) // inside the plaza
+    expect(result.ok).toBe(false)
+    expect(result.message).toBe('Blocked by entrance plaza')
+    expect(wallet.getBalance()).toBe(1000)
+  })
+
+  it('refuses fences and props on structures too', () => {
+    const build = new BuildController(grownGrid(), new CurrencyManager(1000), siteFor(makeLayout()))
+    build.setTool('fence')
+    expect(build.preview(0, 41)?.valid).toBe(false)
+    build.setTool('trough')
+    expect(build.preview(1, 41)?.reason).toBe('Blocked by entrance plaza')
+  })
+
+  it('does not block anything when no site is given', () => {
+    const build = new BuildController(grownGrid(), new CurrencyManager(1000))
+    build.setTool('roof')
+    expect(build.commit(0.5, 41).ok).toBe(true)
+  })
+
+  it('still allows removing', () => {
+    const grid = grownGrid()
+    grid.setRoof({ x: 0, z: 20 }, true) // already there, e.g. from an older save
+    const build = new BuildController(grid, new CurrencyManager(1000), siteFor(makeLayout()))
+    build.setTool('remove')
+    expect(build.preview(1, 41)?.valid).toBe(true)
   })
 })

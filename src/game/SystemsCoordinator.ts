@@ -205,6 +205,7 @@ export class SystemsCoordinator {
       currency: currencyManager,
       ui: uiManager,
       heightAt: (x, z) => sceneManager.terrainSystem.getFloorHeightAt(x, z),
+      layout: sceneManager.layout,
     })
 
     // Capture: trust from feeding and bait, then a crate into the roster and a pen

@@ -20,12 +20,19 @@ export const LAB_SITE = { x: -35, z: -20, rot: 0 }
 
 const { CELL_SIZE_M, INITIAL_BOUNDS } = GAME_CONFIG.PARK
 
-/** The starting build zone, in world metres. */
-export function buildZoneFootprint(): Footprint {
-  const minX = INITIAL_BOUNDS.minX * CELL_SIZE_M
-  const maxX = (INITIAL_BOUNDS.maxX + 1) * CELL_SIZE_M
-  const minZ = INITIAL_BOUNDS.minZ * CELL_SIZE_M
-  const maxZ = (INITIAL_BOUNDS.maxZ + 1) * CELL_SIZE_M
+interface CellBounds {
+  minX: number
+  minZ: number
+  maxX: number
+  maxZ: number
+}
+
+/** The build zone for a range of grid cells (inclusive), in world metres. */
+export function buildZoneFootprint(bounds: CellBounds = INITIAL_BOUNDS): Footprint {
+  const minX = bounds.minX * CELL_SIZE_M
+  const maxX = (bounds.maxX + 1) * CELL_SIZE_M
+  const minZ = bounds.minZ * CELL_SIZE_M
+  const maxZ = (bounds.maxZ + 1) * CELL_SIZE_M
   return {
     id: 'build-zone',
     label: 'Build zone',

@@ -9,6 +9,7 @@
  */
 
 import { GAME_CONFIG } from '@core/constants'
+import type { Shape } from '@systems/layout/footprint'
 import {
   type Cell,
   type Edge,
@@ -64,6 +65,36 @@ export interface Wallet {
   canAfford(amount: number): boolean
   removeMoney(amount: number, reason?: string): boolean
   addMoney(amount: number, reason?: string): void
+}
+
+/**
+ * What stands on the ground around the build zone. Build mode asks it before allowing a
+ * placement, so pens never grow into a building, the plaza or the railway.
+ */
+export interface BuildSite {
+  /** Why a shape can't be built here (plain words), or null when the ground is free. */
+  blockReason(shape: Shape): string | null
+}
+
+/** Footprint of a fence on a cell edge: a thin slab along the edge. */
+function edgeShape(edge: Edge): Shape {
+  const THICKNESS = 0.3
+  return edge.axis === 'h'
+    ? { type: 'rect', x: (edge.x + 0.5) * CELL, z: edge.z * CELL, w: CELL, d: THICKNESS, rot: 0 }
+    : { type: 'rect', x: edge.x * CELL, z: (edge.z + 0.5) * CELL, w: THICKNESS, d: CELL, rot: 0 }
+}
+
+/** Footprint of one cell, inset a little so neighbours that merely touch don't count. */
+function cellShape(cell: Cell): Shape {
+  const INSET = 0.1
+  return {
+    type: 'rect',
+    x: (cell.x + 0.5) * CELL,
+    z: (cell.z + 0.5) * CELL,
+    w: CELL - INSET,
+    d: CELL - INSET,
+    rot: 0,
+  }
 }
 
 export type BuildKind = 'edge' | 'cell'
@@ -134,11 +165,13 @@ function toolForFence(fence: { gate: boolean; tall: boolean }): 'gate' | 'tallFe
 export class BuildController {
   private readonly grid: PenGrid
   private readonly wallet: Wallet
+  private readonly site: BuildSite | null
   private tool: BuildTool = 'fence'
 
-  constructor(grid: PenGrid, wallet: Wallet) {
+  constructor(grid: PenGrid, wallet: Wallet, site: BuildSite | null = null) {
     this.grid = grid
     this.wallet = wallet
+    this.site = site
   }
 
   public getTool(): BuildTool {
@@ -201,6 +234,10 @@ export class BuildController {
         refund: 0,
       }
     }
+    const blocked = this.site?.blockReason(edgeShape(edge))
+    if (blocked) {
+      return { ...base, action: 'place', valid: false, reason: blocked, refund: 0 }
+    }
     const refund = existing ? refundFor(COSTS[toolForFence(existing)]) : 0
     return this.withAffordability({
       ...base,
@@ -223,6 +260,8 @@ export class BuildController {
     }
     if (!this.grid.inBounds(cell))
       return { ...base, valid: false, reason: 'Outside the build zone' }
+    const blocked = this.site?.blockReason(cellShape(cell))
+    if (blocked) return { ...base, valid: false, reason: blocked }
     if (!this.grid.getPenAt(cell)) {
       return { ...base, valid: false, reason: 'Place this inside a closed pen' }
     }
@@ -244,6 +283,8 @@ export class BuildController {
     }
     if (!this.grid.inBounds(cell))
       return { ...base, valid: false, reason: 'Outside the build zone' }
+    const blocked = this.site?.blockReason(cellShape(cell))
+    if (blocked) return { ...base, valid: false, reason: blocked }
     if (this.grid.hasRoof(cell)) return { ...base, valid: false, reason: 'Already roofed' }
     return this.withAffordability({ ...base, valid: true })
   }
