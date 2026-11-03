@@ -21,6 +21,8 @@ export class SceneManager {
   /** Where the tram stops, after being fitted to the layout. */
   public stations: StationDef[]
   public terrainSystem: TerrainSystem
+  /** The railway meshes, hidden while away from the hub. */
+  private trackObject: THREE.Object3D | null = null
   public environmentInteractions: EnvironmentInteractions
   public parkStructures: ParkStructures
   private directionalLight: THREE.DirectionalLight
@@ -96,7 +98,8 @@ export class SceneManager {
     }
     this.trackCurve = path.trackCurve
     this.curve = path.rideCurve
-    this.scene.add(buildTrainTrack(this.trackCurve, heightAt, this.stations))
+    this.trackObject = buildTrainTrack(this.trackCurve, heightAt, this.stations)
+    this.scene.add(this.trackObject)
 
     // Build park structures (gate, fence, plaza)
     this.parkStructures = new ParkStructures(this.scene)
@@ -113,6 +116,20 @@ export class SceneManager {
     // Handle window resize
     this.handleResizeBound = () => this.handleResize()
     window.addEventListener('resize', this.handleResizeBound)
+  }
+
+  /**
+   * Show or hide everything that belongs to the hub: the park buildings, the railway and the
+   * markers. The terrain itself is swapped with `loadTerrain`.
+   */
+  public setHubVisible(visible: boolean): void {
+    this.parkStructures.getStructures().visible = visible
+    if (this.trackObject) this.trackObject.visible = visible
+  }
+
+  /** Rebuild the ground: the hub (seed 42, flat park) or an expedition map (open wilds). */
+  public loadTerrain(seed: number, hub: boolean): void {
+    this.terrainSystem.generateTerrain(seed, hub)
   }
 
   private setupLighting() {

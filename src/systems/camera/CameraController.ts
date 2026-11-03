@@ -390,6 +390,14 @@ export class CameraController {
     }
   }
 
+  /** Free-roam at a spot on the ground (leaves ride mode). Used when travelling between maps. */
+  public teleport(x: number, z: number): void {
+    if (this.mode !== 'freeroam') this.setMode('freeroam')
+    this.freeRoamPosition.set(x, this.sampleGround(x, z), z)
+    this.isJumping = false
+    this.jumpVelocity = 0
+  }
+
   public getMode(): CameraMode {
     return this.mode
   }

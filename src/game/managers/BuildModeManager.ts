@@ -48,6 +48,7 @@ export class BuildModeManager {
   private readonly deps: Dependencies
   private readonly controller: BuildController
   private readonly view: ParkView
+  private hubOpen = true
   private readonly ghost: THREE.Mesh
   private active = false
   private lastTarget: BuildTarget | null = null
@@ -108,8 +109,16 @@ export class BuildModeManager {
     return this.controller
   }
 
+  /** False while on an expedition: the ranch is out of reach, so it is hidden and not editable. */
+  public setHubOpen(open: boolean): void {
+    this.hubOpen = open
+    this.view.group.visible = open
+    if (!open) this.disable()
+  }
+
   public toggle(): void {
     if (this.active) this.disable()
+    else if (!this.hubOpen) this.deps.ui.showToast('🔨 You can only build at the hub')
     else this.enable()
   }
 

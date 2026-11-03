@@ -44,6 +44,7 @@ export class ResidentManager {
   private readonly deps: Dependencies
   private readonly residents = new Map<string, Resident>()
   private readonly unsubscribe: Array<() => void> = []
+  private visible = true
 
   constructor(deps: Dependencies) {
     this.deps = deps
@@ -55,6 +56,12 @@ export class ResidentManager {
     )
     this.unsubscribe.push(deps.grid.onEdit(() => this.sync()))
     this.sync()
+  }
+
+  /** Hide the residents while away from the hub (they keep living on the economy clock). */
+  public setVisible(visible: boolean): void {
+    this.visible = visible
+    for (const r of this.residents.values()) r.instance.group.visible = visible
   }
 
   /** Number of creatures currently drawn in pens. */
@@ -115,6 +122,7 @@ export class ResidentManager {
       { groundHeightAt: heightAt }
     )
     instance.group.scale.setScalar(STAGE_SCALE[creature.ageStage])
+    instance.group.visible = this.visible
     this.residents.set(creature.id, {
       instance,
       penId: creature.penId as string,

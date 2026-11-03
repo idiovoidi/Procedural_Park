@@ -31,10 +31,11 @@ export class TerrainSystem {
     this.addDistantMountains()
   }
 
-  public generateTerrain(seed: number = 42) {
+  /** `hub` keeps the flat park at the centre; expedition maps pass false for open wilds. */
+  public generateTerrain(seed: number = 42, hub = true) {
     this.clearTerrain()
 
-    this.heightSampler = createHeightSampler(seed)
+    this.heightSampler = createHeightSampler(seed, hub)
     this.biomeMap = generateBiomeMap(this.sampleHeightGrid(), this.resolution, seed + 1000)
 
     this.currentBiomes.clear()

@@ -12,6 +12,7 @@ import { InputHandler, type InputHandlerCallbacks } from './InputHandler'
 import {
   BreedingUIManager,
   ContractUIManager,
+  ExpeditionManager,
   FoodSystemManager,
   MarketUIManager,
   PhotoManager,
@@ -31,6 +32,7 @@ export class Game {
   private ranchBook!: RanchBookManager
   private toolBelt!: ToolBeltManager
   private contractsUI!: ContractUIManager
+  private expeditions!: ExpeditionManager
   private saveLoad!: SaveLoadManager
   private recordingIndicator: HTMLElement | null = null
   private container: HTMLElement
@@ -71,6 +73,7 @@ export class Game {
       this.breedingUI = new BreedingUIManager(this.systems)
       this.ranchBook = new RanchBookManager(this.systems)
       this.contractsUI = new ContractUIManager(this.systems)
+      this.expeditions = new ExpeditionManager(this.systems)
       this.toolBelt = new ToolBeltManager(this.systems, {
         feed: () => this.food.feedNearestCreature(),
         lure: () => this.systems.capture.placeLure(),
@@ -120,6 +123,7 @@ export class Game {
       this.breedingUI.initialize()
       this.ranchBook.initialize()
       this.contractsUI.initialize()
+      this.expeditions.initialize()
       this.toolBelt.initialize()
 
       // Bring back the ranch from the last session, if there was one

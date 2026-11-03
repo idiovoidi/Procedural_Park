@@ -186,7 +186,9 @@ export class ToolBeltManager {
   }
 
   private lookedAtPen() {
-    const { camera, park } = this.systems
+    const { camera, park, maps } = this.systems
+    // The ranch's pens are only in reach at the hub.
+    if (!maps.isAtHub()) return null
     const cam = camera.camera
     const dir = cam.getWorldDirection(cam.position.clone())
     const points = [
