@@ -20,6 +20,8 @@ export class MultiplayerManager {
   private uiManager: UIManager
   private audioManager: AudioManager
   private camera: CameraController
+  /** Told when the friend connects or leaves (the social layer resets on disconnect). */
+  public onConnectionChanged: (connected: boolean) => void = () => {}
 
   constructor(
     scene: THREE.Scene,
@@ -47,6 +49,7 @@ export class MultiplayerManager {
     this.multiplayer.onConnected = () => {
       log.debug('Connected to peer!')
       this.uiManager.showToast('🌐 Connected to friend!')
+      this.onConnectionChanged(true)
       this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
 
       // Update multiplayer state
@@ -59,6 +62,7 @@ export class MultiplayerManager {
     this.multiplayer.onDisconnected = () => {
       log.debug('Disconnected from peer')
       this.uiManager.showToast('🌐 Disconnected from friend')
+      this.onConnectionChanged(false)
       this.audioManager.playSoundEffect('ui_click', GAME_CONFIG.AUDIO_UI_CLICK)
 
       // Update multiplayer state
@@ -131,6 +135,16 @@ export class MultiplayerManager {
     }
 
     this.multiplayer.sendGameState(state)
+  }
+
+  /** Send a social-channel text frame to the friend. */
+  public sendSocial(text: string): void {
+    this.multiplayer.sendSocial(text)
+  }
+
+  /** Receive the friend's social-channel text frames. */
+  public setSocialReceiver(receiver: (text: string) => void): void {
+    this.multiplayer.onSocial = receiver
   }
 
   /**

@@ -22,6 +22,7 @@ import { Settings } from '../components/settings'
 import { Shortcuts } from '../components/shortcuts'
 import { Toast } from '../components/toast'
 import { ToolBelt } from '../components/tool-belt'
+import { TradePanel } from '../components/trade-panel'
 import { WorldMap, type WorldMapSource } from '../components/world-map'
 
 export class UIManager {
@@ -44,6 +45,7 @@ export class UIManager {
   private toolBelt: ToolBelt
   private contractBoard: ContractBoardPanel
   private mapPanel: MapPanel
+  private tradePanel: TradePanel
   private toggleBreedingBtn: HTMLButtonElement
   private toggleMarketBtn: HTMLButtonElement
   private toggleBuildBtn: HTMLButtonElement
@@ -77,6 +79,7 @@ export class UIManager {
     this.toolBelt = new ToolBelt()
     this.contractBoard = new ContractBoardPanel()
     this.mapPanel = new MapPanel()
+    this.tradePanel = new TradePanel()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
@@ -115,6 +118,7 @@ export class UIManager {
     this.ranchBook.setAudioCallbacks(callbacks)
     this.contractBoard.setAudioCallbacks(callbacks)
     this.mapPanel.setAudioCallbacks(callbacks)
+    this.tradePanel.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
@@ -664,6 +668,10 @@ export class UIManager {
   /**
    * Get the tool belt and pen inspector
    */
+  public getTradePanel(): TradePanel {
+    return this.tradePanel
+  }
+
   public getMapPanel(): MapPanel {
     return this.mapPanel
   }
