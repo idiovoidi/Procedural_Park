@@ -1,6 +1,6 @@
 import type { Genome } from '@systems/creatures/genome'
 import { getRarityTier } from '@systems/economy'
-import { CodexShare, SocialChannel, TradeManager, VisitShare } from '@systems/social'
+import { CodexShare, JointBreeding, SocialChannel, TradeManager, VisitShare } from '@systems/social'
 import type { TradePanelView } from '@ui/components/trade-panel'
 import type { GameSystems } from '../SystemsCoordinator'
 import { VisitManager } from './VisitManager'
@@ -20,6 +20,7 @@ export class SocialManager {
   public readonly codexShare: CodexShare
   public readonly visitShare: VisitShare
   public readonly visit: VisitManager
+  public readonly joint: JointBreeding
 
   constructor(systems: GameSystems) {
     this.systems = systems
@@ -36,6 +37,12 @@ export class SocialManager {
         this.refresh()
       },
     })
+    this.joint = new JointBreeding(systems.roster, this.channel, (args) => {
+      const penId = systems.roster.get(args.myParentId)?.penId
+      if (!penId) return { ok: false, reason: 'Your parent must live in a pen with a breeding den' }
+      const r = systems.breeding.startJoint({ penId, ...args })
+      return r.ok ? { ok: true } : { ok: false, reason: r.reason }
+    })
     this.trade = new TradeManager(systems.roster, this.channel, {
       // A creature in the breeding den cannot leave until its egg has hatched.
       isLocked: (id) => systems.breeding.getJobs().some((j) => j.parentIds.includes(id)),
@@ -51,6 +58,7 @@ export class SocialManager {
       if (!connected) {
         this.trade.reset()
         this.visitShare.reset()
+        this.joint.reset()
         this.visit.end(false)
       } else this.codexShare.sendAll()
       this.refresh()
@@ -74,6 +82,24 @@ export class SocialManager {
         this.trade.decline(id)
         this.refresh()
       },
+      onProposeJoint: (id) => {
+        const r = this.joint.propose(id)
+        ui.showToast(r.ok ? '🥚 Proposal sent' : `⚠️ ${r.reason}`)
+        this.refresh()
+      },
+      onCancelJoint: (id) => {
+        this.joint.cancel(id)
+        this.refresh()
+      },
+      onAcceptJoint: (id, creatureId) => {
+        const r = this.joint.accept(id, creatureId)
+        if (!r.ok) ui.showToast(`⚠️ ${r.reason}`)
+        this.refresh()
+      },
+      onDeclineJoint: (id) => {
+        this.joint.decline(id)
+        this.refresh()
+      },
       onVisit: () => {
         if (!this.systems.maps.isAtHub()) {
           ui.showToast('🧭 Go home before visiting a friend')
@@ -89,6 +115,26 @@ export class SocialManager {
       },
     })
 
+    this.joint.onEvent((e) => {
+      switch (e.kind) {
+        case 'proposed':
+          ui.showToast(`🥚 ${e.proposal.name} is offered for a joint breeding. Open Trade`, 5000)
+          break
+        case 'started':
+          ui.showToast(`🥚 Breeding together with ${e.friendName}: you each get a child`, 5000)
+          break
+        case 'declined':
+          ui.showToast(`🥚 Your friend declined to breed ${e.name}`)
+          break
+        case 'cancelled':
+          ui.showToast(`🥚 ${e.name} is no longer on offer`)
+          break
+        case 'failed':
+          ui.showToast(`⚠️ Your friend started, but you could not: ${e.reason}`, 5000)
+          break
+      }
+      this.refresh()
+    })
     this.trade.onEvent((e) => {
       switch (e.kind) {
         case 'offered':
@@ -131,6 +177,15 @@ export class SocialManager {
     this.refresh()
   }
 
+  /** An adult that lives in a pen with a free breeding den, and is not already breeding. */
+  private canBreedTogether(creatureId: string): boolean {
+    const { roster, park, breeding } = this.systems
+    const c = roster.get(creatureId)
+    if (!c || c.ageStage !== 'adult' || !c.penId || !park.getPen(c.penId)) return false
+    if (breeding.getJobs().some((j) => j.parentIds.includes(creatureId))) return false
+    return breeding.getDenStatus(c.penId).free > 0
+  }
+
   private refresh(): void {
     const { ui, roster, multiplayer } = this.systems
     const panel = ui.getTradePanel()
@@ -142,6 +197,7 @@ export class SocialManager {
         id: c.id,
         name: c.name,
         description: `${describe(c.genome)} · ${c.ageStage}`,
+        canBreed: this.canBreedTogether(c.id),
         blocked: offered.has(c.id)
           ? 'already offered'
           : this.systems.breeding.getJobs().some((j) => j.parentIds.includes(c.id))
@@ -149,6 +205,18 @@ export class SocialManager {
             : '',
       })),
       visit: { visiting: this.visit.isVisiting(), waiting: this.visitShare.isWaiting() },
+      joint: {
+        incoming: this.joint.getIncoming().map((p) => ({
+          id: p.id,
+          name: p.name,
+          description: describe(p.genome),
+          candidates: roster
+            .list()
+            .filter((c) => this.canBreedTogether(c.id))
+            .map((c) => ({ id: c.id, name: c.name })),
+        })),
+        outgoing: this.joint.getOutgoing().map((o) => ({ id: o.id, name: o.name })),
+      },
       outgoing: this.trade.getOutgoing().map((o) => ({ id: o.id, name: o.name })),
       incoming: this.trade.getIncoming().map((i) => ({
         id: i.offer.id,

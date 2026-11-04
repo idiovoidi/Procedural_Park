@@ -46,3 +46,8 @@ and hatch, read the Ranch Book, reload.
   card export (E); the normal photo score ignores them.
 - Not yet: joint breeding, duels, any trade value/escrow, an in-game friend list (the manual
   copy/paste connection is still the only way to link up).
+- **Joint breeding (T22c):** in the Friends panel, "Breed together" on one of your adults living in
+  a den pen proposes it; the friend picks one of theirs. Each side starts its own egg in its own
+  den, pays its own cost and keeps its own parent; both children come from the same seeded litter
+  (the proposer gets child 0, the other child 1). If one side cannot start (no den, no coins) the
+  other's egg still hatches. The friend's parent shows as "(friend)" in the lineage.

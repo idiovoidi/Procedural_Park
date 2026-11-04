@@ -4,6 +4,12 @@ import { generateGenome } from '../creatures/genome'
 import { Roster } from '../roster'
 import { CodexShare } from './CodexShare'
 import { CHUNK_CHARS, MAX_MESSAGE_CHARS, SocialChannel } from './channel'
+import {
+  type JointBeginArgs,
+  JointBreeding,
+  type JointEvent,
+  MAX_INCOMING_JOINT,
+} from './JointBreeding'
 import { MAX_INCOMING, type TradeEvent, TradeManager } from './TradeManager'
 import { VisitShare } from './VisitShare'
 
@@ -391,5 +397,125 @@ describe('visiting a friend', () => {
     })
     guest.request()
     expect((got as { roster: typeof big }).roster.creatures).toHaveLength(200)
+  })
+})
+
+describe('joint breeding protocol', () => {
+  function jointLink(failB = false) {
+    const { a, b } = link()
+    const rosterA = new Roster()
+    const rosterB = new Roster()
+    const beginsA: JointBeginArgs[] = []
+    const beginsB: JointBeginArgs[] = []
+    const ja = new JointBreeding(
+      rosterA,
+      a,
+      (args) => {
+        beginsA.push(args)
+        return { ok: true }
+      },
+      () => 'j1'
+    )
+    const jb = new JointBreeding(rosterB, b, (args) => {
+      beginsB.push(args)
+      return failB ? { ok: false, reason: 'no den' } : { ok: true }
+    })
+    const eventsA: JointEvent[] = []
+    const eventsB: JointEvent[] = []
+    ja.onEvent((e) => eventsA.push(e))
+    jb.onEvent((e) => eventsB.push(e))
+    return { ja, jb, rosterA, rosterB, beginsA, beginsB, eventsA, eventsB }
+  }
+
+  it('both sides start an egg with the other’s parent once the friend accepts', () => {
+    const { ja, jb, rosterA, rosterB, beginsA, beginsB } = jointLink()
+    const mine = rosterA.add(generateGenome(21), { name: 'Mine' })
+    const theirs = rosterB.add(generateGenome(22), { name: 'Theirs' })
+
+    expect(ja.propose(mine.id).ok).toBe(true)
+    expect(beginsA).toEqual([]) // nothing until accepted
+    const [proposal] = jb.getIncoming()
+    expect(proposal.name).toBe('Mine')
+
+    expect(jb.accept(proposal.id, theirs.id).ok).toBe(true)
+    expect(beginsB).toHaveLength(1)
+    expect(beginsB[0]).toMatchObject({ jointId: 'j1', myParentId: theirs.id, iProposed: false })
+    expect(beginsB[0].friendGenome).toEqual(mine.genome)
+    expect(beginsA).toHaveLength(1)
+    expect(beginsA[0]).toMatchObject({ jointId: 'j1', myParentId: mine.id, iProposed: true })
+    expect(beginsA[0].friendGenome).toEqual(theirs.genome)
+    // Both keep their parents.
+    expect(rosterA.has(mine.id) && rosterB.has(theirs.id)).toBe(true)
+  })
+
+  it('does not tell the friend yes if I cannot start my own egg', () => {
+    const { ja, jb, rosterA, rosterB, beginsA } = jointLink(true)
+    const mine = rosterA.add(generateGenome(23))
+    const theirs = rosterB.add(generateGenome(24))
+    ja.propose(mine.id)
+    const result = jb.accept(jb.getIncoming()[0].id, theirs.id)
+    expect(result).toEqual({ ok: false, reason: 'no den' })
+    expect(beginsA).toEqual([])
+    expect(jb.getIncoming()).toHaveLength(1) // still open to try again
+  })
+
+  it('handles decline, cancel, duplicates, floods and junk', () => {
+    const { ja, jb, rosterA, eventsA, eventsB } = jointLink()
+    const c = rosterA.add(generateGenome(25))
+    ja.propose(c.id)
+    expect(ja.propose(c.id).ok).toBe(false) // already offered
+    jb.decline(jb.getIncoming()[0].id)
+    expect(eventsA.at(-1)?.kind).toBe('declined')
+
+    const again = ja.propose(c.id)
+    if (again.ok) ja.cancel(again.id)
+    expect(eventsB.at(-1)?.kind).toBe('cancelled')
+
+    const { b } = link()
+    const jx = new JointBreeding(new Roster(), b, () => ({ ok: true }))
+    const send = (extra: Record<string, unknown>) =>
+      b.receive(
+        JSON.stringify({
+          m: Math.floor(Math.random() * 1e9),
+          i: 0,
+          n: 1,
+          d: JSON.stringify({
+            type: 'joint.propose',
+            id: String(Math.random()),
+            name: 'N',
+            genome: generateGenome(26),
+            ...extra,
+          }),
+        })
+      )
+    send({ genome: { archetype: 'dragon' } })
+    send({ name: '' })
+    send({ id: '' })
+    expect(jx.getIncoming()).toHaveLength(0)
+    for (let i = 0; i < MAX_INCOMING_JOINT + 2; i++) send({})
+    expect(jx.getIncoming()).toHaveLength(MAX_INCOMING_JOINT)
+  })
+
+  it('ignores an accept for a proposal that was never made', () => {
+    const { b } = link()
+    let began = false
+    new JointBreeding(new Roster(), b, () => {
+      began = true
+      return { ok: true }
+    })
+    b.receive(
+      JSON.stringify({
+        m: 1,
+        i: 0,
+        n: 1,
+        d: JSON.stringify({
+          type: 'joint.accept',
+          id: 'nope',
+          name: 'X',
+          genome: generateGenome(27),
+        }),
+      })
+    )
+    expect(began).toBe(false)
   })
 })

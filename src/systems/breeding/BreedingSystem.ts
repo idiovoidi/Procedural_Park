@@ -17,6 +17,7 @@ import {
   gainTrait,
   generateSpeciesName,
   hashSeed,
+  hashString,
   mutate,
 } from '@systems/creatures/genome'
 import { canAddOccupant, type PenGrid } from '@systems/park'
@@ -46,6 +47,12 @@ export interface BreedingJob {
   parentNames: [string, string]
   /** Who the hatchling descends from and how inbred it is, fixed when the egg is laid. */
   pedigree?: { ancestry: Record<string, number>; inbreeding: number }
+  /**
+   * A joint breeding with a friend (GDD 12.2, MP-4). Both players compute the same two children
+   * from the same seed; this side keeps `childIndex` (0 for whoever proposed, 1 for the other).
+   * The friend's parent is a pseudo id (`joint:<id>`), never a creature in this roster.
+   */
+  joint?: { seed: number; childIndex: 0 | 1 }
   startedTick: number
   /** Tick on which it hatches. */
   hatchTick: number
@@ -179,6 +186,79 @@ export class BreedingSystem {
     return { ok: true, job, cost }
   }
 
+  /**
+   * Start a joint breeding: my parent (living in a den pen) and a friend's parent, known only by
+   * its genome. `first` says whose parent is listed first (the proposer's), so both sides feed
+   * `crossover` the same order; `jointId` seeds the pair of children.
+   */
+  public startJoint(options: {
+    penId: string
+    myParentId: string
+    friendGenome: Genome
+    friendName: string
+    jointId: string
+    /** True if I proposed (my parent is first and I get child 0). */
+    iProposed: boolean
+  }): StartResult {
+    const { penId, myParentId, friendGenome, friendName, jointId, iProposed } = options
+    const pen = this.grid.getPen(penId)
+    if (!pen) return { ok: false, reason: 'That pen is not closed' }
+    if (pen.props.den === 0) return { ok: false, reason: 'This pen has no breeding den' }
+    if (this.getDenStatus(penId).free === 0) return { ok: false, reason: 'Every den here is busy' }
+    const mine = this.roster.get(myParentId)
+    if (!mine) return { ok: false, reason: 'Pick a parent' }
+    if (mine.penId !== penId) return { ok: false, reason: 'Your parent must live in this pen' }
+
+    const fakeId = `joint:${jointId}`
+    const friend = {
+      id: fakeId,
+      name: friendName,
+      genome: friendGenome,
+      fullness: 100,
+      happiness: 100,
+      trust: 100,
+      ageTicks: 0,
+      ageStage: 'adult',
+      generation: 0,
+      parentIds: null,
+      ancestry: {},
+      inbreeding: 0,
+      penId,
+      acquiredTick: 0,
+    } as OwnedCreature
+    const problems = checkPairing(mine, friend, this.context())
+    if (problems.length > 0) return { ok: false, reason: problems[0] }
+    const cost = breedingCost(mine.genome, friendGenome)
+    if (!this.wallet.removeMoney(cost, 'Breeding')) return { ok: false, reason: 'Not enough coins' }
+
+    const mineFirst = iProposed
+    const job: BreedingJob = {
+      pedigree: {
+        ancestry: {
+          ...childAncestry(
+            { id: myParentId, ancestry: mine.ancestry },
+            { id: fakeId, ancestry: {} }
+          ),
+        },
+        inbreeding: 0,
+      },
+      joint: { seed: hashString(jointId), childIndex: iProposed ? 0 : 1 },
+      id: this.nextJobId++,
+      penId,
+      parentIds: mineFirst ? [myParentId, fakeId] : [fakeId, myParentId],
+      parentGenomes: mineFirst
+        ? [structuredClone(mine.genome), structuredClone(friendGenome)]
+        : [structuredClone(friendGenome), structuredClone(mine.genome)],
+      parentNames: mineFirst
+        ? [mine.name, `${friendName} (friend)`]
+        : [`${friendName} (friend)`, mine.name],
+      startedTick: this.now,
+      hatchTick: this.now + B.GESTATION_TICKS,
+    }
+    this.jobs.push(job)
+    return { ok: true, job, cost }
+  }
+
   public getJobs(): readonly BreedingJob[] {
     return this.jobs
   }
@@ -220,7 +300,10 @@ export class BreedingSystem {
 
   private hatch(job: BreedingJob): HatchEvent {
     const [pa, pb] = job.parentGenomes
-    const seed = hashSeed(this.baseSeed, job.id)
+    // A joint breeding uses the shared seed, so both players get their own half of the same litter
+    const seed = job.joint
+      ? hashSeed(job.joint.seed, 0x6a6f696e, job.joint.childIndex)
+      : hashSeed(this.baseSeed, job.id)
 
     let child = crossover(pa, pb, seed, rarityLift(pa, pb))
     let mutated = false
@@ -345,6 +428,11 @@ export class BreedingSystem {
         parentNames: [String(j.parentNames[0]), String(j.parentNames[1])],
         startedTick: j.startedTick,
         hatchTick: j.hatchTick,
+        ...(j.joint &&
+        Number.isFinite(j.joint.seed) &&
+        (j.joint.childIndex === 0 || j.joint.childIndex === 1)
+          ? { joint: { seed: j.joint.seed, childIndex: j.joint.childIndex } }
+          : {}),
         ...(j.pedigree && typeof j.pedigree.inbreeding === 'number'
           ? {
               pedigree: {

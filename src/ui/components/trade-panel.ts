@@ -12,6 +12,8 @@ export interface TradeCreatureRow {
   description: string
   /** Why it cannot be offered right now (empty when it can). */
   blocked: string
+  /** Adult, living in a pen with a breeding den: can be proposed as a joint-breeding parent. */
+  canBreed: boolean
 }
 
 export interface TradeOfferRow {
@@ -28,6 +30,16 @@ export interface TradePanelView {
   outgoing: Array<{ id: string; name: string }>
   /** The friend's offers to me. */
   incoming: TradeOfferRow[]
+  /** Joint breeding: proposals from the friend (with my eligible parents) and my own. */
+  joint: {
+    incoming: Array<{
+      id: string
+      name: string
+      description: string
+      candidates: Array<{ id: string; name: string }>
+    }>
+    outgoing: Array<{ id: string; name: string }>
+  }
   /** Visiting a friend's park. */
   visit: { visiting: boolean; waiting: boolean }
 }
@@ -37,6 +49,10 @@ export interface TradePanelCallbacks {
   onCancel: (offerId: string) => void
   onAccept: (offerId: string) => void
   onDecline: (offerId: string) => void
+  onProposeJoint: (creatureId: string) => void
+  onCancelJoint: (proposalId: string) => void
+  onAcceptJoint: (proposalId: string, creatureId: string) => void
+  onDeclineJoint: (proposalId: string) => void
   onVisit: () => void
   onLeaveVisit: () => void
 }
@@ -70,6 +86,10 @@ export class TradePanel {
     onCancel: () => {},
     onAccept: () => {},
     onDecline: () => {},
+    onProposeJoint: () => {},
+    onCancelJoint: () => {},
+    onAcceptJoint: () => {},
+    onDeclineJoint: () => {},
     onVisit: () => {},
     onLeaveVisit: () => {},
   }
@@ -204,6 +224,41 @@ export class TradePanel {
       )
     }
 
+    nodes.push(el('h3', undefined, 'Breed together'))
+    if (view.joint.incoming.length === 0 && view.joint.outgoing.length === 0) {
+      nodes.push(
+        el(
+          'p',
+          'tp-none',
+          'Each of you brings one parent; each of you gets a child of both. Propose with “Breed together” below.'
+        )
+      )
+    }
+    for (const p of view.joint.incoming) {
+      const actions: HTMLElement[] = p.candidates
+        .slice(0, 4)
+        .map((c) => button(`Use ${c.name}`, () => this.callbacks.onAcceptJoint(p.id, c.id)))
+      actions.push(button('Decline', () => this.callbacks.onDeclineJoint(p.id)))
+      nodes.push(
+        row(
+          `${p.name} wants to breed together`,
+          p.candidates.length > 0
+            ? p.description
+            : `${p.description} · none of your adults in a den pen are free`,
+          ...actions
+        )
+      )
+    }
+    for (const o of view.joint.outgoing) {
+      nodes.push(
+        row(
+          o.name,
+          'waiting for your friend to pick a parent',
+          button('Cancel', () => this.callbacks.onCancelJoint(o.id))
+        )
+      )
+    }
+
     nodes.push(el('h3', undefined, 'Your offers'))
     if (view.outgoing.length === 0) nodes.push(el('p', 'tp-none', 'None waiting.'))
     for (const o of view.outgoing) {
@@ -223,7 +278,16 @@ export class TradePanel {
         row(
           c.name,
           c.blocked || c.description,
-          button('Offer', () => this.callbacks.onOffer(c.id), !view.connected || Boolean(c.blocked))
+          button(
+            'Offer',
+            () => this.callbacks.onOffer(c.id),
+            !view.connected || Boolean(c.blocked)
+          ),
+          button(
+            'Breed together',
+            () => this.callbacks.onProposeJoint(c.id),
+            !view.connected || !c.canBreed
+          )
         )
       )
     }

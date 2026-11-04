@@ -3,7 +3,7 @@ export { BODY_PLAN_IDS, BODY_PLANS, type BodyPlan } from './body-plans'
 export { crossover, type GainedTrait, gainTrait, mutate } from './breed'
 export { deriveAnatomy } from './derive'
 export { GENOME_VERSION, generateGenome } from './genome'
-export { choose, createSeededRandom, hashSeed, normalish, rangeInt } from './random'
+export { choose, createSeededRandom, hashSeed, hashString, normalish, rangeInt } from './random'
 export { generateSpeciesName } from './species-name'
 export type {
   BodyPlanId,

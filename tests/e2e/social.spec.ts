@@ -64,29 +64,74 @@ test('friends share a codex and trade a creature', async ({ browser }) => {
     .poll(() => host.evaluate(() => sys().roster.count()), { timeout: 30_000 })
     .toBe(0)
 
-  // Visit: the host builds a pen with a creature in it, the guest walks through a copy.
-  await host.evaluate(() => {
-    const s = sys()
-    s.currency.addMoney(500, 'test')
-    const c = s.build.getController()
-    for (let i = 0; i < 3; i++) {
-      const mid = (i + 0.5) * 2
-      for (const [x, z] of [
-        [mid, 0],
-        [mid, 6],
-        [0, mid],
-        [6, mid],
-      ]) {
-        c.setTool('fence')
-        if (!c.commit(x, z).ok) throw new Error('fence failed')
-      }
-    }
-    const genome = s.creatures
-      .getAllCreatures()
-      .map((i: { genome: { size: string; temperament: string } }) => i.genome)
-      .find((g: { size: string; temperament: string }) => g.size !== 'huge' && g.temperament !== 'aggressive')
-    s.roster.assignToPen(s.roster.add(genome, { name: 'Host Resident' }).id, s.park.getPens()[0].id)
-  })
+  // Joint breeding: each friend has a den pen with an adult parent; each ends up with a child.
+  const buildDenPen = (page: typeof host, name: string, genomeFrom: 'wild' | 'owned') =>
+    page.evaluate(
+      ({ name, genomeFrom }) => {
+        const s = sys()
+        s.currency.addMoney(500, 'test')
+        const c = s.build.getController()
+        for (let i = 0; i < 3; i++) {
+          const mid = (i + 0.5) * 2
+          for (const [x, z] of [
+            [mid, 0],
+            [mid, 6],
+            [0, mid],
+            [6, mid],
+          ]) {
+            c.setTool('fence')
+            if (!c.commit(x, z).ok) throw new Error('fence failed')
+          }
+        }
+        c.setTool('den')
+        if (!c.commit(1, 1).ok) throw new Error('den failed')
+        const pen = s.park.getPens()[0].id
+        if (genomeFrom === 'owned') {
+          s.roster.assignToPen(s.roster.list()[0].id, pen)
+        } else {
+          const genome = s.creatures
+            .getAllCreatures()
+            .map((i: { genome: { size: string; temperament: string } }) => i.genome)
+            .find((g: { size: string; temperament: string }) => g.size !== 'huge' && g.temperament !== 'aggressive')
+          s.roster.assignToPen(s.roster.add(genome, { name }).id, pen)
+        }
+        // Parents must be happy and trusting to breed.
+        for (const cr of s.roster.list()) s.roster.adjustStats(cr.id, { happiness: 100, trust: 100, fullness: 100 })
+        return pen
+      },
+      { name, genomeFrom }
+    )
+  await buildDenPen(host, 'Host Parent', 'wild')
+  await buildDenPen(guest, '', 'owned') // the guest's parent is Pebble, traded earlier
+
+  await host.locator('#trade-panel .tp-row', { hasText: 'Host Parent' }).locator('button:has-text("Breed together")').evaluate((b) => (b as HTMLElement).click())
+  await expect(guest.locator('#toast')).toContainText('joint breeding', { timeout: 30_000 })
+  if (!(await guest.locator('#trade-panel').isVisible())) {
+    await click(guest, '#tool-belt [data-tool=trade]')
+  }
+  await guest.locator('#trade-panel .tp-row', { hasText: 'wants to breed together' }).locator('button:has-text("Use")').first().evaluate((b) => (b as HTMLElement).click())
+
+  // Both started an egg; let the economy run until they hatch.
+  for (const page of [host, guest]) {
+    await expect
+      .poll(() => page.evaluate(() => sys().breeding.getJobs().length), { timeout: 30_000 })
+      .toBe(1)
+    await page.evaluate(() => sys().simClock.fastForward(600))
+  }
+  const kids = await Promise.all(
+    [host, guest].map((page) =>
+      page.evaluate(() => {
+        const s = sys()
+        const kid = s.roster.list().find((c: { parentIds: string[] | null }) => c.parentIds?.some((id) => id.startsWith('joint:')))
+        return kid ? { name: kid.name, seed: kid.genome.seed, generation: kid.generation } : null
+      })
+    )
+  )
+  expect(kids[0]).not.toBeNull()
+  expect(kids[1]).not.toBeNull()
+  expect(kids[0]?.seed).not.toBe(kids[1]?.seed) // two different children of the same pair
+
+  // Visit: the guest walks through a copy of the host's park (a den pen with creatures).
   // The Trade slot toggles: only open the panel if the earlier trade step left it closed.
   if (!(await guest.locator('#trade-panel').isVisible())) {
     await click(guest, '#tool-belt [data-tool=trade]')
@@ -107,8 +152,8 @@ test('friends share a codex and trade a creature', async ({ browser }) => {
       { timeout: 30_000 }
     )
     .toEqual({ visiting: true, parks: 2 })
-  // The guest has no pens of their own: the pen they see is the host's.
-  expect(await guest.evaluate(() => sys().park.getPens().length)).toBe(0)
+  // The guest's own pen is untouched underneath; what they see is a separate copy of the host's.
+  expect(await guest.evaluate(() => sys().park.getPens().length)).toBe(1)
   const seen = await guest.evaluate(() => {
     const s = sys()
     const parkViews = s.scene.scene.children.filter((o: { name: string }) => o.name === 'ParkView')

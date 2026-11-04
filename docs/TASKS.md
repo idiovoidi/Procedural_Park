@@ -81,7 +81,7 @@ Exit: two players can trade a creature, share discoveries and walk through each 
 |---|---|---|---|
 | T22a | [x] Pedigree and inbreeding (ancestry, relatedness, happiness and fertility penalty, UI warning) | T21 | Close pairings are flagged and cost something; saves round-trip |
 | T22b | [x] Mutations that add a new part or colour | T22a | Mutations can create traits neither parent had |
-| T22c | [ ] Joint breeding with a friend (each brings a parent, each gets a child) | T22a, T21 | Both players receive a deterministic child |
+| T22c | [x] Joint breeding with a friend (each brings a parent, each gets a child) | T22a, T21 | Both players receive a deterministic child |
 | T22d | [ ] Arena: derived combat stats and a deterministic seeded auto-battler | T22b | Same teams and seed give the same result on any machine |
 | T22e | [ ] Arena UI, rewards and friend duels | T22d, T21 | Duel a friend and both see the same result |
 | T22f | [ ] Keepers (staff) | T22a | A hired keeper does a pen's chores for a wage |

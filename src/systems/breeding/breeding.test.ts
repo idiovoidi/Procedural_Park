@@ -622,3 +622,107 @@ describe('inbreeding', () => {
     expect(other.getJobs()[0].pedigree?.inbreeding).toBe(0.25)
   })
 })
+
+describe('joint breeding', () => {
+  function jointPair(jointId = 'j1') {
+    const A = setup()
+    const B2 = setup()
+    const a = A.add(genome(1))
+    const b = B2.add(genome(2))
+    const ra = A.breeding.startJoint({
+      penId: A.penId,
+      myParentId: a.id,
+      friendGenome: b.genome,
+      friendName: b.name,
+      jointId,
+      iProposed: true,
+    })
+    const rb = B2.breeding.startJoint({
+      penId: B2.penId,
+      myParentId: b.id,
+      friendGenome: a.genome,
+      friendName: a.name,
+      jointId,
+      iProposed: false,
+    })
+    return { A, B2, a, b, ra, rb }
+  }
+
+  it('gives each player their own child of the same two parents', () => {
+    const { A, B2, a, b, ra, rb } = jointPair()
+    expect(ra.ok && rb.ok).toBe(true)
+    const [ea] = A.run(1, B.GESTATION_TICKS)
+    const [eb] = B2.run(1, B.GESTATION_TICKS)
+    expect(ea.child.genome).not.toEqual(eb.child.genome) // two different children
+    expect(validateGenome(ea.child.genome)).toEqual([])
+    expect(validateGenome(eb.child.genome)).toEqual([])
+    // Each keeps its own parent, with the friend's as a stand-in.
+    expect(ea.child.parentIds?.[0]).toBe(a.id)
+    expect(eb.child.parentIds?.[1]).toBe(b.id)
+    expect(ea.parentNames[1]).toContain('(friend)')
+    expect(A.roster.count()).toBe(2)
+    expect(B2.roster.count()).toBe(2)
+  })
+
+  it('is deterministic: the same joint id gives the same children on any machine', () => {
+    const one = jointPair('same')
+    const two = jointPair('same')
+    const c1 = one.A.run(1, B.GESTATION_TICKS)[0].child.genome
+    const c2 = two.A.run(1, B.GESTATION_TICKS)[0].child.genome
+    expect(c1).toEqual(c2)
+    const d1 = one.B2.run(1, B.GESTATION_TICKS)[0].child.genome
+    const d2 = two.B2.run(1, B.GESTATION_TICKS)[0].child.genome
+    expect(d1).toEqual(d2)
+    // A different joint id is a different litter.
+    const other = jointPair('different')
+    expect(other.A.run(1, B.GESTATION_TICKS)[0].child.genome).not.toEqual(c1)
+  })
+
+  it('charges the cost, uses a den, and refuses without a den, coins or a parent in the pen', () => {
+    const w = setup({ coins: 5 })
+    const a = w.add(genome(1))
+    const start = (over = {}) =>
+      w.breeding.startJoint({
+        penId: w.penId,
+        myParentId: a.id,
+        friendGenome: genome(2),
+        friendName: 'Friend',
+        jointId: 'x',
+        iProposed: true,
+        ...over,
+      })
+    expect(start().ok).toBe(false) // 5 coins is not enough
+    w.wallet.addMoney(500)
+    expect(start({ penId: w.otherPen }).ok).toBe(false) // no den there
+    expect(start({ myParentId: 'c999' }).ok).toBe(false)
+    const ok = start()
+    expect(ok.ok).toBe(true)
+    expect(w.wallet.getBalance()).toBe(505 - B.BASE_COST)
+    expect(w.breeding.getDenStatus(w.penId).busy).toBe(1)
+    expect(start().ok).toBe(false) // the only den is busy
+  })
+
+  it('applies the same pairing rules to the friend’s creature', () => {
+    const w = setup()
+    const a = w.add(genome(1, { size: 'tiny' }))
+    const huge = genome(2, { size: 'huge' })
+    const r = w.breeding.startJoint({
+      penId: w.penId,
+      myParentId: a.id,
+      friendGenome: huge,
+      friendName: 'Giant',
+      jointId: 'y',
+      iProposed: true,
+    })
+    expect(r.ok).toBe(false)
+  })
+
+  it('survives a save and restore of an egg in progress', () => {
+    const { A } = jointPair('saved')
+    const snap = JSON.parse(JSON.stringify(A.breeding.serialize()))
+    expect(snap.jobs[0].joint.childIndex).toBe(0)
+    const fresh = setup()
+    expect(fresh.breeding.restore(snap)).toBe(true)
+    expect(fresh.breeding.getJobs()[0].joint).toEqual(snap.jobs[0].joint)
+  })
+})
