@@ -12,6 +12,22 @@ export class InputManager {
   private canvas: HTMLCanvasElement | null = null
   private lastMousePosition = { x: 0, y: 0 }
 
+  /**
+   * Input that does not come from a keyboard or mouse (gamepad sticks, touch controls). It is
+   * fed by those devices each frame and read by the camera next to the real keys.
+   */
+  private virtual = {
+    moveX: 0,
+    moveY: 0,
+    /** Look rate from a stick, -1..1 per axis (x right, y up). */
+    lookRateX: 0,
+    lookRateY: 0,
+    /** Look delta from a finger drag, in mouse-like pixels (cleared every frame). */
+    lookDx: 0,
+    lookDy: 0,
+    sprint: false,
+  }
+
   // Store bound event handlers for proper cleanup
   private boundHandlers = {
     keyDown: this.handleKeyDown.bind(this),
@@ -348,6 +364,51 @@ export class InputManager {
     }
   }
 
+  // Virtual input (gamepad, touch)
+
+  /** Movement from a stick: x right, y forward, each -1..1. */
+  public setVirtualMove(x: number, y: number) {
+    this.virtual.moveX = clampAxis(x)
+    this.virtual.moveY = clampAxis(y)
+  }
+
+  /** Look rate from a stick: x right, y up, each -1..1. */
+  public setVirtualLookRate(x: number, y: number) {
+    this.virtual.lookRateX = clampAxis(x)
+    this.virtual.lookRateY = clampAxis(y)
+  }
+
+  /** Add a finger-drag look delta (mouse-like pixels); it is consumed at the end of the frame. */
+  public addVirtualLookDelta(dx: number, dy: number) {
+    if (Number.isFinite(dx)) this.virtual.lookDx += dx
+    if (Number.isFinite(dy)) this.virtual.lookDy += dy
+  }
+
+  public setVirtualSprint(sprint: boolean) {
+    this.virtual.sprint = sprint
+  }
+
+  public getVirtualMove(): { x: number; y: number } {
+    return { x: this.virtual.moveX, y: this.virtual.moveY }
+  }
+
+  public getVirtualLookRate(): { x: number; y: number } {
+    return { x: this.virtual.lookRateX, y: this.virtual.lookRateY }
+  }
+
+  public getVirtualLookDelta(): { x: number; y: number } {
+    return { x: this.virtual.lookDx, y: this.virtual.lookDy }
+  }
+
+  public isVirtualSprint(): boolean {
+    return this.virtual.sprint
+  }
+
+  /** Trigger a named action as if its key had been pressed (a controller button, a touch button). */
+  public pressAction(action: InputAction) {
+    this.triggerAction(action)
+  }
+
   // State queries
 
   public isKeyDown(key: string): boolean {
@@ -397,6 +458,8 @@ export class InputManager {
     // This ensures delta is only non-zero when mouse actually moved this frame
     this.state.mouseDelta.x = 0
     this.state.mouseDelta.y = 0
+    this.virtual.lookDx = 0
+    this.virtual.lookDy = 0
   }
 
   // Cleanup
@@ -411,4 +474,8 @@ export class InputManager {
     this.callbacks.clear()
     this.bindings = []
   }
+}
+
+function clampAxis(v: number): number {
+  return Number.isFinite(v) ? Math.max(-1, Math.min(1, v)) : 0
 }

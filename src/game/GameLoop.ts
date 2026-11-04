@@ -11,9 +11,15 @@ export class GameLoop {
   private isRunning = false
   private animationFrameId: number | null = null
   private updaters: Array<(dt: number, now: number) => void> = []
+  private alwaysUpdaters: Array<(dt: number, now: number) => void> = []
 
   constructor(systems: GameSystems) {
     this.systems = systems
+  }
+
+  /** Run `fn` every frame, even while paused (for input devices that must stay responsive). */
+  public addAlwaysUpdater(fn: (dt: number, now: number) => void): void {
+    this.alwaysUpdaters.push(fn)
   }
 
   /** Run `fn` every frame the game is not paused (for managers the loop does not know). */
@@ -82,6 +88,8 @@ export class GameLoop {
       capture,
       residents,
     } = this.systems
+
+    for (const fn of this.alwaysUpdaters) fn(dt, now / 1000)
 
     // Always update state machine
     state.update(dt)

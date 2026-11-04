@@ -5,6 +5,7 @@ import { log } from '@core/utils'
  */
 
 import { GAME_CONFIG } from '@core/constants'
+import { GamepadInput } from '@systems/input'
 import type { IntegratedStateManager } from '@systems/state'
 import { showErrorScreen } from '@ui/utils/show-error-screen'
 import { GameLoop } from './GameLoop'
@@ -146,6 +147,13 @@ export class Game {
       this.staffUI.initialize()
       this.photos.getVisitedInstances = () => this.social.visit.getInstances()
       this.gameLoop.addUpdater((dt, now) => this.social.visit.update(dt, now))
+      const gamepad = new GamepadInput(this.systems.input)
+      gamepad.setOnConnectionChange((connected) =>
+        this.systems.ui.showToast(
+          connected ? '🎮 Controller connected' : '🎮 Controller disconnected'
+        )
+      )
+      this.gameLoop.addAlwaysUpdater(() => gamepad.update())
       this.toolBelt.initialize()
 
       // Bring back the ranch from the last session, if there was one

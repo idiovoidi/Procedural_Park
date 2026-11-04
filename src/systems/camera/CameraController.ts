@@ -14,6 +14,9 @@ import {
 import * as THREE from 'three'
 import type { CameraMode } from './types'
 
+/** Look speed at full right-stick tilt, in radians per second. */
+const STICK_LOOK_RATE = 2.4
+
 export class CameraController {
   public camera: THREE.PerspectiveCamera
   public curve: THREE.CatmullRomCurve3
@@ -34,6 +37,8 @@ export class CameraController {
   private moveLeft = false
   private moveRight = false
   private isSprinting = false
+  /** Analog movement from a stick (x right, y forward), added to the keys. */
+  private moveAxis = { x: 0, y: 0 }
   private moveSpeed = 5.0
   private sprintSpeed = 12.0
   private freeRoamPosition = new THREE.Vector3(0, 1.6, 5)
@@ -162,6 +167,7 @@ export class CameraController {
       this.moveLeft = false
       this.moveRight = false
       this.isSprinting = false
+      this.moveAxis = { x: 0, y: 0 }
       return
     }
 
@@ -170,7 +176,28 @@ export class CameraController {
     this.moveBackward = this.inputManager.isKeyDown('s')
     this.moveLeft = this.inputManager.isKeyDown('a')
     this.moveRight = this.inputManager.isKeyDown('d')
-    this.isSprinting = this.inputManager.isKeyDown('Shift')
+    this.isSprinting = this.inputManager.isKeyDown('Shift') || this.inputManager.isVirtualSprint()
+    this.moveAxis = this.inputManager.getVirtualMove()
+
+    // Gamepad sticks and touch drags look around without needing pointer lock
+    const rate = this.inputManager.getVirtualLookRate()
+    const drag = this.inputManager.getVirtualLookDelta()
+    if (rate.x !== 0 || rate.y !== 0 || drag.x !== 0 || drag.y !== 0) {
+      const dt = 1 / 60
+      if (this.mode === 'freeroam') {
+        this.yawTarget -= rate.x * STICK_LOOK_RATE * dt + drag.x * 0.004
+        this.pitchTarget = Math.max(
+          -HALF_PI + 0.1,
+          Math.min(HALF_PI - 0.1, this.pitchTarget + rate.y * STICK_LOOK_RATE * dt - drag.y * 0.004)
+        )
+      } else {
+        this.yawTarget += rate.x * 0.6 * dt + drag.x * 0.0025
+        this.pitchTarget = Math.max(
+          -0.6,
+          Math.min(0.6, this.pitchTarget + rate.y * 0.4 * dt - drag.y * 0.002)
+        )
+      }
+    }
 
     // Update look direction from mouse delta (in freeroam with pointer lock)
     if (this.mode === 'freeroam' && this.inputManager.isPointerLocked()) {
@@ -286,10 +313,14 @@ export class CameraController {
     if (this.moveLeft) velocity.sub(right)
     if (this.moveRight) velocity.add(right)
 
-    // Normalize and apply speed (with sprint multiplier)
+    // Sticks add analog movement on top of the keys
+    velocity.addScaledVector(forward, this.moveAxis.y).addScaledVector(right, this.moveAxis.x)
+
+    // Cap at full speed (a single key is exactly 1, so keys behave as before) and apply speed
     if (velocity.length() > 0) {
+      if (velocity.length() > 1) velocity.normalize()
       const currentSpeed = this.isSprinting ? this.sprintSpeed : this.moveSpeed
-      velocity.normalize().multiplyScalar(currentSpeed * dtSeconds)
+      velocity.multiplyScalar(currentSpeed * dtSeconds)
       this.freeRoamPosition.add(velocity)
     }
 
