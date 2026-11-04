@@ -51,3 +51,14 @@ and hatch, read the Ranch Book, reload.
   den, pays its own cost and keeps its own parent; both children come from the same seeded litter
   (the proposer gets child 0, the other child 1). If one side cannot start (no den, no coins) the
   other's egg still hatches. The friend's parent shows as "(friend)" in the lineage.
+
+## Arena (T22d-e)
+
+- Optional (belt slot Arena). Pick up to three adults; combat stats come from the genome alone
+  (size, limbs, parts, temperament, an archetype wheel where each beats the next two).
+- The ladder has 8 seeded rungs. A first win pays 40 + 25 per rung and unlocks the next; repeat
+  wins pay 4, so it cannot be farmed. Nothing ever dies or changes.
+- Friend duels: challenge with a team; the friend answers with theirs; both run the same seeded
+  fight and see identical logs. No coins change hands.
+- Balance caveat: combat power and income are still correlated (both like size and rarity), though
+  fewer than half of the top fighters are top earners.

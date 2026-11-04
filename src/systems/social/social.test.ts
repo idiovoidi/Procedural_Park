@@ -4,6 +4,7 @@ import { generateGenome } from '../creatures/genome'
 import { Roster } from '../roster'
 import { CodexShare } from './CodexShare'
 import { CHUNK_CHARS, MAX_MESSAGE_CHARS, SocialChannel } from './channel'
+import { type DuelEvent, DuelShare } from './DuelShare'
 import {
   type JointBeginArgs,
   JointBreeding,
@@ -517,5 +518,93 @@ describe('joint breeding protocol', () => {
       })
     )
     expect(began).toBe(false)
+  })
+})
+
+describe('friend duels', () => {
+  function duelPair() {
+    const { a, b } = link()
+    const da = new DuelShare(a, () => 'duel-1')
+    const db = new DuelShare(b)
+    const ea: DuelEvent[] = []
+    const eb: DuelEvent[] = []
+    da.onEvent((e) => ea.push(e))
+    db.onEvent((e) => eb.push(e))
+    return { da, db, ea, eb }
+  }
+  const team = (seed: number, n = 2) =>
+    Array.from({ length: n }, (_, i) => ({
+      name: `M${seed}-${i}`,
+      genome: generateGenome(seed + i),
+    }))
+
+  it('both players see the same fight, each from their own side', () => {
+    const { da, db, ea, eb } = duelPair()
+    const mine = team(1)
+    const theirs = team(50)
+    expect(da.challenge(mine).ok).toBe(true)
+    expect(db.getIncoming()?.from.map((m) => m.name)).toEqual(mine.map((m) => m.name))
+    expect(db.accept(theirs).ok).toBe(true)
+
+    const resultA = ea.find((e) => e.kind === 'result')
+    const resultB = eb.find((e) => e.kind === 'result')
+    expect(resultA && resultB).toBeTruthy()
+    if (resultA?.kind === 'result' && resultB?.kind === 'result') {
+      expect(resultB.outcome.result).toEqual(resultA.outcome.result) // identical event for event
+      expect(resultA.outcome.iChallenged).toBe(true)
+      expect(resultB.outcome.iChallenged).toBe(false)
+      // One side's win is the other's loss (or both draw).
+      expect(resultA.outcome.iWon === null ? null : !resultA.outcome.iWon).toBe(
+        resultB.outcome.iWon
+      )
+    }
+  })
+
+  it('decline and cancel clear the challenge without a fight', () => {
+    const { da, db, ea, eb } = duelPair()
+    da.challenge(team(2))
+    db.decline()
+    expect(ea.at(-1)?.kind).toBe('declined')
+    expect(da.hasOutgoing()).toBe(false)
+
+    da.challenge(team(3))
+    da.cancel()
+    expect(eb.at(-1)?.kind).toBe('cancelled')
+    expect(db.getIncoming()).toBeNull()
+    expect(ea.some((e) => e.kind === 'result')).toBe(false)
+  })
+
+  it('rejects bad teams and junk, and refuses a second open challenge', () => {
+    const { da, db } = duelPair()
+    expect(da.challenge([]).ok).toBe(false)
+    expect(da.challenge(team(4, 4)).ok).toBe(false)
+    expect(da.challenge(team(4)).ok).toBe(true)
+    expect(da.challenge(team(5)).ok).toBe(false)
+    expect(db.accept([]).ok).toBe(false)
+    expect(db.getIncoming()).not.toBeNull()
+
+    const { b } = link()
+    const dx = new DuelShare(b)
+    b.receive(
+      JSON.stringify({
+        m: 1,
+        i: 0,
+        n: 1,
+        d: JSON.stringify({
+          type: 'duel.challenge',
+          id: 'x',
+          team: [{ name: 'Bad', genome: { archetype: 'dragon' } }],
+        }),
+      })
+    )
+    b.receive(
+      JSON.stringify({
+        m: 2,
+        i: 0,
+        n: 1,
+        d: JSON.stringify({ type: 'duel.accept', id: 'never', team: [] }),
+      })
+    )
+    expect(dx.getIncoming()).toBeNull()
   })
 })

@@ -10,6 +10,7 @@ import { showErrorScreen } from '@ui/utils/show-error-screen'
 import { GameLoop } from './GameLoop'
 import { InputHandler, type InputHandlerCallbacks } from './InputHandler'
 import {
+  ArenaUIManager,
   BreedingUIManager,
   ContractUIManager,
   ExpeditionManager,
@@ -37,6 +38,7 @@ export class Game {
   private expeditions!: ExpeditionManager
   private mapsUI!: MapUIManager
   private social!: SocialManager
+  private arenaUI!: ArenaUIManager
   private saveLoad!: SaveLoadManager
   private recordingIndicator: HTMLElement | null = null
   private container: HTMLElement
@@ -80,6 +82,7 @@ export class Game {
       this.expeditions = new ExpeditionManager(this.systems)
       this.mapsUI = new MapUIManager(this.systems)
       this.social = new SocialManager(this.systems)
+      this.arenaUI = new ArenaUIManager(this.systems, () => this.social)
       this.toolBelt = new ToolBeltManager(this.systems, {
         feed: () => this.food.feedNearestCreature(),
         lure: () => this.systems.capture.placeLure(),
@@ -95,6 +98,7 @@ export class Game {
         board: () => this.contractsUI.toggle(),
         maps: () => this.mapsUI.toggle(),
         trade: () => this.social.toggle(),
+        arena: () => this.arenaUI.toggle(),
       })
       this.saveLoad = new SaveLoadManager(this.systems, this.photos, () => this.updateLabSign())
 
@@ -134,6 +138,7 @@ export class Game {
       this.expeditions.initialize()
       this.mapsUI.initialize()
       this.social.initialize()
+      this.arenaUI.initialize()
       this.photos.getVisitedInstances = () => this.social.visit.getInstances()
       this.gameLoop.addUpdater((dt, now) => this.social.visit.update(dt, now))
       this.toolBelt.initialize()

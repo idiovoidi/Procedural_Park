@@ -10,8 +10,8 @@ declare const sys: () => Systems
 
 test.afterEach(closeContexts)
 
-test('friends share a codex and trade a creature', async ({ browser }) => {
-  test.setTimeout(420_000)
+test('friends share a codex, trade, breed together, visit and duel', async ({ browser }) => {
+  test.setTimeout(540_000)
   const host = await newPlayer(browser)
   const guest = await newPlayer(browser)
 
@@ -171,4 +171,32 @@ test('friends share a codex and trade a creature', async ({ browser }) => {
       })
     )
     .toBe(1)
+
+  // Arena: leave the visit, then duel. Both see the same fight from their own side.
+  const pickFirstFighter = async (page: typeof host) => {
+    if (!(await page.locator('#arena-panel').isVisible())) await click(page, '#tool-belt [data-tool=arena]')
+    await page.locator('#arena-panel .ap-row', { hasText: 'HP' }).first().locator('button:has-text("Pick")').evaluate((b) => (b as HTMLElement).click())
+  }
+  await click(guest, '#trade-panel .close-btn')
+  await pickFirstFighter(host)
+  await pickFirstFighter(guest)
+  await host.locator('#arena-panel .ap-row', { hasText: 'Challenge with your team' }).locator('button').evaluate((b) => (b as HTMLElement).click())
+  await expect(guest.locator('#arena-panel')).toContainText('Your friend challenges you', { timeout: 30_000 })
+  await guest.locator('#arena-panel .ap-row', { hasText: 'Your friend challenges you' }).locator('button:has-text("Accept")').evaluate((b) => (b as HTMLElement).click())
+  const verdict = (page: typeof host) => page.locator('#arena-panel .ap-report').locator('xpath=preceding-sibling::h3[1]').textContent()
+  await expect(host.locator('#arena-panel .ap-report')).toBeVisible({ timeout: 30_000 })
+  await expect(guest.locator('#arena-panel .ap-report')).toBeVisible({ timeout: 30_000 })
+  const [hostLines, guestLines] = await Promise.all(
+    [host, guest].map((p) => p.locator('#arena-panel .ap-report').textContent())
+  )
+  expect(hostLines).toBe(guestLines) // the very same fight, move for move
+  const [hv, gv] = await Promise.all([verdict(host), verdict(guest)])
+  expect([hv, gv].some((v) => v?.includes('won'))).toBe(true)
+
+  // The solo ladder: a first win pays coins.
+  const before = await host.evaluate(() => sys().currency.getBalance())
+  await host.locator('#arena-panel .ap-row', { hasText: 'Rung 1' }).locator('button').evaluate((b) => (b as HTMLElement).click())
+  await expect(host.locator('#arena-panel')).toContainText(/Victory on rung 1|Defeated on rung 1/)
+  const after = await host.evaluate(() => sys().currency.getBalance())
+  expect(after).toBeGreaterThanOrEqual(before)
 })

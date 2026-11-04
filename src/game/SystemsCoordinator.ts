@@ -17,6 +17,7 @@ import {
 import { VideoRecorder } from '@game/VideoRecorder'
 import { SceneManager } from '@rendering/scene'
 import type { ShaderConfig } from '@rendering/shaders'
+import { ArenaSystem } from '@systems/arena'
 import { AudioManager } from '@systems/audio'
 import { BreedingSystem } from '@systems/breeding'
 import { CameraController } from '@systems/camera'
@@ -75,6 +76,8 @@ export interface GameSystems {
   market: MarketSystem
   /** Sells output by itself above a price floor, once an auto-sell valve is built. */
   autoSell: AutoSeller
+  /** The optional auto-battler ladder. */
+  arena: ArenaSystem
   /** Which map the player is on and which expeditions are unlocked. */
   maps: MapManager
   /** Buyers who pay a premium for specific traits (GDD 7.3). */
@@ -231,6 +234,7 @@ export class SystemsCoordinator {
 
     // The Contract Board posts and expires requests on the same clock
     const maps = new MapManager()
+    const arena = new ArenaSystem(roster, currencyManager)
     const contracts = new ContractBoard(roster, currencyManager, GAME_CONFIG.WORLD_SEED)
     simClock.onTick((tick) => contracts.tick(tick))
 
@@ -295,6 +299,7 @@ export class SystemsCoordinator {
       market,
       autoSell,
       maps,
+      arena,
       contracts,
       build,
       capture,

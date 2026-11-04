@@ -139,6 +139,7 @@ export class SaveLoadManager {
       contracts: s.contracts,
       autoSell: s.autoSell,
       maps: s.maps,
+      arena: s.arena,
       currency: s.currency,
       food: s.food,
     }

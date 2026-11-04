@@ -4,6 +4,7 @@ import type { ShaderConfig } from '@rendering/shaders'
 import { type ShaderDebugCallbacks, ShaderDebugUI } from '@rendering/shaders'
 import type { FoodItem } from '@systems/food'
 import type * as THREE from 'three'
+import { ArenaPanel } from '../components/arena-panel'
 import { BreedingPanel } from '../components/breeding-panel'
 import { BuildHud } from '../components/build-hud'
 import { ContractBoardPanel } from '../components/contract-board'
@@ -46,6 +47,7 @@ export class UIManager {
   private contractBoard: ContractBoardPanel
   private mapPanel: MapPanel
   private tradePanel: TradePanel
+  private arenaPanel: ArenaPanel
   private toggleBreedingBtn: HTMLButtonElement
   private toggleMarketBtn: HTMLButtonElement
   private toggleBuildBtn: HTMLButtonElement
@@ -80,6 +82,7 @@ export class UIManager {
     this.contractBoard = new ContractBoardPanel()
     this.mapPanel = new MapPanel()
     this.tradePanel = new TradePanel()
+    this.arenaPanel = new ArenaPanel()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
@@ -119,6 +122,7 @@ export class UIManager {
     this.contractBoard.setAudioCallbacks(callbacks)
     this.mapPanel.setAudioCallbacks(callbacks)
     this.tradePanel.setAudioCallbacks(callbacks)
+    this.arenaPanel.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
@@ -668,6 +672,10 @@ export class UIManager {
   /**
    * Get the tool belt and pen inspector
    */
+  public getArenaPanel(): ArenaPanel {
+    return this.arenaPanel
+  }
+
   public getTradePanel(): TradePanel {
     return this.tradePanel
   }

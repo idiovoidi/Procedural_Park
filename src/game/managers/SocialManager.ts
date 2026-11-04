@@ -1,6 +1,13 @@
 import type { Genome } from '@systems/creatures/genome'
 import { getRarityTier } from '@systems/economy'
-import { CodexShare, JointBreeding, SocialChannel, TradeManager, VisitShare } from '@systems/social'
+import {
+  CodexShare,
+  DuelShare,
+  JointBreeding,
+  SocialChannel,
+  TradeManager,
+  VisitShare,
+} from '@systems/social'
 import type { TradePanelView } from '@ui/components/trade-panel'
 import type { GameSystems } from '../SystemsCoordinator'
 import { VisitManager } from './VisitManager'
@@ -21,6 +28,7 @@ export class SocialManager {
   public readonly visitShare: VisitShare
   public readonly visit: VisitManager
   public readonly joint: JointBreeding
+  public readonly duel: DuelShare
 
   constructor(systems: GameSystems) {
     this.systems = systems
@@ -43,6 +51,7 @@ export class SocialManager {
       const r = systems.breeding.startJoint({ penId, ...args })
       return r.ok ? { ok: true } : { ok: false, reason: r.reason }
     })
+    this.duel = new DuelShare(this.channel)
     this.trade = new TradeManager(systems.roster, this.channel, {
       // A creature in the breeding den cannot leave until its egg has hatched.
       isLocked: (id) => systems.breeding.getJobs().some((j) => j.parentIds.includes(id)),
@@ -59,6 +68,7 @@ export class SocialManager {
         this.trade.reset()
         this.visitShare.reset()
         this.joint.reset()
+        this.duel.reset()
         this.visit.end(false)
       } else this.codexShare.sendAll()
       this.refresh()

@@ -13,6 +13,7 @@
  */
 
 import { GAME_CONFIG } from '@core/constants'
+import type { ArenaSnapshot, ArenaSystem } from '@systems/arena'
 import type { BreedingSnapshot, BreedingSystem } from '@systems/breeding'
 import type { CareSnapshot, CareSystem } from '@systems/care'
 import type { Codex, CodexSnapshot } from '@systems/codex'
@@ -47,6 +48,7 @@ export interface ParkTargets {
   contracts?: ContractBoard
   autoSell?: AutoSeller
   maps?: MapManager
+  arena?: ArenaSystem
   currency: CurrencyManager
   food: FoodManager
 }
@@ -74,6 +76,8 @@ export interface ParkSave {
   autoSell?: AutoSellSnapshot
   /** Unlocked expeditions. Absent in older saves. */
   maps?: MapSnapshot
+  /** Arena ladder progress. Absent in older saves. */
+  arena?: ArenaSnapshot
   /** Genome seeds of wild creatures that have been crated, so they don't respawn. */
   capturedSeeds: number[]
 }
@@ -92,6 +96,7 @@ export type ParkSection =
   | 'contracts'
   | 'autosell'
   | 'maps'
+  | 'arena'
   | 'clock'
   | 'captured'
 
@@ -131,6 +136,7 @@ export function capturePark(
     contracts: t.contracts?.serialize(),
     autoSell: t.autoSell?.serialize(),
     maps: t.maps?.serialize(),
+    arena: t.arena?.serialize(),
     capturedSeeds: [...capturedSeeds],
   }
 }
@@ -204,6 +210,10 @@ export function restorePark(
   section('production', () => t.production.restore(data.production))
   section('resources', () => t.resources.restore(data.resources))
   section('market', () => t.market.restore(data.market))
+  if (data.arena !== undefined && t.arena) {
+    const arena = t.arena
+    section('arena', () => arena.restore(data.arena))
+  }
   if (data.maps !== undefined && t.maps) {
     const maps = t.maps
     section('maps', () => maps.restore(data.maps))

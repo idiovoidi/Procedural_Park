@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { GAME_CONFIG } from '../../core/constants'
+import { ArenaSystem } from '../arena'
 import { BreedingSystem } from '../breeding'
 import { CareSystem } from '../care'
 import { Codex } from '../codex'
@@ -37,6 +38,7 @@ function newWorld(): ParkTargets & { advance: (seconds: number) => void } {
   const food = new FoodManager()
   const contracts = new ContractBoard(roster, currency, 7)
   const maps = new MapManager()
+  const arena = new ArenaSystem(roster, currency)
   const breeding = new BreedingSystem(roster, grid, currency, 1337)
   const codex = new Codex()
   roster.onChange((c) => {
@@ -62,6 +64,7 @@ function newWorld(): ParkTargets & { advance: (seconds: number) => void } {
     market,
     contracts,
     maps,
+    arena,
     currency,
     food,
     advance: (seconds) => {
@@ -105,6 +108,7 @@ function busyWorld() {
     { ...generateGenome(5), temperament: 'curious', size: 'medium' },
     { penId: pen.id, stats: { fullness: 90, happiness: 90, trust: 90 } }
   )
+  w.arena?.restore({ version: 1, beaten: 2, fights: 5 })
   w.maps?.unlock('greenwood', w.currency, { ownedSpecies: 0 })
   const started = w.breeding.start(pen.id, p1.id, p2.id)
   if (!started.ok) throw new Error(`test setup: breeding did not start: ${started.reason}`)
@@ -126,6 +130,7 @@ function snapshotOf(w: ParkTargets) {
     demand: w.market.serialize(),
     contracts: w.contracts?.serialize(),
     maps: w.maps?.serialize(),
+    arena: w.arena?.serialize(),
     food: w.food.getInventory().map((i) => [i.id, i.quantity]),
   }
 }
@@ -154,6 +159,7 @@ describe('restorePark', () => {
     expect(result.failed).toEqual([])
     expect(result.restored.sort()).toEqual(
       [
+        'arena',
         'breeding',
         'captured',
         'care',
