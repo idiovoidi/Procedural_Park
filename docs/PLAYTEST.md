@@ -72,3 +72,20 @@ and hatch, read the Ranch Book, reload.
 - **Keepers:** 250 to hire, 3 a minute. They restock troughs (bag first, else buying), empty the
   bin and add a little happiness. If the wage cannot be paid they stop, nothing else happens.
   A keeper pen with no farms stays fed for 90 simulated minutes (guarded by a balance test).
+
+## Platform polish (T23)
+
+- **Gamepad:** left stick move, right stick look, stick click sprint, A jump, X photo, Y build,
+  LT feed, RT crate, LB bait, RB collect, D-pad up market / down breeding / left Ranch Book /
+  right camera mode, Start settings, Back map. It polls even while a menu is open. Not yet: moving
+  a cursor around the panels with the pad (panels are still mouse/touch/keyboard).
+- **Touch:** shown on touch-first devices or with `?touch=1` (Settings has Auto/On/Off). A floating
+  stick on the left, look-drag on the right, buttons for jump, sprint, crate, feed, photo and
+  build/remove at the crosshair (build mode places without pointer lock).
+- **Graphics:** Auto (a governor steps down after 3 s under 40 fps, up after 20 s over 57 fps, 8 s
+  between steps) or fixed Low/Medium/High: pixel ratio cap, shadows, how far residents animate.
+- **Accessibility:** interface size (5 steps), high contrast, reduce motion (CSS animations off and
+  film grain/grit off, defaults to the OS preference), panels are labelled dialogs that take and
+  return focus, Escape closes the top one, the belt is real buttons with pressed state, toasts and
+  the pen inspector are polite live regions. Not yet: full keyboard navigation of the 3D view,
+  colour-blind palettes, text-to-speech, remappable keys.

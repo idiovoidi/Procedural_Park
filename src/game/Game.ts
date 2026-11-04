@@ -14,6 +14,7 @@ import {
   ArenaUIManager,
   BreedingUIManager,
   ContractUIManager,
+  DisplaySettingsManager,
   ExpeditionManager,
   FoodSystemManager,
   MapUIManager,
@@ -25,7 +26,6 @@ import {
   StaffUIManager,
   ToolBeltManager,
   TouchManager,
-  wantsTouchControls,
 } from './managers'
 import { type GameSystems, SystemsCoordinator } from './SystemsCoordinator'
 
@@ -45,6 +45,7 @@ export class Game {
   private arenaUI!: ArenaUIManager
   private staffUI!: StaffUIManager
   private touch!: TouchManager
+  private display!: DisplaySettingsManager
   private saveLoad!: SaveLoadManager
   private recordingIndicator: HTMLElement | null = null
   private container: HTMLElement
@@ -148,14 +149,11 @@ export class Game {
       this.social.initialize()
       this.arenaUI.initialize()
       this.staffUI.initialize()
-      this.touch = new TouchManager(
-        this.systems,
-        wantsTouchControls(
-          window.location.search,
-          window.matchMedia?.('(pointer: coarse)').matches ?? false
-        )
-      )
-      this.touch.initialize()
+      this.touch = new TouchManager(this.systems, false)
+      this.touch.initialize() // wires the buttons; the display settings decide whether they show
+      this.display = new DisplaySettingsManager(this.systems)
+      this.display.initialize()
+      this.gameLoop.addAlwaysUpdater(() => this.display.update())
       this.photos.getVisitedInstances = () => this.social.visit.getInstances()
       this.gameLoop.addUpdater((dt, now) => this.social.visit.update(dt, now))
       const gamepad = new GamepadInput(this.systems.input)

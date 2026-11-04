@@ -93,9 +93,9 @@ Exit: two players can trade a creature, share discoveries and walk through each 
 |---|---|---|---|
 | T23a | [x] Virtual input + gamepad (analog move/look, buttons -> actions) | T22 | A pad plays the field loop; mapping tested |
 | T23b | [x] Touch controls: floating stick, look drag, action buttons | T23a | Playable on a phone-sized touch screen |
-| T23c | [ ] Performance governor: quality levels from measured frame time | — | Quality steps down under load and back up with hysteresis |
-| T23d | [ ] Accessibility: UI scale, reduced motion, high contrast, labelled controls, Escape | — | Settings persist; controls have roles and labels |
-| T23e | [ ] M7 E2E + docs | T23a–d | Virtual input, touch, quality and accessibility covered |
+| T23c | [x] Performance governor: quality levels from measured frame time | — | Quality steps down under load and back up with hysteresis |
+| T23d | [x] Accessibility: UI scale, reduced motion, high contrast, labelled controls, Escape | — | Settings persist; controls have roles and labels |
+| T23e | [x] M7 E2E + docs | T23a–d | Virtual input, touch, quality and accessibility covered |
 
 ## Later milestones (split into tasks when reached)
 
@@ -105,4 +105,4 @@ Exit: two players can trade a creature, share discoveries and walk through each 
 | T20 ✅ | M3 Expeditions | Map manager, 2–3 maps, study/special-condition capture, night spawns | T19 |
 | T21 ✅ | M4 Social | Card trading, friend park visit, shared codex, E2E coverage | T1, T18 |
 | T22 ✅ | M5–M6 Depth + Arena | Pedigree, inbreeding, mutations, staff, joint breeding; deterministic auto-battler | T19, T21 |
-| T23 | M7 Platform polish | Gamepad, mobile touch, performance scaling, accessibility (start spikes early if M1 shows perf issues) | — |
+| T23 ✅ | M7 Platform polish | Gamepad, mobile touch, performance scaling, accessibility (start spikes early if M1 shows perf issues) | — |

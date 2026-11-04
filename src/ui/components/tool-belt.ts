@@ -38,7 +38,7 @@ const STYLE = `
     max-width: 96vw; overflow-x: auto;
   }
   #tool-belt .tb-slot {
-    cursor: pointer; min-width: 52px; padding: 5px 6px; text-align: center; border-radius: 8px;
+    cursor: pointer; font-family: inherit; min-width: 52px; padding: 5px 6px; text-align: center; border-radius: 8px;
     background: rgba(15, 18, 28, 0.85); color: #cfd3e0; font-size: 11px;
     border: 2px solid rgba(255,255,255,0.12); user-select: none; touch-action: manipulation;
   }
@@ -64,13 +64,15 @@ const STYLE = `
 export class ToolBelt {
   private belt: HTMLDivElement
   private inspector: HTMLDivElement
-  private slots = new Map<string, HTMLDivElement>()
+  private slots = new Map<string, HTMLButtonElement>()
   private onUse: (id: string) => void = () => {}
   private lastInspector = ''
 
   constructor() {
     this.belt = document.createElement('div')
     this.belt.id = 'tool-belt'
+    this.belt.setAttribute('role', 'toolbar')
+    this.belt.setAttribute('aria-label', 'Actions')
     this.inspector = document.createElement('div')
     this.inspector.id = 'pen-inspector'
     document.body.append(this.belt, this.inspector)
@@ -91,10 +93,13 @@ export class ToolBelt {
     this.belt.replaceChildren()
     this.slots.clear()
     for (const slot of slots) {
-      const el = document.createElement('div')
+      const el = document.createElement('button')
+      el.type = 'button'
       el.className = 'tb-slot'
       el.dataset.tool = slot.id
       el.title = slot.key ? `${slot.label} (${slot.key})` : slot.label
+      el.setAttribute('aria-label', el.title)
+      el.setAttribute('aria-pressed', 'false')
       const icon = document.createElement('span')
       icon.className = 'tb-icon'
       icon.textContent = slot.icon
@@ -112,7 +117,10 @@ export class ToolBelt {
   }
 
   public setActive(ids: ReadonlySet<string>): void {
-    for (const [id, el] of this.slots) el.classList.toggle('active', ids.has(id))
+    for (const [id, el] of this.slots) {
+      el.classList.toggle('active', ids.has(id))
+      el.setAttribute('aria-pressed', String(ids.has(id)))
+    }
   }
 
   public setVisible(visible: boolean): void {

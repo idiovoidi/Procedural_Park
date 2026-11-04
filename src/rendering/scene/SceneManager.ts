@@ -21,6 +21,8 @@ export class SceneManager {
   /** Where the tram stops, after being fitted to the layout. */
   public stations: StationDef[]
   public terrainSystem: TerrainSystem
+  /** Highest pixel ratio the renderer may use (lowered by the quality governor). */
+  private pixelRatioCap = 2
   /** The railway meshes, hidden while away from the hub. */
   private trackObject: THREE.Object3D | null = null
   public environmentInteractions: EnvironmentInteractions
@@ -53,7 +55,7 @@ export class SceneManager {
       preserveDrawingBuffer: false,
       powerPreference: 'high-performance',
     })
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.pixelRatioCap))
     this.renderer.setSize(window.innerWidth, window.innerHeight)
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
     this.renderer.shadowMap.enabled = true
@@ -258,11 +260,28 @@ export class SceneManager {
     return this.shaderManager.getCurrentQualityLevel()
   }
 
+  /** Apply a graphics quality: pixel density cap and shadows. Costs a resize, so call it rarely. */
+  public setQuality(preset: { pixelRatio: number; shadows: boolean }): void {
+    this.pixelRatioCap = preset.pixelRatio
+    this.renderer.shadowMap.enabled = preset.shadows
+    this.directionalLight.castShadow = preset.shadows
+    // Shadow-casting changes need every material to be rebuilt once.
+    this.scene.traverse((o) => {
+      const m = (o as THREE.Mesh).material
+      for (const mat of Array.isArray(m) ? m : m ? [m] : []) mat.needsUpdate = true
+    })
+    this.handleResize()
+  }
+
+  public getPixelRatio(): number {
+    return this.renderer.getPixelRatio()
+  }
+
   // Handle window resize with proper aspect ratio and pixel density management
   private handleResize(): void {
     const width = window.innerWidth
     const height = window.innerHeight
-    const pixelRatio = Math.min(window.devicePixelRatio, 2)
+    const pixelRatio = Math.min(window.devicePixelRatio, this.pixelRatioCap)
 
     // Update renderer size and pixel ratio
     this.renderer.setPixelRatio(pixelRatio)
@@ -278,7 +297,7 @@ export class SceneManager {
   public resize(width?: number, height?: number): void {
     if (width && height) {
       // Custom size
-      const pixelRatio = Math.min(window.devicePixelRatio, 2)
+      const pixelRatio = Math.min(window.devicePixelRatio, this.pixelRatioCap)
       this.renderer.setPixelRatio(pixelRatio)
       this.renderer.setSize(width, height)
       this.shaderManager.setSize(width, height)

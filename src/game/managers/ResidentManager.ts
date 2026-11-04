@@ -14,7 +14,7 @@ const STAGE_SCALE: Record<OwnedCreature['ageStage'], number> = {
 }
 
 /** Residents farther than this from the camera are left frozen to save work. */
-const ACTIVE_RANGE_M = 70
+const DEFAULT_ACTIVE_RANGE_M = 70
 
 interface Resident {
   instance: CreatureInstance
@@ -45,6 +45,7 @@ export class ResidentManager {
   private readonly residents = new Map<string, Resident>()
   private readonly unsubscribe: Array<() => void> = []
   private visible = true
+  private activeRange = DEFAULT_ACTIVE_RANGE_M
 
   constructor(deps: Dependencies) {
     this.deps = deps
@@ -56,6 +57,11 @@ export class ResidentManager {
     )
     this.unsubscribe.push(deps.grid.onEdit(() => this.sync()))
     this.sync()
+  }
+
+  /** How far from the camera residents keep moving (lower on slower devices). */
+  public setActiveRange(metres: number): void {
+    if (Number.isFinite(metres) && metres > 0) this.activeRange = metres
   }
 
   /** Hide the residents while away from the hub (they keep living on the economy clock). */
@@ -147,7 +153,7 @@ export class ResidentManager {
     for (const resident of this.residents.values()) {
       const { instance } = resident
       const pos = instance.group.position
-      if (Math.hypot(pos.x - camPos.x, pos.z - camPos.z) > ACTIVE_RANGE_M) continue
+      if (Math.hypot(pos.x - camPos.x, pos.z - camPos.z) > this.activeRange) continue
 
       instance.update(dt, nowSeconds, cam, [])
 

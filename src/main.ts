@@ -1,6 +1,7 @@
 // Import polyfills FIRST before anything else
 import './polyfills'
 import './style.css'
+import './accessibility.css'
 import type { IntegratedStateManager } from '@systems/state'
 import { showErrorScreen } from '@ui/utils/show-error-screen'
 import { Game } from './game/Game'
