@@ -75,6 +75,18 @@ Exit: two players can trade a creature, share discoveries and walk through each 
 | T21d | [x] Visit a friend's park (read-only snapshot) | T21b | Guest sees the host's pens and residents |
 | T21e | [x] Two-browser E2E for trade, codex and visit | T21a–d | E2E green |
 
+## M5–M6 — Breeding depth, joint breeding, arena (T22 split)
+
+| ID | Task | Deps | Done when |
+|---|---|---|---|
+| T22a | [x] Pedigree and inbreeding (ancestry, relatedness, happiness and fertility penalty, UI warning) | T21 | Close pairings are flagged and cost something; saves round-trip |
+| T22b | [ ] Mutations that add a new part or colour | T22a | Mutations can create traits neither parent had |
+| T22c | [ ] Joint breeding with a friend (each brings a parent, each gets a child) | T22a, T21 | Both players receive a deterministic child |
+| T22d | [ ] Arena: derived combat stats and a deterministic seeded auto-battler | T22b | Same teams and seed give the same result on any machine |
+| T22e | [ ] Arena UI, rewards and friend duels | T22d, T21 | Duel a friend and both see the same result |
+| T22f | [ ] Keepers (staff) | T22a | A hired keeper does a pen's chores for a wage |
+| T22g | [ ] M5–M6 balance + E2E | T22a–f | Guard rails and E2E cover joint breeding and a duel |
+
 ## Later milestones (split into tasks when reached)
 
 | Epic | Milestone | Scope | Deps |

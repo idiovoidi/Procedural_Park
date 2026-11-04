@@ -295,7 +295,10 @@ export class CareSystem {
 
   private happinessTarget(creature: Readonly<OwnedCreature>, quality: number | undefined): number {
     if (quality === undefined) return CARE.UNPENNED_HAPPINESS_TARGET
-    const target = quality * 100
+    // Inbred creatures are never quite as content as their pen deserves
+    const inbred =
+      1 - creature.inbreeding * GAME_CONFIG.ECONOMY.BREEDING.INBREEDING.HAPPINESS_PENALTY
+    const target = quality * 100 * Math.max(0, inbred)
     return creature.fullness < CARE.HUNGRY_BELOW ? target / 2 : target
   }
 

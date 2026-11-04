@@ -244,6 +244,13 @@ export const GAME_CONFIG = {
        */
       RARITY_LIFT: 0.03,
       RARITY_LIFT_MIN_PARENT: 0.3,
+      /**
+       * Inbreeding (GDD 6.5). A creature's coefficient F is half the relatedness of its parents:
+       * 0.25 for full siblings or parent x child, 0.125 for half siblings, and so on. Its
+       * happiness can only reach (1 - F x HAPPINESS_PENALTY) of what its pen deserves, and the
+       * rest it needs between litters grows by F x COOLDOWN_PENALTY.
+       */
+      INBREEDING: { HAPPINESS_PENALTY: 1.2, COOLDOWN_PENALTY: 4 },
       MUTATION_CHANCE: 0.2,
       MUTATION_RATE: 0.12,
       /** How many example offspring the preview shows, and how many crossovers it samples for odds. */

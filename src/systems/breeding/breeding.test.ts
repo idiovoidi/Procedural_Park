@@ -546,3 +546,56 @@ describe('rarity ratchet', () => {
     expect(a.rarity).toBeGreaterThan(0.6)
   })
 })
+
+describe('inbreeding', () => {
+  /** A founder pair and two of their children, all adults, ready to breed. */
+  function siblings() {
+    const w = setup()
+    const f1 = w.add(genome(1))
+    const f2 = w.add(genome(2))
+    w.breeding.start(w.penId, f1.id, f2.id)
+    w.run(1, B.GESTATION_TICKS)
+    const kids = w.roster.list().filter((c) => c.parentIds)
+    return { ...w, f1, f2, child: kids[0] }
+  }
+
+  it('an outcross child is not inbred, and remembers its parents', () => {
+    const { child, f1, f2 } = siblings()
+    expect(child.inbreeding).toBe(0)
+    expect(Object.keys(child.ancestry).sort()).toEqual([f1.id, f2.id].sort())
+  })
+
+  it('a child of parent and child is inbred by 0.25, even if a parent is sold meanwhile', () => {
+    const { breeding, roster, f1, child, penId, run, wallet } = siblings()
+    wallet.addMoney(500)
+    roster.adjustStats(child.id, { fullness: 100, happiness: 100, trust: 100 })
+    roster.advanceTicks(10_000) // grown up
+    roster.adjustStats(f1.id, { fullness: 100, happiness: 100, trust: 100 })
+    // Both rested: skip past the cooldown by running the clock.
+    const start = B.GESTATION_TICKS + B.COOLDOWN_TICKS * 6 + 10
+    breeding.syncTick(start)
+    const result = breeding.start(penId, f1.id, child.id)
+    expect(result.ok).toBe(true)
+    roster.remove(f1.id) // sold before the egg hatches
+    const [hatch] = run(start, start + B.GESTATION_TICKS)
+    expect(hatch.child.inbreeding).toBe(0.25)
+    expect(hatch.child.ancestry[f1.id]).toBe(1)
+  })
+
+  it('the pedigree survives a save and restore of an egg in progress', () => {
+    const { breeding, roster, f1, child, penId, wallet } = siblings()
+    wallet.addMoney(500)
+    roster.advanceTicks(10_000)
+    roster.adjustStats(child.id, { fullness: 100, happiness: 100, trust: 100 })
+    roster.adjustStats(f1.id, { fullness: 100, happiness: 100, trust: 100 })
+    const start = B.GESTATION_TICKS + B.COOLDOWN_TICKS * 6 + 10
+    breeding.syncTick(start)
+    expect(breeding.start(penId, f1.id, child.id).ok).toBe(true)
+    const snap = JSON.parse(JSON.stringify(breeding.serialize()))
+    expect(snap.jobs[0].pedigree.inbreeding).toBe(0.25)
+
+    const other = setup().breeding
+    expect(other.restore(snap)).toBe(true)
+    expect(other.getJobs()[0].pedigree?.inbreeding).toBe(0.25)
+  })
+})

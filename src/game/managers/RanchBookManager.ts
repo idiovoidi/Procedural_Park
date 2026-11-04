@@ -147,7 +147,7 @@ export class RanchBookManager {
       const lineage =
         c.generation === 0
           ? 'founder'
-          : `generation ${c.generation}${parents && parents.length > 0 ? `, from ${parents.join(' × ')}` : ''}`
+          : `generation ${c.generation}${parents && parents.length > 0 ? `, from ${parents.join(' × ')}` : ''}${c.inbreeding > 0 ? `, inbred ${Math.round(c.inbreeding * 100)}%` : ''}`
       return {
         id: c.id,
         name: c.name,

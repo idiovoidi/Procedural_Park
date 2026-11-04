@@ -19,7 +19,13 @@ import {
   mutate,
 } from '@systems/creatures/genome'
 import { canAddOccupant, type PenGrid } from '@systems/park'
-import type { OwnedCreature, Roster } from '@systems/roster'
+import {
+  childAncestry,
+  inbreedingOf,
+  type OwnedCreature,
+  type Roster,
+  sanitizeAncestry,
+} from '@systems/roster'
 import { breedingCost, checkPairing, type PairingContext, rarityLift } from './pairing'
 
 const B = GAME_CONFIG.ECONOMY.BREEDING
@@ -37,6 +43,8 @@ export interface BreedingJob {
   /** Parent genomes are kept so the egg still hatches if a parent is sold meanwhile. */
   parentGenomes: [Genome, Genome]
   parentNames: [string, string]
+  /** Who the hatchling descends from and how inbred it is, fixed when the egg is laid. */
+  pedigree?: { ancestry: Record<string, number>; inbreeding: number }
   startedTick: number
   /** Tick on which it hatches. */
   hatchTick: number
@@ -151,7 +159,11 @@ export class BreedingSystem {
     const cost = breedingCost(a.genome, b.genome)
     if (!this.wallet.removeMoney(cost, 'Breeding')) return { ok: false, reason: 'Not enough coins' }
 
+    // Fix the pedigree now: a parent sold before the egg hatches must still count.
+    const pa = { id: aId, ancestry: a.ancestry }
+    const pb = { id: bId, ancestry: b.ancestry }
     const job: BreedingJob = {
+      pedigree: { ancestry: { ...childAncestry(pa, pb) }, inbreeding: inbreedingOf(pa, pb) },
       id: this.nextJobId++,
       penId,
       parentIds: [aId, bId],
@@ -226,6 +238,7 @@ export class BreedingSystem {
 
     const baby = this.roster.add(child, {
       parentIds: job.parentIds,
+      ...(job.pedigree ?? {}),
       ageStage: 'hatchling',
       penId,
       acquiredTick: this.now,
@@ -233,7 +246,14 @@ export class BreedingSystem {
     })
 
     // Parents rest before the next litter (whether or not they are still owned).
-    for (const id of job.parentIds) this.cooldowns.set(id, this.now + B.COOLDOWN_TICKS)
+    // Parents rest longer the more inbred they are themselves (less fertile)
+    for (const id of job.parentIds) {
+      const f = this.roster.get(id)?.inbreeding ?? 0
+      this.cooldowns.set(
+        id,
+        this.now + Math.round(B.COOLDOWN_TICKS * (1 + f * B.INBREEDING.COOLDOWN_PENALTY))
+      )
+    }
 
     return {
       jobId: job.id,
@@ -315,6 +335,14 @@ export class BreedingSystem {
         parentNames: [String(j.parentNames[0]), String(j.parentNames[1])],
         startedTick: j.startedTick,
         hatchTick: j.hatchTick,
+        ...(j.pedigree && typeof j.pedigree.inbreeding === 'number'
+          ? {
+              pedigree: {
+                ancestry: { ...sanitizeAncestry(j.pedigree.ancestry) },
+                inbreeding: Math.min(0.5, Math.max(0, j.pedigree.inbreeding)),
+              },
+            }
+          : {}),
       })
     }
 

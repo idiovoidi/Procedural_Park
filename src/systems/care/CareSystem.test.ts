@@ -475,3 +475,33 @@ describe('food farms', () => {
     expect(roster.get(c.id)?.fullness).toBeGreaterThan(50)
   })
 })
+
+describe('inbreeding', () => {
+  const PEN = GAME_CONFIG.ECONOMY.BREEDING.INBREEDING
+
+  it('caps how content an inbred creature can get, in proportion to its coefficient', () => {
+    const { care, penId, roster, runCycles } = setup()
+    const plain = roster.add(genome(), {
+      penId,
+      stats: { fullness: 100, happiness: 50, trust: 50 },
+    })
+    const inbred = roster.add(genome(), {
+      penId,
+      inbreeding: 0.25,
+      stats: { fullness: 100, happiness: 50, trust: 50 },
+    })
+    // Keep both fed so only the pen and the penalty decide where happiness settles.
+    care.addFood(penId, 'berry', CARE.TROUGH_CAPACITY_SERVINGS)
+    for (let i = 0; i < 30; i++) {
+      runCycles(1)
+      for (const c of [plain, inbred]) roster.adjustStats(c.id, { fullness: 100 })
+      care.addFood(penId, 'berry', 5)
+    }
+    const a = roster.get(plain.id)?.happiness ?? 0
+    const b = roster.get(inbred.id)?.happiness ?? 0
+    expect(b).toBeLessThan(a)
+    expect(b).toBeLessThanOrEqual(
+      a * (1 - 0.25 * PEN.HAPPINESS_PENALTY) + CARE.HAPPINESS_DRIFT_PER_CYCLE
+    )
+  })
+})

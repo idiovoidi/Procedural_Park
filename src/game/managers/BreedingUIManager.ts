@@ -1,6 +1,7 @@
 import { describeOffspring, sampleOffspring } from '@systems/breeding'
 import { generateSpeciesName } from '@systems/creatures/genome'
 import { getRarityTier } from '@systems/economy'
+import { describeRelation, relatedness } from '@systems/roster'
 import type { BreedingView } from '@ui/components/breeding-panel'
 import type { GameSystems } from '../SystemsCoordinator'
 
@@ -132,6 +133,13 @@ export class BreedingUIManager {
       cost = breeding.getCost(a.id, b.id)
       canBreed = problems.length === 0
       odds = this.formatOdds(a.genome, b.genome)
+      const r = relatedness({ id: a.id, ancestry: a.ancestry }, { id: b.id, ancestry: b.ancestry })
+      if (r > 0) {
+        const f = Math.round((r / 2) * 100)
+        odds.push(
+          `⚠️ They are ${describeRelation(r)}: the hatchling would be ${f}% inbred (less happy, and less fertile). Outcross with a wild founder or a friend's creature.`
+        )
+      }
       samples = sampleOffspring(a.genome, b.genome).map((g) => ({
         name: generateSpeciesName(g),
         detail: `${g.archetype} · ${g.size} · ${getRarityTier(g.rarity).name}`,

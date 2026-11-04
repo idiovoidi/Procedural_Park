@@ -33,6 +33,10 @@ export interface OwnedCreature {
   /** 0 for founders (captured wild), parent generation + 1 for bred creatures. */
   readonly generation: number
   readonly parentIds: ParentIds | null
+  /** Ancestors remembered even after they are sold (id -> generations back). See pedigree.ts. */
+  readonly ancestry: Readonly<Record<string, number>>
+  /** Inbreeding coefficient 0..0.5 (0 for founders and outcrosses). Lowers happiness and fertility. */
+  readonly inbreeding: number
 
   /** The pen it lives in, or null while unassigned. */
   penId: string | null
@@ -43,6 +47,10 @@ export interface OwnedCreature {
 export interface AddCreatureOptions {
   name?: string
   parentIds?: ParentIds
+  /** Overrides the ancestry worked out from the parents still in the roster. */
+  ancestry?: Readonly<Record<string, number>>
+  /** Overrides the inbreeding worked out from the parents still in the roster. */
+  inbreeding?: number
   /** Overrides the generation worked out from the parents. */
   generation?: number
   /** Defaults to `adult` (a captured founder). Hatchlings pass `hatchling`. */
