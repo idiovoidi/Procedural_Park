@@ -8,7 +8,7 @@ import { createBalanceWorld } from './world'
  * stocks it once and then does nothing at all for 90 simulated minutes.
  */
 
-function handsOffPark(options: { farms: number }) {
+function handsOffPark(options: { farms: number; keeper?: boolean; stock?: number }) {
   const w = createBalanceWorld()
   const g = w.grid
   // A 4x4-cell pen in the build zone.
@@ -43,7 +43,11 @@ function handsOffPark(options: { farms: number }) {
     if (!w.roster.assignToPen(c.id, pen.id)) throw new Error('test setup: creature did not fit')
   }
   // The one and only chore: a starting stock of food.
-  w.care.stock(pen.id, 'berry', 40)
+  w.care.stock(pen.id, 'berry', options.stock ?? 40)
+  if (options.keeper) {
+    w.currency.addMoney(1000, 'test')
+    w.staff.hire(pen.id)
+  }
   return { w, penId: pen.id }
 }
 
@@ -75,5 +79,17 @@ describe('a hands-off park', () => {
     w.clock.fastForward(8 * 3600) // the offline cap
     expect(w.currency.getBalance()).toBeGreaterThan(earlier)
     expect(w.stats.starvingCreatureCycles).toBe(0)
+  })
+
+  it('a keeper does the job of the farms, for a wage, buying what the pen needs', () => {
+    const { w } = handsOffPark({ farms: 0, keeper: true, stock: 0 })
+    w.advance(90 * 60)
+    expect(w.stats.starvingCreatureCycles).toBe(0)
+    // The keeper bought food and was paid: both show in the ledger, and the park still earns.
+    expect(w.currency.spent.foodPurchases ?? 0).toBeGreaterThan(0)
+    expect(w.currency.spent.other ?? 0).toBeGreaterThan(0)
+    expect(w.currency.earned.resourceSales ?? 0).toBeGreaterThan(
+      w.currency.spent.foodPurchases ?? 0
+    )
   })
 })

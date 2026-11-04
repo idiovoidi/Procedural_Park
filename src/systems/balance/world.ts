@@ -16,10 +16,12 @@ import { generateGenome, hashSeed } from '@systems/creatures/genome'
 import { CurrencyManager } from '@systems/currency'
 import { SimClock } from '@systems/economy'
 import { FoodManager } from '@systems/food'
+import { STORE_ITEMS } from '@systems/food/store-data'
 import { AutoSeller, MarketSystem } from '@systems/market'
 import { PenGrid } from '@systems/park'
 import { inventoryCapacity, ProductionSystem, ResourceInventory } from '@systems/production'
 import { Roster } from '@systems/roster'
+import { StaffSystem } from '@systems/staff'
 
 export type LedgerCategory =
   | 'resourceSales'
@@ -77,6 +79,7 @@ export interface BalanceWorld {
   production: ProductionSystem
   market: MarketSystem
   autoSell: AutoSeller
+  staff: StaffSystem
   contracts: ContractBoard
   breeding: BreedingSystem
   codex: Codex
@@ -140,6 +143,16 @@ export function createBalanceWorld(): BalanceWorld {
   resources.setCapacity(inventoryCapacity(grid))
   const autoSell = new AutoSeller(market, resources, grid)
   clock.onTick((tick) => autoSell.tick(tick))
+  const staff = new StaffSystem({
+    roster,
+    grid,
+    care,
+    production,
+    wallet: currency,
+    bag: food,
+    prices: (id) => STORE_ITEMS.find((i) => i.id === id)?.price,
+  })
+  clock.onTick((tick) => staff.tick(tick))
   const contracts = new ContractBoard(roster, currency, GAME_CONFIG.WORLD_SEED)
   clock.onTick((tick) => contracts.tick(tick))
   clock.onTick((tick) => breeding.tick(tick))
@@ -157,6 +170,7 @@ export function createBalanceWorld(): BalanceWorld {
     production,
     market,
     autoSell,
+    staff,
     contracts,
     breeding,
     codex,

@@ -85,7 +85,7 @@ Exit: two players can trade a creature, share discoveries and walk through each 
 | T22d | [x] Arena: derived combat stats and a deterministic seeded auto-battler | T22b | Same teams and seed give the same result on any machine |
 | T22e | [x] Arena UI, rewards and friend duels | T22d, T21 | Duel a friend and both see the same result |
 | T22f | [x] Keepers (staff) | T22a | A hired keeper does a pen's chores for a wage |
-| T22g | [ ] M5–M6 balance + E2E | T22a–f | Guard rails and E2E cover joint breeding and a duel |
+| T22g | [x] M5–M6 balance + E2E | T22a–f | Guard rails and E2E cover joint breeding and a duel |
 
 ## Later milestones (split into tasks when reached)
 
@@ -94,5 +94,5 @@ Exit: two players can trade a creature, share discoveries and walk through each 
 | T19 ✅ | M2 Automation | Feeders, bins, conveyors, silos, auto-sell, food farms, Contract Board (contracts must pay for traits so breeding earns; see BALANCE.md) | T18 |
 | T20 ✅ | M3 Expeditions | Map manager, 2–3 maps, study/special-condition capture, night spawns | T19 |
 | T21 ✅ | M4 Social | Card trading, friend park visit, shared codex, E2E coverage | T1, T18 |
-| T22 | M5–M6 Depth + Arena | Pedigree, inbreeding, mutations, staff, joint breeding; deterministic auto-battler | T19, T21 |
+| T22 ✅ | M5–M6 Depth + Arena | Pedigree, inbreeding, mutations, staff, joint breeding; deterministic auto-battler | T19, T21 |
 | T23 | M7 Platform polish | Gamepad, mobile touch, performance scaling, accessibility (start spikes early if M1 shows perf issues) | — |

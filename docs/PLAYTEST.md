@@ -62,3 +62,13 @@ and hatch, read the Ranch Book, reload.
   fight and see identical logs. No coins change hands.
 - Balance caveat: combat power and income are still correlated (both like size and rarity), though
   fewer than half of the top fighters are top earners.
+
+## Keepers and inbreeding (T22a, T22f)
+
+- **Inbreeding:** a child of close relatives has a coefficient (0.25 for parent x child or full
+  siblings). Its happiness is capped at (1 - F x 1.2) of what its pen deserves and its parents rest
+  longer. The breeding panel warns before the pairing; the Ranch Book shows "inbred N%". Pedigree
+  survives sold parents (it is fixed when the egg is laid).
+- **Keepers:** 250 to hire, 3 a minute. They restock troughs (bag first, else buying), empty the
+  bin and add a little happiness. If the wage cannot be paid they stop, nothing else happens.
+  A keeper pen with no farms stays fed for 90 simulated minutes (guarded by a balance test).
