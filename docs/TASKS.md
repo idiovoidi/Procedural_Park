@@ -84,7 +84,7 @@ Exit: two players can trade a creature, share discoveries and walk through each 
 | T22c | [x] Joint breeding with a friend (each brings a parent, each gets a child) | T22a, T21 | Both players receive a deterministic child |
 | T22d | [x] Arena: derived combat stats and a deterministic seeded auto-battler | T22b | Same teams and seed give the same result on any machine |
 | T22e | [x] Arena UI, rewards and friend duels | T22d, T21 | Duel a friend and both see the same result |
-| T22f | [ ] Keepers (staff) | T22a | A hired keeper does a pen's chores for a wage |
+| T22f | [x] Keepers (staff) | T22a | A hired keeper does a pen's chores for a wage |
 | T22g | [ ] M5–M6 balance + E2E | T22a–f | Guard rails and E2E cover joint breeding and a duel |
 
 ## Later milestones (split into tasks when reached)

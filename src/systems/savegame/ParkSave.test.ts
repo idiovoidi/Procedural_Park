@@ -14,6 +14,7 @@ import { MarketSystem } from '../market'
 import { PenGrid } from '../park'
 import { ProductionSystem, ResourceInventory } from '../production'
 import { Roster } from '../roster'
+import { StaffSystem } from '../staff'
 import {
   awayMinutes,
   capturePark,
@@ -39,6 +40,16 @@ function newWorld(): ParkTargets & { advance: (seconds: number) => void } {
   const contracts = new ContractBoard(roster, currency, 7)
   const maps = new MapManager()
   const arena = new ArenaSystem(roster, currency)
+  const staff = new StaffSystem({
+    roster,
+    grid,
+    care,
+    production,
+    wallet: currency,
+    bag: food,
+    prices: () => undefined,
+  })
+  clock.onTick((tick) => staff.tick(tick))
   const breeding = new BreedingSystem(roster, grid, currency, 1337)
   const codex = new Codex()
   roster.onChange((c) => {
@@ -65,6 +76,7 @@ function newWorld(): ParkTargets & { advance: (seconds: number) => void } {
     contracts,
     maps,
     arena,
+    staff,
     currency,
     food,
     advance: (seconds) => {
@@ -108,6 +120,8 @@ function busyWorld() {
     { ...generateGenome(5), temperament: 'curious', size: 'medium' },
     { penId: pen.id, stats: { fullness: 90, happiness: 90, trust: 90 } }
   )
+  w.currency.addMoney(300)
+  w.staff?.hire(pen.id)
   w.arena?.restore({ version: 1, beaten: 2, fights: 5 })
   w.maps?.unlock('greenwood', w.currency, { ownedSpecies: 0 })
   const started = w.breeding.start(pen.id, p1.id, p2.id)
@@ -131,6 +145,7 @@ function snapshotOf(w: ParkTargets) {
     contracts: w.contracts?.serialize(),
     maps: w.maps?.serialize(),
     arena: w.arena?.serialize(),
+    staff: w.staff?.serialize(),
     food: w.food.getInventory().map((i) => [i.id, i.quantity]),
   }
 }
@@ -174,6 +189,7 @@ describe('restorePark', () => {
         'production',
         'resources',
         'roster',
+        'staff',
       ].sort()
     )
     expect(result.offlineTicks).toBe(0)

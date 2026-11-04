@@ -205,6 +205,19 @@ export const GAME_CONFIG = {
     },
 
     /**
+     * Staff (GDD 8, tier 5). A keeper is hired for one pen. Every feeding cycle they are paid a
+     * wage, then top up the troughs (from your food bag first, else by buying at the store),
+     * empty the bin, and give the pen's creatures a little attention. If the wage cannot be paid
+     * they simply do not work that cycle; nobody is harmed.
+     */
+    STAFF: {
+      HIRE_COST: 250,
+      WAGE_PER_CYCLE: 3,
+      /** Happiness a keeper's attention adds to each creature of the pen every cycle. */
+      ATTENTION_HAPPINESS: 2,
+    },
+
+    /**
      * Arena (GDD 11): derived combat stats and a deterministic auto-battler. Optional and never
      * required for progression; there is no permadeath. All values are tunable.
      */

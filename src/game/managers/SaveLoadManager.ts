@@ -140,6 +140,7 @@ export class SaveLoadManager {
       autoSell: s.autoSell,
       maps: s.maps,
       arena: s.arena,
+      staff: s.staff,
       currency: s.currency,
       food: s.food,
     }

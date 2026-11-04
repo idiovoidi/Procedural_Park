@@ -21,6 +21,7 @@ import {
   RanchBookManager,
   SaveLoadManager,
   SocialManager,
+  StaffUIManager,
   ToolBeltManager,
 } from './managers'
 import { type GameSystems, SystemsCoordinator } from './SystemsCoordinator'
@@ -39,6 +40,7 @@ export class Game {
   private mapsUI!: MapUIManager
   private social!: SocialManager
   private arenaUI!: ArenaUIManager
+  private staffUI!: StaffUIManager
   private saveLoad!: SaveLoadManager
   private recordingIndicator: HTMLElement | null = null
   private container: HTMLElement
@@ -83,6 +85,7 @@ export class Game {
       this.mapsUI = new MapUIManager(this.systems)
       this.social = new SocialManager(this.systems)
       this.arenaUI = new ArenaUIManager(this.systems, () => this.social)
+      this.staffUI = new StaffUIManager(this.systems)
       this.toolBelt = new ToolBeltManager(this.systems, {
         feed: () => this.food.feedNearestCreature(),
         lure: () => this.systems.capture.placeLure(),
@@ -99,6 +102,7 @@ export class Game {
         maps: () => this.mapsUI.toggle(),
         trade: () => this.social.toggle(),
         arena: () => this.arenaUI.toggle(),
+        staff: () => this.staffUI.toggle(),
       })
       this.saveLoad = new SaveLoadManager(this.systems, this.photos, () => this.updateLabSign())
 
@@ -139,6 +143,7 @@ export class Game {
       this.mapsUI.initialize()
       this.social.initialize()
       this.arenaUI.initialize()
+      this.staffUI.initialize()
       this.photos.getVisitedInstances = () => this.social.visit.getInstances()
       this.gameLoop.addUpdater((dt, now) => this.social.visit.update(dt, now))
       this.toolBelt.initialize()

@@ -31,6 +31,7 @@ import type {
   ResourceInventorySnapshot,
 } from '@systems/production'
 import type { Roster, RosterSnapshot } from '@systems/roster'
+import type { StaffSnapshot, StaffSystem } from '@systems/staff'
 
 export const PARK_SAVE_VERSION = 1
 
@@ -49,6 +50,7 @@ export interface ParkTargets {
   autoSell?: AutoSeller
   maps?: MapManager
   arena?: ArenaSystem
+  staff?: StaffSystem
   currency: CurrencyManager
   food: FoodManager
 }
@@ -78,6 +80,8 @@ export interface ParkSave {
   maps?: MapSnapshot
   /** Arena ladder progress. Absent in older saves. */
   arena?: ArenaSnapshot
+  /** Keepers. Absent in older saves. */
+  staff?: StaffSnapshot
   /** Genome seeds of wild creatures that have been crated, so they don't respawn. */
   capturedSeeds: number[]
 }
@@ -97,6 +101,7 @@ export type ParkSection =
   | 'autosell'
   | 'maps'
   | 'arena'
+  | 'staff'
   | 'clock'
   | 'captured'
 
@@ -137,6 +142,7 @@ export function capturePark(
     autoSell: t.autoSell?.serialize(),
     maps: t.maps?.serialize(),
     arena: t.arena?.serialize(),
+    staff: t.staff?.serialize(),
     capturedSeeds: [...capturedSeeds],
   }
 }
@@ -210,6 +216,10 @@ export function restorePark(
   section('production', () => t.production.restore(data.production))
   section('resources', () => t.resources.restore(data.resources))
   section('market', () => t.market.restore(data.market))
+  if (data.staff !== undefined && t.staff) {
+    const staff = t.staff
+    section('staff', () => staff.restore(data.staff))
+  }
   if (data.arena !== undefined && t.arena) {
     const arena = t.arena
     section('arena', () => arena.restore(data.arena))

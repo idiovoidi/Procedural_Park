@@ -1,4 +1,4 @@
-import { getCreatureEconomyProfile } from '@systems/economy'
+import { stockPen } from '@systems/care'
 import { scorePen } from '@systems/park'
 import type { PenInspectorView, ToolBeltSlot } from '@ui/components/tool-belt'
 import type { GameSystems } from '../SystemsCoordinator'
@@ -20,6 +20,7 @@ export interface ToolBeltActions {
   maps: () => void
   trade: () => void
   arena: () => void
+  staff: () => void
 }
 
 const SLOTS: ToolBeltSlot[] = [
@@ -38,14 +39,12 @@ const SLOTS: ToolBeltSlot[] = [
   { id: 'maps', icon: '🧭', label: 'Maps', key: '' },
   { id: 'trade', icon: '🤝', label: 'Friends', key: '' },
   { id: 'arena', icon: '⚔️', label: 'Arena', key: '' },
+  { id: 'staff', icon: '🧑‍🌾', label: 'Keepers', key: '' },
 ]
 
 /** How far ahead of the camera to look for a pen (metres), and how often to refresh (ms). */
 const LOOK_AHEAD_M = [2, 5, 8]
 const REFRESH_MS = 250
-
-/** Foods a resident digests at least this well count as "theirs" when stocking a pen. */
-const STOCK_MIN_EFFICIENCY = 0.5
 
 /** Warn once a bin is this full (0..1). */
 const BIN_FULL_WARNING = 0.8
@@ -99,6 +98,7 @@ export class ToolBeltManager {
     if (ui.getMapPanel().isOpen()) active.add('maps')
     if (ui.getTradePanel().isOpen()) active.add('trade')
     if (ui.getArenaPanel().isOpen()) active.add('arena')
+    if (ui.getStaffPanel().isOpen()) active.add('staff')
     belt.setActive(active)
     belt.setPen(this.inspect())
   }
@@ -151,24 +151,8 @@ export class ToolBeltManager {
       return
     }
 
-    // Foods any resident eats well, best first.
-    const wanted = new Map<string, number>()
-    for (const c of residents) {
-      for (const d of getCreatureEconomyProfile(c.genome).diet) {
-        if (d.efficiency >= STOCK_MIN_EFFICIENCY) {
-          wanted.set(d.foodId, Math.max(wanted.get(d.foodId) ?? 0, d.efficiency))
-        }
-      }
-    }
-    const order = [...wanted].sort((a, b) => b[1] - a[1]).map(([id]) => id)
-
-    const parts: string[] = []
-    for (const foodId of order) {
-      const item = food.getInventory().find((i) => i.id === foodId)
-      if (!item) continue
-      const accepted = care.stock(pen.id, foodId, item.quantity)
-      if (accepted > 0 && food.removeFood(foodId, accepted)) parts.push(`${accepted} ${foodId}`)
-    }
+    const stocked = stockPen(care, residents, pen.id, food)
+    const parts = Object.entries(stocked.fromBag).map(([id, n]) => `${n} ${id}`)
     ui.showToast(
       parts.length > 0
         ? `🥣 Stocked ${pen.id}: ${parts.join(', ')}`
@@ -181,6 +165,8 @@ export class ToolBeltManager {
   private outputProblems(penId: string, residents: number): string[] {
     const { production, park, care } = this.systems
     if (residents === 0) return []
+    const keeper = this.systems.staff
+    if (keeper.hasKeeper(penId) && keeper.isUnpaid(penId)) return ['keeper unpaid: not working']
     const farms = park.getPen(penId)?.props.farm ?? 0
     if (farms > 0 && !care.getFarmFood(penId)) {
       return ['farm idle: no resident eats berries or fish well']

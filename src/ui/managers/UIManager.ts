@@ -21,6 +21,7 @@ import { RanchBook } from '../components/ranch-book'
 import { SaveLoadMenu } from '../components/save-load-menu'
 import { Settings } from '../components/settings'
 import { Shortcuts } from '../components/shortcuts'
+import { StaffPanel } from '../components/staff-panel'
 import { Toast } from '../components/toast'
 import { ToolBelt } from '../components/tool-belt'
 import { TradePanel } from '../components/trade-panel'
@@ -48,6 +49,7 @@ export class UIManager {
   private mapPanel: MapPanel
   private tradePanel: TradePanel
   private arenaPanel: ArenaPanel
+  private staffPanel: StaffPanel
   private toggleBreedingBtn: HTMLButtonElement
   private toggleMarketBtn: HTMLButtonElement
   private toggleBuildBtn: HTMLButtonElement
@@ -83,6 +85,7 @@ export class UIManager {
     this.mapPanel = new MapPanel()
     this.tradePanel = new TradePanel()
     this.arenaPanel = new ArenaPanel()
+    this.staffPanel = new StaffPanel()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
@@ -123,6 +126,7 @@ export class UIManager {
     this.mapPanel.setAudioCallbacks(callbacks)
     this.tradePanel.setAudioCallbacks(callbacks)
     this.arenaPanel.setAudioCallbacks(callbacks)
+    this.staffPanel.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
@@ -672,6 +676,10 @@ export class UIManager {
   /**
    * Get the tool belt and pen inspector
    */
+  public getStaffPanel(): StaffPanel {
+    return this.staffPanel
+  }
+
   public getArenaPanel(): ArenaPanel {
     return this.arenaPanel
   }

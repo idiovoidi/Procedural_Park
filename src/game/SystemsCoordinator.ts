@@ -27,6 +27,7 @@ import { ContractBoard } from '@systems/contracts'
 import { CurrencyManager } from '@systems/currency'
 import { SimClock } from '@systems/economy'
 import { FoodManager } from '@systems/food'
+import { getStoreItem } from '@systems/food/store-data'
 import { InputManager } from '@systems/input'
 import { MapManager } from '@systems/maps'
 import { AutoSeller, MarketSystem } from '@systems/market'
@@ -34,6 +35,7 @@ import { PenGrid } from '@systems/park'
 import { PhotoSystem } from '@systems/photo'
 import { inventoryCapacity, ProductionSystem, ResourceInventory } from '@systems/production'
 import { Roster } from '@systems/roster'
+import { StaffSystem } from '@systems/staff'
 import { createStateSyncHelpers, type GameStateType, IntegratedStateManager } from '@systems/state'
 import { MAP_SIZE, WATER_LEVEL } from '@systems/terrain/terrain-height'
 import { DebugPanel } from '@ui/debug'
@@ -76,6 +78,8 @@ export interface GameSystems {
   market: MarketSystem
   /** Sells output by itself above a price floor, once an auto-sell valve is built. */
   autoSell: AutoSeller
+  /** Keepers who do a pen's routine chores for a wage. */
+  staff: StaffSystem
   /** The optional auto-battler ladder. */
   arena: ArenaSystem
   /** Which map the player is on and which expeditions are unlocked. */
@@ -235,6 +239,17 @@ export class SystemsCoordinator {
     // The Contract Board posts and expires requests on the same clock
     const maps = new MapManager()
     const arena = new ArenaSystem(roster, currencyManager)
+    // Keepers work after production in each feeding cycle, so food is in place for the next one
+    const staff = new StaffSystem({
+      roster,
+      grid: park,
+      care,
+      production,
+      wallet: currencyManager,
+      bag: foodManager,
+      prices: (id) => getStoreItem(id)?.price,
+    })
+    simClock.onTick((tick) => staff.tick(tick))
     const contracts = new ContractBoard(roster, currencyManager, GAME_CONFIG.WORLD_SEED)
     simClock.onTick((tick) => contracts.tick(tick))
 
@@ -300,6 +315,7 @@ export class SystemsCoordinator {
       autoSell,
       maps,
       arena,
+      staff,
       contracts,
       build,
       capture,
