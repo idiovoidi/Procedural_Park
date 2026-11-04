@@ -49,6 +49,8 @@ export class BuildModeManager {
   private readonly controller: BuildController
   private readonly view: ParkView
   private hubOpen = true
+  /** On touch screens nothing can capture the pointer; the Build button places instead. */
+  private touchMode = false
   private readonly ghost: THREE.Mesh
   private active = false
   private lastTarget: BuildTarget | null = null
@@ -116,6 +118,10 @@ export class BuildModeManager {
     if (!open) this.disable()
   }
 
+  public setTouchMode(on: boolean): void {
+    this.touchMode = on
+  }
+
   public toggle(): void {
     if (this.active) this.disable()
     else if (!this.hubOpen) this.deps.ui.showToast('🔨 You can only build at the hub')
@@ -177,7 +183,7 @@ export class BuildModeManager {
   private updateStatus(target: BuildTarget | null): void {
     const hud = this.deps.ui.getBuildHud()
     // Clicks only build once the mouse is captured, so say so instead of silently doing nothing.
-    if (!document.pointerLockElement) {
+    if (!document.pointerLockElement && !this.touchMode) {
       hud.setStatus('Click the game view to capture the mouse, then click to build', 'neutral')
       return
     }

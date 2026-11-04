@@ -24,6 +24,7 @@ import { Shortcuts } from '../components/shortcuts'
 import { StaffPanel } from '../components/staff-panel'
 import { Toast } from '../components/toast'
 import { ToolBelt } from '../components/tool-belt'
+import { TouchControls } from '../components/touch-controls'
 import { TradePanel } from '../components/trade-panel'
 import { WorldMap, type WorldMapSource } from '../components/world-map'
 
@@ -50,6 +51,7 @@ export class UIManager {
   private tradePanel: TradePanel
   private arenaPanel: ArenaPanel
   private staffPanel: StaffPanel
+  private touchControls: TouchControls
   private toggleBreedingBtn: HTMLButtonElement
   private toggleMarketBtn: HTMLButtonElement
   private toggleBuildBtn: HTMLButtonElement
@@ -86,6 +88,7 @@ export class UIManager {
     this.tradePanel = new TradePanel()
     this.arenaPanel = new ArenaPanel()
     this.staffPanel = new StaffPanel()
+    this.touchControls = new TouchControls()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
@@ -676,6 +679,10 @@ export class UIManager {
   /**
    * Get the tool belt and pen inspector
    */
+  public getTouchControls(): TouchControls {
+    return this.touchControls
+  }
+
   public getStaffPanel(): StaffPanel {
     return this.staffPanel
   }

@@ -92,7 +92,7 @@ Exit: two players can trade a creature, share discoveries and walk through each 
 | ID | Task | Deps | Done when |
 |---|---|---|---|
 | T23a | [x] Virtual input + gamepad (analog move/look, buttons -> actions) | T22 | A pad plays the field loop; mapping tested |
-| T23b | [ ] Touch controls: floating stick, look drag, action buttons | T23a | Playable on a phone-sized touch screen |
+| T23b | [x] Touch controls: floating stick, look drag, action buttons | T23a | Playable on a phone-sized touch screen |
 | T23c | [ ] Performance governor: quality levels from measured frame time | — | Quality steps down under load and back up with hysteresis |
 | T23d | [ ] Accessibility: UI scale, reduced motion, high contrast, labelled controls, Escape | — | Settings persist; controls have roles and labels |
 | T23e | [ ] M7 E2E + docs | T23a–d | Virtual input, touch, quality and accessibility covered |

@@ -36,6 +36,17 @@ const STYLE = `
   #build-hud .bh-key { display: block; font-weight: bold; color: #ffd700; font-size: 13px; }
   #build-hud .bh-cost { display: block; color: #ffd700; opacity: 0.85; }
   #build-hud .bh-hint { color: #9aa3b8; font-size: 12px; }
+  /* Small screens (phones in landscape): wrap the tools, shrink them and drop the hint. */
+  @media (max-height: 480px), (max-width: 700px) {
+    #build-hud { bottom: 108px; max-width: 94vw; gap: 4px; }
+    #build-hud .bh-bar { flex-wrap: wrap; justify-content: center; gap: 3px; }
+    #build-hud .bh-slot { min-width: 40px; padding: 2px 4px; font-size: 10px; }
+    #build-hud .bh-key, #build-hud .bh-cost { font-size: 10px; }
+    #build-hud .bh-hint { display: none; }
+    #build-hud .bh-status { font-size: 12px; padding: 4px 10px; }
+  }
+  /* With touch controls on, leave the right edge to their buttons. */
+  body.touch-mode #build-hud { max-width: calc(100vw - 230px); left: calc(50% - 100px); }
 `
 
 export class BuildHud {
