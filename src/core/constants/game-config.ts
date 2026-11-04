@@ -204,6 +204,43 @@ export const GAME_CONFIG = {
       CREATURE_MAX_PART_PREMIUM: 0.5,
     },
 
+    /**
+     * Arena (GDD 11): derived combat stats and a deterministic auto-battler. Optional and never
+     * required for progression; there is no permadeath. All values are tunable.
+     */
+    ARENA: {
+      TEAM_SIZE: 3,
+      MAX_ROUNDS: 40,
+      BASE_HP: 60,
+      BASE_DAMAGE: 8,
+      /** Hits per action: 1 + one more per this many legs and arms, up to MAX_HITS. */
+      LIMBS_PER_EXTRA_HIT: 4,
+      MAX_HITS: 3,
+      /** Rarity makes creatures tougher: x(1 + rarity x this) to hp and damage. */
+      RARITY_BONUS: 0.5,
+      /** Archetype wheel: each beats the next two, loses to the previous two. */
+      TYPE_ADVANTAGE: 1.25,
+      TYPE_DISADVANTAGE: 0.8,
+      /** Specials from parts. */
+      HORN_FIRST_STRIKE: 0.5,
+      SPINE_REFLECT: 0.2,
+      SCALE_DAMAGE_TAKEN: 0.85,
+      WING_DODGE: 0.2,
+      TAIL_SWEEP_SPLASH: 0.35,
+      /** Temperament leanings. */
+      AGGRESSIVE_DAMAGE: 1.15,
+      SHY_DODGE: 0.15,
+      TERRITORIAL_HP: 1.1,
+      CURIOUS_SPEED: 1.1,
+      PLAYFUL_CRIT: 0.15,
+      CRIT_MULTIPLIER: 1.5,
+      /** Ladder opponents: each rung is stronger. Coins for the first win on a rung, and after. */
+      LADDER_RUNGS: 8,
+      FIRST_WIN_COINS: 40,
+      FIRST_WIN_COINS_PER_RUNG: 25,
+      REPEAT_WIN_COINS: 4,
+    },
+
     /** Contract Board (GDD 7.3): buyers who pay a premium for creatures with specific traits. */
     CONTRACTS: {
       BOARD_SLOTS: 4,
