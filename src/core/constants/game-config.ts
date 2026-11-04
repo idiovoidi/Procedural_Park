@@ -251,6 +251,8 @@ export const GAME_CONFIG = {
        * rest it needs between litters grows by F x COOLDOWN_PENALTY.
        */
       INBREEDING: { HAPPINESS_PENALTY: 1.2, COOLDOWN_PENALTY: 4 },
+      /** Of the mutations, the share that grow a part or colour neither parent had. */
+      NEW_TRAIT_CHANCE: 0.4,
       MUTATION_CHANCE: 0.2,
       MUTATION_RATE: 0.12,
       /** How many example offspring the preview shows, and how many crossovers it samples for odds. */

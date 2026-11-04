@@ -449,6 +449,29 @@ describe('mutation', () => {
     expect(mutated).toBeGreaterThan(2)
     expect(mutated).toBeLessThan(litters * 0.5)
   })
+
+  it('sometimes grows something neither parent had, and reports it', () => {
+    const { breeding, add, penId, roster, run } = setup({ coins: 1_000_000 })
+    const a = add(genome(1))
+    const b = add(genome(2))
+    let gained = 0
+    let t = 1
+    for (let i = 0; i < 150; i++) {
+      roster.adjustStats(a.id, { happiness: 100, trust: 100, fullness: 100 })
+      roster.adjustStats(b.id, { happiness: 100, trust: 100, fullness: 100 })
+      breeding.start(penId, a.id, b.id)
+      const [ev] = run(t, t + B.GESTATION_TICKS)
+      if (ev.gainedTrait) {
+        gained++
+        expect(ev.mutated).toBe(true)
+      }
+      expect(validateGenome(ev.child.genome)).toEqual([])
+      roster.remove(ev.child.id)
+      t += B.GESTATION_TICKS + B.COOLDOWN_TICKS + 1
+      run(t - B.COOLDOWN_TICKS, t)
+    }
+    expect(gained).toBeGreaterThan(1)
+  })
 })
 
 describe('with the economy clock', () => {

@@ -143,6 +143,105 @@ export function mutate(genome: Genome, rate: number, seed: number): Genome {
   return child
 }
 
+export interface GainedTrait {
+  genome: Genome
+  /** What appeared, in plain words ("horns", "wings", a new colour ...), or null if nothing could. */
+  trait: string | null
+}
+
+/**
+ * A mutation that gives a genome something neither parent had: a body part the plan allows, or a
+ * colour outside the family's palette. The part list is shuffled by the seed and the first that
+ * fits is added, so the same seed always grows the same thing. Species identity is recomputed,
+ * so a gained part can make a new species.
+ */
+export function gainTrait(genome: Genome, seed: number): GainedTrait {
+  const rand = createSeededRandom(hashSeed(seed, 0x6e6577))
+  const theme = ARCHETYPE_THEMES[genome.archetype]
+  const plan = BODY_PLANS[genome.bodyPlan]
+  const child: Genome = structuredClone(genome)
+
+  type Option = { name: string; apply: () => void }
+  const options: Option[] = []
+  if (plan.wingChance > 0 && child.wings.pairs === 0) {
+    options.push({
+      name: 'wings',
+      apply: () => {
+        child.wings = {
+          pairs: pickWeighted(rand, plan.wingPairs) || 1,
+          type: pickWeighted(rand, theme.wingTypes),
+        }
+      },
+    })
+  }
+  if (plan.tailChance > 0 && child.tails.count === 0) {
+    options.push({
+      name: 'a tail',
+      apply: () => {
+        child.tails = { count: 1, type: pickWeighted(rand, theme.tailTypes) }
+      },
+    })
+  }
+  if (
+    child.head.present &&
+    child.horns.count === 0 &&
+    (child.antennae.count === 0 || child.rarity >= 0.85)
+  ) {
+    options.push({
+      name: 'horns',
+      apply: () => {
+        child.horns = { count: 2, type: pickWeighted(rand, theme.hornTypes) }
+      },
+    })
+  }
+  if (child.head.present && child.antennae.count === 0 && child.horns.count === 0) {
+    options.push({
+      name: 'antennae',
+      apply: () => {
+        child.antennae = { count: 2, type: pickWeighted(rand, theme.antennaTypes) }
+      },
+    })
+  }
+  if (child.head.present && child.ears.count === 0) {
+    options.push({
+      name: 'ears',
+      apply: () => {
+        // Some themes list 'none' among the ear styles; a gained ear must be a real one.
+        let type = pickWeighted(rand, theme.earTypes)
+        for (let i = 0; i < 8 && type === 'none'; i++) type = pickWeighted(rand, theme.earTypes)
+        child.ears = { count: 2, type: type === 'none' ? 'round' : type }
+      },
+    })
+  }
+  if (child.spines.count === 0) {
+    options.push({
+      name: 'spines',
+      apply: () => {
+        child.spines = { count: 4, type: 'back' }
+      },
+    })
+  }
+  if (!child.furTufts) options.push({ name: 'fur tufts', apply: () => (child.furTufts = true) })
+  if (!child.scales) options.push({ name: 'scales', apply: () => (child.scales = true) })
+  // A colour the family never shows: swing the hue well outside its usual bands.
+  options.push({
+    name: 'a new colour',
+    apply: () => {
+      const swing = 0.25 + rand() * 0.3
+      const wrap = (hue: number) => hue - Math.floor(hue)
+      child.palette.baseHue = wrap(child.palette.baseHue + swing)
+      child.palette.accentHue = wrap(child.palette.accentHue + swing)
+      child.palette.patternHue = wrap(child.palette.patternHue + swing)
+    },
+  })
+
+  const pick = options[Math.floor(rand() * options.length)]
+  pick.apply()
+  repairGenome(child)
+  child.speciesId = computeSpeciesId(child)
+  return { genome: child, trait: pick.name }
+}
+
 /** Bring a genome back inside the body plan's rules after parts were mixed. */
 function repairGenome(genome: Genome): void {
   const plan = BODY_PLANS[genome.bodyPlan]

@@ -46,7 +46,11 @@ export class BreedingUIManager {
     // while the game was closed, which arrive in a burst on load).
     breeding.onHatch((e) => {
       const species = e.isNewSpecies ? ' A NEW SPECIES!' : ''
-      const mutation = e.mutated ? ' (it mutated!)' : ''
+      const mutation = e.gainedTrait
+        ? ` (a mutation gave it ${e.gainedTrait}!)`
+        : e.mutated
+          ? ' (it mutated!)'
+          : ''
       const housing = e.penId ? '' : ' No pen has room for it yet.'
       ui.showToast(`🥚 ${e.child.name} hatched!${species}${mutation}${housing}`, 4000)
       this.refresh()

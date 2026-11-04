@@ -14,6 +14,7 @@ import { findPenFor } from '@systems/capture'
 import {
   crossover,
   type Genome,
+  gainTrait,
   generateSpeciesName,
   hashSeed,
   mutate,
@@ -57,6 +58,8 @@ export interface HatchEvent {
   /** True if no creature of this species had been owned before. */
   isNewSpecies: boolean
   mutated: boolean
+  /** What a mutation grew that neither parent had ("horns", "a new colour" ...), if anything. */
+  gainedTrait: string | null
   /** The pen the hatchling went to, or null if no pen had room. */
   penId: string | null
 }
@@ -221,10 +224,16 @@ export class BreedingSystem {
 
     let child = crossover(pa, pb, seed, rarityLift(pa, pb))
     let mutated = false
+    let gainedTrait: string | null = null
     const rolled = (hashSeed(seed, 0x6d7574) % 10_000) / 10_000
     if (rolled < B.MUTATION_CHANCE) {
       child = mutate(child, B.MUTATION_RATE, hashSeed(seed, 0x6d7532))
       mutated = true
+      if ((hashSeed(seed, 0x74726169) % 10_000) / 10_000 < B.NEW_TRAIT_CHANCE) {
+        const gained = gainTrait(child, hashSeed(seed, 0x6e7432))
+        child = gained.genome
+        gainedTrait = gained.trait
+      }
     }
 
     const isNewSpecies = !this.knownSpecies.has(child.speciesId)
@@ -261,6 +270,7 @@ export class BreedingSystem {
       parentNames: job.parentNames,
       isNewSpecies,
       mutated,
+      gainedTrait,
       penId,
     }
   }
