@@ -42,6 +42,18 @@ A 3D wildlife photography game where you explore a procedurally generated safari
 - **Player Stats**: Track photos, discoveries, and achievements
 - **Transaction History**: View currency earnings and spending
 
+## 📸 Screenshots
+
+![Gameplay](docs/media/gameplay.gif)
+
+[Full gameplay video (MP4)](docs/media/gameplay.mp4)
+
+| | |
+|---|---|
+| ![Ride mode](docs/media/02-ride-creatures.png)<br>Ride through the park | ![Free roam](docs/media/03-free-roam.png)<br>Free roam |
+| ![Build mode](docs/media/07-build-mode.png)<br>Build mode: fences, gates, troughs, bins | ![Market](docs/media/06-market.png)<br>Market: sell resources and creatures |
+| ![Food store](docs/media/05-food-store.png)<br>Food store | ![Collection](docs/media/09-collection.png)<br>Creature collection |
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -93,6 +105,10 @@ npm run preview
 - **F** - Feed nearest creature
 - **B** - Toggle food inventory
 - **O** - Open food store
+- **U** - Open market
+- **J** - Toggle build mode
+- **Y** - Crate creature
+- **L** - Place lure
 
 ### UI
 - **I** - Player stats
