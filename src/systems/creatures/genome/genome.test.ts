@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BODY_PLANS } from './body-plans'
-import { crossover, mutate } from './breed'
+import { crossover, gainTrait, mutate } from './breed'
 import { generateGenome } from './genome'
 import { createSeededRandom, hashSeed, pickWeighted } from './random'
 import { generateSpeciesName } from './species-name'
@@ -135,5 +135,64 @@ describe('breeding', () => {
     expect(mutant.genes).toEqual(genome.genes)
     expect(mutant.bodyPlan).toBe(genome.bodyPlan)
     expect(mutant.palette).toEqual(genome.palette)
+  })
+})
+
+describe('gainTrait (mutation that adds something new)', () => {
+  const PARTS: Record<string, (g: ReturnType<typeof generateGenome>) => boolean> = {
+    wings: (g) => g.wings.pairs > 0,
+    'a tail': (g) => g.tails.count > 0,
+    horns: (g) => g.horns.count > 0,
+    antennae: (g) => g.antennae.count > 0,
+    ears: (g) => g.ears.count > 0,
+    spines: (g) => g.spines.count > 0,
+    'fur tufts': (g) => g.furTufts,
+    scales: (g) => g.scales,
+  }
+
+  it('is deterministic and always leaves a valid genome', () => {
+    for (let s = 1; s <= 120; s++) {
+      const base = generateGenome(s)
+      const a = gainTrait(base, s * 7)
+      const b = gainTrait(base, s * 7)
+      expect(a).toEqual(b)
+      expect(validateGenome(a.genome)).toEqual([])
+      expect(a.trait).not.toBeNull()
+    }
+  })
+
+  it('really gives the genome the thing it says it gave, and never touches the original', () => {
+    let parts = 0
+    let colours = 0
+    for (let s = 1; s <= 200; s++) {
+      const base = generateGenome(s)
+      const before = JSON.stringify(base)
+      const { genome, trait } = gainTrait(base, s * 13)
+      expect(JSON.stringify(base)).toBe(before)
+      if (trait && PARTS[trait]) {
+        parts++
+        expect(PARTS[trait](genome)).toBe(true)
+        // ...and the parent did not already have it.
+        expect(PARTS[trait](base)).toBe(false)
+      } else if (trait === 'a new colour') {
+        colours++
+        expect(genome.palette.baseHue).not.toBeCloseTo(base.palette.baseHue, 3)
+      }
+    }
+    expect(parts).toBeGreaterThan(20)
+    expect(colours).toBeGreaterThan(5)
+  })
+
+  it('recomputes the species when a part is gained', () => {
+    let changed = 0
+    for (let s = 1; s <= 120; s++) {
+      const base = generateGenome(s)
+      const { genome, trait } = gainTrait(base, s * 3)
+      if (trait === 'wings' || trait === 'a tail' || trait === 'horns') {
+        expect(genome.speciesId).not.toBe(base.speciesId)
+        changed++
+      }
+    }
+    expect(changed).toBeGreaterThan(5)
   })
 })

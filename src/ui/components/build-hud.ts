@@ -27,6 +27,7 @@ const STYLE = `
   #build-hud .bh-status.good { color: #9af0b0; border-color: rgba(120,255,160,0.4); }
   #build-hud .bh-bar { display: flex; gap: 6px; }
   #build-hud .bh-slot {
+    pointer-events: auto; cursor: pointer;
     min-width: 66px; padding: 6px 8px; text-align: center; border-radius: 8px;
     background: rgba(15, 18, 28, 0.85); color: #cfd3e0; font-size: 12px;
     border: 2px solid rgba(255,255,255,0.12);
@@ -35,6 +36,17 @@ const STYLE = `
   #build-hud .bh-key { display: block; font-weight: bold; color: #ffd700; font-size: 13px; }
   #build-hud .bh-cost { display: block; color: #ffd700; opacity: 0.85; }
   #build-hud .bh-hint { color: #9aa3b8; font-size: 12px; }
+  /* Small screens (phones in landscape): wrap the tools, shrink them and drop the hint. */
+  @media (max-height: 480px), (max-width: 700px) {
+    #build-hud { bottom: 108px; max-width: 94vw; gap: 4px; }
+    #build-hud .bh-bar { flex-wrap: wrap; justify-content: center; gap: 3px; }
+    #build-hud .bh-slot { min-width: 40px; padding: 2px 4px; font-size: 10px; }
+    #build-hud .bh-key, #build-hud .bh-cost { font-size: 10px; }
+    #build-hud .bh-hint { display: none; }
+    #build-hud .bh-status { font-size: 12px; padding: 4px 10px; }
+  }
+  /* With touch controls on, leave the right edge to their buttons. */
+  body.touch-mode #build-hud { max-width: calc(100vw - 230px); left: calc(50% - 100px); }
 `
 
 export class BuildHud {
@@ -43,6 +55,7 @@ export class BuildHud {
   private status: HTMLDivElement
   private slots = new Map<string, HTMLDivElement>()
   private lastStatus = ''
+  private onSelect: (toolId: string) => void = () => {}
 
   constructor() {
     this.root = document.createElement('div')
@@ -54,7 +67,8 @@ export class BuildHud {
     this.bar.className = 'bh-bar'
     const hint = document.createElement('div')
     hint.className = 'bh-hint'
-    hint.textContent = 'Click to build · right-click to remove · J to leave build mode'
+    hint.textContent =
+      'Click to build · right-click to remove · 1-9/0 or mouse wheel to switch · J to leave'
 
     this.root.append(this.status, this.bar, hint)
     document.body.appendChild(this.root)
@@ -65,6 +79,11 @@ export class BuildHud {
       style.textContent = STYLE
       document.head.appendChild(style)
     }
+  }
+
+  /** Called when the player clicks a tool slot. */
+  public setOnSelect(callback: (toolId: string) => void): void {
+    this.onSelect = callback
   }
 
   public setTools(tools: BuildHudTool[]): void {
@@ -82,6 +101,7 @@ export class BuildHud {
       cost.className = 'bh-cost'
       cost.textContent = tool.cost === null ? '' : `🪙 ${tool.cost}`
       slot.append(key, label, cost)
+      slot.addEventListener('click', () => this.onSelect(tool.id))
       this.bar.append(slot)
       this.slots.set(tool.id, slot)
     }

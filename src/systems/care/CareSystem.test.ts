@@ -318,6 +318,15 @@ describe('feedByHand', () => {
 })
 
 describe('save and restore', () => {
+  it('does not save troughs that have been eaten empty', () => {
+    const { care, penId, addCreature, runCycles } = setup()
+    addCreature()
+    care.addFood(penId, 'berry', 1)
+    runCycles(2) // the single serving is eaten
+    expect(care.getTroughTotal(penId)).toBe(0)
+    expect(care.serialize().troughs).toEqual([])
+  })
+
   it('round-trips trough contents', () => {
     const a = setup()
     a.care.addFood(a.penId, 'berry', 3)
@@ -364,5 +373,135 @@ describe('with the economy clock', () => {
     const smooth = run(Array.from({ length: CYCLE * 5 * 10 }, () => 0.1))
     expect(smooth).toEqual(oneJump)
     expect(oneJump.food).toBeCloseTo(15, 10) // five cycles, one serving each
+  })
+})
+
+describe('feeder hoppers', () => {
+  it('hold servings only in a pen that has a hopper', () => {
+    const { care, penId } = setup()
+    // No hopper: stock() fills the trough and the rest is refused.
+    expect(care.stock(penId, 'berry', CARE.TROUGH_CAPACITY_SERVINGS + 30)).toBe(
+      CARE.TROUGH_CAPACITY_SERVINGS
+    )
+    expect(care.getHopperTotal(penId)).toBe(0)
+  })
+
+  it('take the overflow once the troughs are full', () => {
+    const { care, grid, penId } = setup()
+    grid.addProp({ x: 2, z: 3 }, 'hopper')
+    const total = CARE.TROUGH_CAPACITY_SERVINGS + 30
+    expect(care.stock(penId, 'berry', total)).toBe(total)
+    expect(care.getTroughTotal(penId)).toBe(CARE.TROUGH_CAPACITY_SERVINGS)
+    expect(care.getHopperTotal(penId)).toBe(30)
+    expect(care.stock(penId, 'berry', 999)).toBe(CARE.HOPPER_CAPACITY_SERVINGS - 30)
+  })
+
+  it('keep a pen fed for many cycles without anyone refilling the trough', () => {
+    const { care, grid, penId, addCreature, runCycles, roster } = setup()
+    grid.addProp({ x: 2, z: 3 }, 'hopper')
+    const c = addCreature(genome(), { fullness: 100, happiness: 100, trust: 100 })
+    const food = 'berry'
+    care.stock(penId, food, CARE.TROUGH_CAPACITY_SERVINGS + CARE.HOPPER_CAPACITY_SERVINGS)
+    // More cycles than the trough alone could cover.
+    runCycles(CARE.TROUGH_CAPACITY_SERVINGS + 30)
+    expect(roster.get(c.id)?.fullness).toBeGreaterThan(0)
+    expect(care.getHopperTotal(penId)).toBeLessThan(CARE.HOPPER_CAPACITY_SERVINGS)
+  })
+
+  it('survive a save and restore, tolerating bad data', () => {
+    const { care, grid, penId } = setup()
+    grid.addProp({ x: 2, z: 3 }, 'hopper')
+    care.stock(penId, 'berry', CARE.TROUGH_CAPACITY_SERVINGS + 10)
+    const snap = JSON.parse(JSON.stringify(care.serialize()))
+
+    const other = setup()
+    other.care.restore(snap)
+    expect(other.care.getHopperFood(penId)).toEqual({ berry: 10 })
+
+    expect(
+      other.care.restore({
+        version: 1,
+        troughs: [],
+        hoppers: [{ penId, food: { berry: -3, junk: 4 } }, 7],
+      })
+    ).toBe(true)
+    expect(other.care.getHopperTotal(penId)).toBe(0)
+  })
+})
+
+describe('food farms', () => {
+  const FARM = CARE.FARM
+
+  it('grow the farmable staple the residents like best', () => {
+    const { care, grid, penId, addCreature } = setup()
+    grid.addProp({ x: 3, z: 3 }, 'farm')
+    expect(care.getFarmFood(penId)).toBeNull() // nobody lives here yet
+    addCreature()
+    const food = care.getFarmFood(penId)
+    expect(food).not.toBeNull()
+    expect(FARM.FOODS).toContain(food)
+  })
+
+  it('stay idle in a pen without a farm', () => {
+    const { care, penId, addCreature } = setup()
+    addCreature()
+    expect(care.getFarmFood(penId)).toBeNull() // no farm built
+    expect(care.getFarmOutput(penId)).toBe(0)
+  })
+
+  it('fill the trough each cycle, scaling with the number of farms', () => {
+    const one = setup()
+    one.grid.addProp({ x: 3, z: 3 }, 'farm')
+    one.addCreature(genome(), { fullness: 100, happiness: 100, trust: 100 })
+    const before = one.care.getTroughTotal(one.penId)
+    one.runCycles(1)
+    expect(one.care.getTroughTotal(one.penId) + 0).toBeGreaterThanOrEqual(before)
+    expect(one.care.getFarmOutput(one.penId)).toBeCloseTo(FARM.SERVINGS_PER_CYCLE, 10)
+
+    const two = setup()
+    two.grid.addProp({ x: 3, z: 3 }, 'farm')
+    two.grid.addProp({ x: 3, z: 2 }, 'farm')
+    two.addCreature()
+    expect(two.care.getFarmOutput(two.penId)).toBeCloseTo(2 * FARM.SERVINGS_PER_CYCLE, 10)
+  })
+
+  it('keep a creature fed with no food ever bought', () => {
+    const { care, grid, penId, addCreature, runCycles, roster } = setup()
+    grid.addProp({ x: 3, z: 3 }, 'farm')
+    grid.addProp({ x: 3, z: 2 }, 'farm')
+    const c = addCreature(genome(), { fullness: 100, happiness: 100, trust: 100 })
+    expect(care.getTroughTotal(penId)).toBe(0)
+    runCycles(40)
+    expect(roster.get(c.id)?.fullness).toBeGreaterThan(50)
+  })
+})
+
+describe('inbreeding', () => {
+  const PEN = GAME_CONFIG.ECONOMY.BREEDING.INBREEDING
+
+  it('caps how content an inbred creature can get, in proportion to its coefficient', () => {
+    const { care, penId, roster, runCycles } = setup()
+    const plain = roster.add(genome(), {
+      penId,
+      stats: { fullness: 100, happiness: 50, trust: 50 },
+    })
+    const inbred = roster.add(genome(), {
+      penId,
+      inbreeding: 0.25,
+      stats: { fullness: 100, happiness: 50, trust: 50 },
+    })
+    // Keep both fed so only the pen and the penalty decide where happiness settles.
+    care.addFood(penId, 'berry', CARE.TROUGH_CAPACITY_SERVINGS)
+    for (let i = 0; i < 30; i++) {
+      runCycles(1)
+      for (const c of [plain, inbred]) roster.adjustStats(c.id, { fullness: 100 })
+      care.addFood(penId, 'berry', 5)
+    }
+    const a = roster.get(plain.id)?.happiness ?? 0
+    const b = roster.get(inbred.id)?.happiness ?? 0
+    expect(b).toBeLessThan(a)
+    expect(b).toBeLessThanOrEqual(
+      a * (1 - 0.25 * PEN.HAPPINESS_PENALTY) + CARE.HAPPINESS_DRIFT_PER_CYCLE
+    )
   })
 })

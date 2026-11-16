@@ -270,7 +270,19 @@ describe('pen profile', () => {
     expect(pen.waterDeepFraction).toBeCloseTo(2 / 9, 10)
     expect(pen.groundFractions.wetland).toBeCloseTo(2 / 9, 10)
     expect(pen.groundFractions.meadow).toBeCloseTo(7 / 9, 10)
-    expect(pen.props).toEqual({ toy: 2, shelter: 0, plant: 0, trough: 1, bin: 0 })
+    expect(pen.props).toEqual({
+      toy: 2,
+      shelter: 0,
+      plant: 0,
+      trough: 1,
+      hopper: 0,
+      collector: 0,
+      silo: 0,
+      valve: 0,
+      farm: 0,
+      bin: 0,
+      den: 0,
+    })
   })
 
   it('reports the enclosure level from fences and roofs', () => {

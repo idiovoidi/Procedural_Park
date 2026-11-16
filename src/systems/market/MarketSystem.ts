@@ -137,13 +137,12 @@ export class MarketSystem {
     return sold
   }
 
-  /** Demand recovers a little every economy tick. Call from the clock. */
+  /** Demand recovers a share of what is missing every economy tick. Call from the clock. */
   public tick(): void {
     let changed = false
     for (const [type, value] of this.demand) {
-      if (value >= 1) continue
-      const next = Math.min(1, value + MARKET.DEMAND_RECOVERY_PER_TICK)
-      if (next >= 1) this.demand.delete(type)
+      const next = value + MARKET.DEMAND_RECOVERY_RATE * (1 - value)
+      if (next >= 1 - 1e-4) this.demand.delete(type)
       else this.demand.set(type, next)
       changed = true
     }

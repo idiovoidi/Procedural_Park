@@ -1,4 +1,5 @@
 import { TAU } from '@core/constants'
+import { LAB_SITE } from '@systems/layout/park-sites'
 import * as THREE from 'three'
 
 export interface LabSign {
@@ -164,7 +165,8 @@ export function buildExperimentLab(): { group: THREE.Group; sign: LabSign } {
   labGroup.add(textMesh)
 
   // Position lab away from main path
-  labGroup.position.set(-35, 0, -20)
+  labGroup.position.set(LAB_SITE.x, 0, LAB_SITE.z)
+  labGroup.rotation.y = LAB_SITE.rot
   labGroup.userData.isExperimentLab = true
 
   return { group: labGroup, sign: labSign }

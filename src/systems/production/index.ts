@@ -7,4 +7,4 @@ export { happinessMultiplier, type OutputInputs, outputPerCycle } from './output
 export type { ProductionSnapshot, ProductionSummary } from './ProductionSystem'
 export { ProductionSystem } from './ProductionSystem'
 export type { ResourceAmounts, ResourceInventorySnapshot } from './ResourceInventory'
-export { RESOURCE_TYPES, ResourceInventory } from './ResourceInventory'
+export { inventoryCapacity, RESOURCE_TYPES, ResourceInventory } from './ResourceInventory'

@@ -10,6 +10,7 @@
 import { GAME_CONFIG } from '@core/constants'
 import { generateSpeciesName, validateGenome } from '@systems/creatures/genome'
 import type { AgeStage } from '@systems/economy'
+import { childAncestry, inbreedingOf, MAX_ANCESTRY_DEPTH, sanitizeAncestry } from './pedigree'
 import type {
   AddCreatureOptions,
   OwnedCreature,
@@ -71,6 +72,7 @@ export class Roster {
       ageStage: stage,
       generation: options.generation ?? this.generationFor(parentIds),
       parentIds,
+      ...this.pedigreeFor(parentIds, options),
       penId: options.penId ?? null,
       acquiredTick: options.acquiredTick ?? 0,
     }
@@ -224,6 +226,38 @@ export class Roster {
     return { valid: true, restored: restored.size, dropped }
   }
 
+  /** Ancestry and inbreeding for a new creature: given, else worked out from parents still here. */
+  private pedigreeFor(
+    parentIds: ParentIds | null,
+    options: AddCreatureOptions
+  ): Pick<OwnedCreature, 'ancestry' | 'inbreeding'> {
+    if (options.ancestry || options.inbreeding !== undefined) {
+      return {
+        ancestry: sanitizeAncestry(options.ancestry),
+        inbreeding: Math.min(0.5, Math.max(0, options.inbreeding ?? 0)),
+      }
+    }
+    const nodes = (parentIds ?? []).flatMap((pid) => {
+      const p = this.creatures.get(pid)
+      return p ? [{ id: p.id, ancestry: p.ancestry }] : []
+    })
+    if (parentIds && nodes.length === 2) {
+      return {
+        ancestry: childAncestry(nodes[0], nodes[1]),
+        inbreeding: inbreedingOf(nodes[0], nodes[1]),
+      }
+    }
+    // One or both parents are gone: remember what is known (the parents' ids).
+    const known: Record<string, number> = {}
+    for (const pid of parentIds ?? []) known[pid] = 1
+    for (const n of nodes) {
+      for (const [id, steps] of Object.entries(n.ancestry)) {
+        if (steps + 1 <= MAX_ANCESTRY_DEPTH) known[id] = Math.min(known[id] ?? Infinity, steps + 1)
+      }
+    }
+    return { ancestry: known, inbreeding: 0 }
+  }
+
   private generationFor(parentIds: ParentIds | null): number {
     if (!parentIds) return 0
     const known = parentIds.flatMap((pid) => {
@@ -281,6 +315,8 @@ function sanitizeCreature(raw: unknown): OwnedCreature | null {
     ageStage: stageForAge(ageTicks),
     generation: isNonNegativeInt(raw.generation) ? raw.generation : 0,
     parentIds,
+    ancestry: sanitizeAncestry(raw.ancestry),
+    inbreeding: isStat(raw.inbreeding) ? Math.min(0.5, Math.max(0, Number(raw.inbreeding))) : 0,
     penId: typeof raw.penId === 'string' ? raw.penId : null,
     acquiredTick: isNonNegativeInt(raw.acquiredTick) ? raw.acquiredTick : 0,
   }

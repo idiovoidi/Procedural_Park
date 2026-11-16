@@ -25,24 +25,84 @@ Exit: a new player captures a founder, pens it, earns from it, breeds a child, s
 | T9 | [x] Production + collection of per-archetype resources | T8 | Output formula matches GDD §7.5; storage cap respected |
 | T10 | [x] Market: sell resources and creatures, pricing, UI | T9 | Coins update; pricing tested |
 | T11 | [x] Capture loop: feeding/trust, lure, transport crate | T5 | Two founders captured by two methods land in the roster |
-| T12 | [ ] Hub park: resident creatures roaming inside pens | T5, T6 | 20+ residents at target fps, staying inside pens |
-| T13 | [ ] Breeding Den: pairing rules, timer, preview, hatching | T5, T12 | Deterministic, rules tested; breed + hatch works in game |
-| T14 | [ ] Codex and roster UI rework | T5 | No 10-creature cap; bred species recorded; card export round-trips |
-| T15 | [ ] Tool belt + HUD for the management loop | T7 | Every slice interaction reachable via the tool belt |
-| T16 | [ ] Versioned save/load for slice state + export/import | T5, T6, T9 | Save, reload, migration and offline catch-up tests pass |
-| T17 | [ ] Balance sim script + economy/breeding unit tests | T9, T10, T13 | Baseline shows no runaway or dead-end economy |
-| T18 | [ ] Slice E2E test + playtest tuning pass | T10, T11, T13–T17 | E2E green in CI; playtest notes recorded |
+| T12 | [x] Hub park: resident creatures roaming inside pens | T5, T6 | 20+ residents at target fps, staying inside pens |
+| T13 | [x] Breeding Den: pairing rules, timer, preview, hatching | T5, T12 | Deterministic, rules tested; breed + hatch works in game |
+| T14 | [x] Codex and roster UI rework | T5 | No 10-creature cap; bred species recorded; card export round-trips |
+| T15 | [x] Tool belt + HUD for the management loop | T7 | Every slice interaction reachable via the tool belt |
+| T16 | [x] Versioned save/load for slice state + export/import | T5, T6, T9 | Save, reload, migration and offline catch-up tests pass |
+| T17 | [x] Balance sim script + economy/breeding unit tests | T9, T10, T13 | Baseline shows no runaway or dead-end economy |
+| T18 | [x] Slice E2E test + playtest tuning pass | T10, T11, T13–T17 | E2E green in CI; playtest notes recorded |
 
 ### Suggested order
 
 `T2 → T3 → T4 → (T5 ∥ T6) → (T7 ∥ T8 ∥ T11 ∥ T12 ∥ T14) → T9 → T10 → T13 → (T15 ∥ T16 ∥ T17) → T18`
 
+## M2 — Automation and contracts (T19 split)
+
+Exit: a player can run a hands-off park for several minutes without starving creatures, and breeding has a reason to exist.
+
+| ID | Task | Deps | Done when |
+|---|---|---|---|
+| T19a | [ ] Contract Board: seeded trait requests, fulfil with a creature, panel, save, balance | T18 | Contracts pay a premium over market, are always satisfiable, survive save/load |
+| T19b | [x] Feeder hopper: per-pen hopper that tops up the trough | T19a | A fed pen runs for many cycles without the player |
+| T19c | [x] Collector range + bin warning: auto-collect nearby bins, warn on bin-less pens | T19b | No output wasted in a pen with a bin |
+| T19d | [x] Silos + auto-sell valve with price floor | T19c | Output sells itself above the floor price |
+| T19e | [x] Food farms (generators) | T19d | Food no longer has to be bought |
+| T19f | [x] M2 balance sim + E2E | T19a–e | Balance guard rails and E2E cover the hands-off loop |
+
+## M3 — Expeditions (T20 split)
+
+Exit: the player unlocks a second map, travels there, captures a founder the hub never offers, and brings it home.
+
+| ID | Task | Deps | Done when |
+|---|---|---|---|
+| T20a | [x] Map definitions, seeded wild founders per map, MapManager (unlock rules, saves) | T19 | Deterministic founders with a species lean; unlock needs coins + codex species |
+| T20b | [x] Travel: swap terrain and wild creatures, hide the hub, return home | T20a | Travelling out and back keeps the ranch intact |
+| T20c | [x] Map UI: travel panel, unlock flow | T20b | Unlock and travel by clicking |
+| T20d | [x] Special-condition capture + night spawns | T20b | Epic founders need night or an item |
+| T20e | [x] Expedition pressure: crate capacity, fleeing, bait cost | T20b | Failing costs bait/time, never harm |
+| T20f | [x] M3 balance + E2E | T20a–e | Guard rails and E2E cover an expedition |
+
+## M4 — Social (T21 split)
+
+Exit: two players can trade a creature, share discoveries and walk through each other's ranch.
+
+| ID | Task | Deps | Done when |
+|---|---|---|---|
+| T21a | [x] Social channel (chunked JSON over the data channel) + trade protocol | T20 | A creature moves between rosters atomically; bad data is ignored |
+| T21b | [x] Trade UI wired to the live connection | T21a | Offer, accept, decline from the game |
+| T21c | [x] Shared codex | T21b | Species a friend found appear in your codex |
+| T21d | [x] Visit a friend's park (read-only snapshot) | T21b | Guest sees the host's pens and residents |
+| T21e | [x] Two-browser E2E for trade, codex and visit | T21a–d | E2E green |
+
+## M5–M6 — Breeding depth, joint breeding, arena (T22 split)
+
+| ID | Task | Deps | Done when |
+|---|---|---|---|
+| T22a | [x] Pedigree and inbreeding (ancestry, relatedness, happiness and fertility penalty, UI warning) | T21 | Close pairings are flagged and cost something; saves round-trip |
+| T22b | [x] Mutations that add a new part or colour | T22a | Mutations can create traits neither parent had |
+| T22c | [x] Joint breeding with a friend (each brings a parent, each gets a child) | T22a, T21 | Both players receive a deterministic child |
+| T22d | [x] Arena: derived combat stats and a deterministic seeded auto-battler | T22b | Same teams and seed give the same result on any machine |
+| T22e | [x] Arena UI, rewards and friend duels | T22d, T21 | Duel a friend and both see the same result |
+| T22f | [x] Keepers (staff) | T22a | A hired keeper does a pen's chores for a wage |
+| T22g | [x] M5–M6 balance + E2E | T22a–f | Guard rails and E2E cover joint breeding and a duel |
+
+## M7 — Platform polish (T23 split)
+
+| ID | Task | Deps | Done when |
+|---|---|---|---|
+| T23a | [x] Virtual input + gamepad (analog move/look, buttons -> actions) | T22 | A pad plays the field loop; mapping tested |
+| T23b | [x] Touch controls: floating stick, look drag, action buttons | T23a | Playable on a phone-sized touch screen |
+| T23c | [x] Performance governor: quality levels from measured frame time | — | Quality steps down under load and back up with hysteresis |
+| T23d | [x] Accessibility: UI scale, reduced motion, high contrast, labelled controls, Escape | — | Settings persist; controls have roles and labels |
+| T23e | [x] M7 E2E + docs | T23a–d | Virtual input, touch, quality and accessibility covered |
+
 ## Later milestones (split into tasks when reached)
 
 | Epic | Milestone | Scope | Deps |
 |---|---|---|---|
-| T19 | M2 Automation | Feeders, bins, conveyors, silos, auto-sell, food farms, Contract Board | T18 |
-| T20 | M3 Expeditions | Map manager, 2–3 maps, study/special-condition capture, night spawns | T19 |
-| T21 | M4 Social | Card trading, friend park visit, shared codex, E2E coverage | T1, T18 |
-| T22 | M5–M6 Depth + Arena | Pedigree, inbreeding, mutations, staff, joint breeding; deterministic auto-battler | T19, T21 |
-| T23 | M7 Platform polish | Gamepad, mobile touch, performance scaling, accessibility (start spikes early if M1 shows perf issues) | — |
+| T19 ✅ | M2 Automation | Feeders, bins, conveyors, silos, auto-sell, food farms, Contract Board (contracts must pay for traits so breeding earns; see BALANCE.md) | T18 |
+| T20 ✅ | M3 Expeditions | Map manager, 2–3 maps, study/special-condition capture, night spawns | T19 |
+| T21 ✅ | M4 Social | Card trading, friend park visit, shared codex, E2E coverage | T1, T18 |
+| T22 ✅ | M5–M6 Depth + Arena | Pedigree, inbreeding, mutations, staff, joint breeding; deterministic auto-battler | T19, T21 |
+| T23 ✅ | M7 Platform polish | Gamepad, mobile touch, performance scaling, accessibility (start spikes early if M1 shows perf issues) | — |

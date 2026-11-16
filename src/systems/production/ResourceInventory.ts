@@ -3,6 +3,7 @@
  * The whole units of each resource the player is carrying.
  */
 
+import { GAME_CONFIG } from '@core/constants'
 import type { ResourceType } from '@systems/economy'
 
 export const RESOURCE_TYPES: readonly ResourceType[] = [
@@ -12,6 +13,14 @@ export const RESOURCE_TYPES: readonly ResourceType[] = [
   'essence',
   'shards',
 ]
+
+/** What the player can hold of each resource: a base amount plus every silo in the park. */
+export function inventoryCapacity(grid: { getPens(): ReadonlyArray<{ props: { silo: number } }> }) {
+  const P = GAME_CONFIG.ECONOMY.PRODUCTION
+  return (): number =>
+    P.INVENTORY_BASE_CAPACITY +
+    P.SILO_CAPACITY * grid.getPens().reduce((n, pen) => n + pen.props.silo, 0)
+}
 
 export type ResourceAmounts = Partial<Record<ResourceType, number>>
 
@@ -23,6 +32,16 @@ export interface ResourceInventorySnapshot {
 export class ResourceInventory {
   private amounts = new Map<ResourceType, number>()
   private listeners = new Set<() => void>()
+  private capacityOf: (type: ResourceType) => number = () => Number.POSITIVE_INFINITY
+
+  /** Limit how much of each resource can be held (silos raise it). Default: unlimited. */
+  public setCapacity(capacityOf: (type: ResourceType) => number): void {
+    this.capacityOf = capacityOf
+  }
+
+  public getCapacity(type: ResourceType): number {
+    return this.capacityOf(type)
+  }
 
   public get(type: ResourceType): number {
     return this.amounts.get(type) ?? 0
@@ -38,10 +57,14 @@ export class ResourceInventory {
     return RESOURCE_TYPES.reduce((sum, type) => sum + this.get(type), 0)
   }
 
-  /** Add whole units. Fractions are floored; non-positive or invalid amounts are ignored. */
+  /**
+   * Add whole units, as many as fit under the capacity. Fractions are floored; non-positive or
+   * invalid amounts are ignored. Returns how many units were actually added.
+   */
   public add(type: ResourceType, amount: number): number {
     if (!RESOURCE_TYPES.includes(type) || !Number.isFinite(amount)) return 0
-    const units = Math.floor(amount)
+    const wanted = Math.floor(amount)
+    const units = Math.min(wanted, Math.max(0, Math.floor(this.capacityOf(type) - this.get(type))))
     if (units <= 0) return 0
     this.amounts.set(type, this.get(type) + units)
     this.notify()

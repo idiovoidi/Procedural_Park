@@ -61,8 +61,10 @@ export interface RarityTier {
   name: RarityTierName
   /** 0 = common ... 4 = legendary. */
   index: number
-  /** Value multiplier from the tier table. */
+  /** Value multiplier from the tier table (what the creature sells for). */
   multiplier: number
+  /** Output multiplier from the tier table (what the creature produces). */
+  outputMultiplier: number
 }
 
 export interface RankedFood {
@@ -89,10 +91,20 @@ export function getRarityTier(rarity: number): RarityTier {
   const tiers = ECONOMY.RARITY_TIERS
   for (let i = tiers.length - 1; i >= 0; i--) {
     if (value >= tiers[i].min) {
-      return { name: tiers[i].name, index: i, multiplier: tiers[i].multiplier }
+      return {
+        name: tiers[i].name,
+        index: i,
+        multiplier: tiers[i].multiplier,
+        outputMultiplier: tiers[i].outputMultiplier,
+      }
     }
   }
-  return { name: tiers[0].name, index: 0, multiplier: tiers[0].multiplier }
+  return {
+    name: tiers[0].name,
+    index: 0,
+    multiplier: tiers[0].multiplier,
+    outputMultiplier: tiers[0].outputMultiplier,
+  }
 }
 
 export function getSizeMultiplier(size: SizeClass): number {

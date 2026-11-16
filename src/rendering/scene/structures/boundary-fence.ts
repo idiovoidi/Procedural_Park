@@ -1,4 +1,5 @@
 import { TAU } from '@core/constants'
+import { PARK_RADIUS } from '@systems/layout/park-sites'
 import * as THREE from 'three'
 
 export function buildBoundaryFence(): THREE.Group {
@@ -7,7 +8,7 @@ export function buildBoundaryFence(): THREE.Group {
 
   // Fence parameters
   const fenceHeight = 3
-  const parkRadius = 70 // Outer boundary
+  const parkRadius = PARK_RADIUS // Outer boundary
   const segments = 64 // Number of fence segments
 
   // Materials

@@ -4,6 +4,71 @@ export const GAME_CONFIG = {
   CREATURE_COUNT: 60,
   WORLD_SEED: 1337,
 
+  /**
+   * Expedition maps (GDD 10). The hub is the home map and is always open. Each expedition has
+   * its own terrain seed and wild founders: `archetypeLean` is how likely each archetype is to
+   * be kept among the candidates (1 = always), and `rarityBonus` lifts every founder's rarity.
+   * `unlock` is paid once (coins) and needs enough species in the codex.
+   */
+  MAPS: {
+    HUB_ID: 'hub',
+    /** Founders the player can crate on one expedition before they must head home. */
+    CRATE_CARRY_CAPACITY: 3,
+    EXPEDITIONS: [
+      {
+        id: 'greenwood',
+        name: 'Greenwood',
+        description: 'A quiet forest: terrestrial and aerial founders, easy going.',
+        biome: 'forest',
+        seed: 7101,
+        wildCount: 40,
+        archetypeLean: {
+          terrestrial: 1,
+          aerial: 0.8,
+          aquatic: 0.1,
+          ethereal: 0.15,
+          crystalline: 0.05,
+        },
+        rarityBonus: 0.05,
+        unlock: { coins: 0, ownedSpecies: 0 },
+      },
+      {
+        id: 'saltmarsh',
+        name: 'Saltmarsh',
+        description: 'Tidal wetland alive with aquatic and ethereal founders.',
+        biome: 'wetland',
+        seed: 7202,
+        wildCount: 40,
+        archetypeLean: {
+          terrestrial: 0.1,
+          aerial: 0.25,
+          aquatic: 1,
+          ethereal: 0.7,
+          crystalline: 0.05,
+        },
+        rarityBonus: 0.12,
+        unlock: { coins: 600, ownedSpecies: 4 },
+      },
+      {
+        id: 'glimmer-caves',
+        name: 'Glimmer Caves',
+        description: 'Crystal caverns where rare crystalline and ethereal founders glow.',
+        biome: 'crystal_cave',
+        seed: 7303,
+        wildCount: 40,
+        archetypeLean: {
+          terrestrial: 0.05,
+          aerial: 0.05,
+          aquatic: 0.1,
+          ethereal: 0.8,
+          crystalline: 1,
+        },
+        rarityBonus: 0.22,
+        unlock: { coins: 2500, ownedSpecies: 8 },
+      },
+    ],
+  },
+
   // Distance and detection
   MAX_CREATURE_DISTANCE: 25,
   CREATURE_INFO_DISTANCE: 25,
@@ -72,13 +137,18 @@ export const GAME_CONFIG = {
     /** Output and food scale with body size. */
     SIZE_MULTIPLIER: { tiny: 0.5, small: 0.75, medium: 1, large: 1.5, huge: 2 },
 
-    /** Value multiplier by rarity tier; `min` is the lowest rarity (0..1) in the tier. */
+    /**
+     * Rarity tiers; `min` is the lowest rarity (0..1) in the tier. `multiplier` scales what a
+     * creature sells for; `outputMultiplier` scales what it produces. Output is deliberately
+     * gentler than value, so a rare creature is worth far more to sell without a single
+     * legendary out-earning a whole ranch of ordinary ones.
+     */
     RARITY_TIERS: [
-      { name: 'common', min: 0, multiplier: 1 },
-      { name: 'uncommon', min: 0.4, multiplier: 1.6 },
-      { name: 'rare', min: 0.6, multiplier: 2.5 },
-      { name: 'epic', min: 0.8, multiplier: 4 },
-      { name: 'legendary', min: 0.92, multiplier: 7 },
+      { name: 'common', min: 0, multiplier: 1, outputMultiplier: 1 },
+      { name: 'uncommon', min: 0.4, multiplier: 1.6, outputMultiplier: 1.3 },
+      { name: 'rare', min: 0.6, multiplier: 2.5, outputMultiplier: 1.7 },
+      { name: 'epic', min: 0.8, multiplier: 4, outputMultiplier: 2.3 },
+      { name: 'legendary', min: 0.92, multiplier: 7, outputMultiplier: 3 },
     ],
 
     /** Output multiplier by growth stage (no lifespan: adults stay adults, decision Q4). */
@@ -107,14 +177,23 @@ export const GAME_CONFIG = {
 
     /** Market prices and demand (GDD 7.2, 7.7; decision Q7: base price with demand saturation). */
     MARKET: {
-      /** Coins per unit at full demand. */
-      BASE_UNIT_PRICE: { fibre: 4, down: 5, brine: 6, essence: 12, shards: 14 },
+      /**
+       * Coins per unit at full demand. Set so a well-kept common creature of every archetype
+       * earns a similar margin over its own cheapest adequate food: fibre 3 vs a 10-coin berry,
+       * down 5 vs berry at 70%, brine 9 vs fish, essence 12 vs berry at 50%, shards 30 vs a
+       * 50-coin crystal. (See docs/BALANCE.md.)
+       */
+      BASE_UNIT_PRICE: { fibre: 3, down: 5, brine: 9, essence: 12, shards: 30 },
       /** Demand lost for every unit sold (demand starts at 1). */
-      DEMAND_DROP_PER_UNIT: 0.01,
+      DEMAND_DROP_PER_UNIT: 0.005,
       /** Demand never falls below this, so a flooded market still pays something. */
       MIN_DEMAND: 0.25,
-      /** Demand regained per economy tick while below 1. */
-      DEMAND_RECOVERY_PER_TICK: 0.0005,
+      /**
+       * Share of the missing demand regained every economy tick. Recovery is proportional to
+       * how far demand has fallen, so a flooded market bounces back faster than a slightly
+       * dented one, and steady selling settles at a price instead of sinking to the floor.
+       */
+      DEMAND_RECOVERY_RATE: 0.008,
 
       /** Coins for a medium, common, adult creature with no extra parts. */
       CREATURE_BASE_VALUE: 40,
@@ -123,6 +202,120 @@ export const GAME_CONFIG = {
       /** Each optional body part (wings, horns, tails ...) adds this, up to the maximum. */
       CREATURE_PART_PREMIUM: 0.04,
       CREATURE_MAX_PART_PREMIUM: 0.5,
+    },
+
+    /**
+     * Staff (GDD 8, tier 5). A keeper is hired for one pen. Every feeding cycle they are paid a
+     * wage, then top up the troughs (from your food bag first, else by buying at the store),
+     * empty the bin, and give the pen's creatures a little attention. If the wage cannot be paid
+     * they simply do not work that cycle; nobody is harmed.
+     */
+    STAFF: {
+      HIRE_COST: 250,
+      WAGE_PER_CYCLE: 3,
+      /** Happiness a keeper's attention adds to each creature of the pen every cycle. */
+      ATTENTION_HAPPINESS: 2,
+    },
+
+    /**
+     * Arena (GDD 11): derived combat stats and a deterministic auto-battler. Optional and never
+     * required for progression; there is no permadeath. All values are tunable.
+     */
+    ARENA: {
+      TEAM_SIZE: 3,
+      MAX_ROUNDS: 40,
+      BASE_HP: 60,
+      BASE_DAMAGE: 8,
+      /** Hits per action: 1 + one more per this many legs and arms, up to MAX_HITS. */
+      LIMBS_PER_EXTRA_HIT: 4,
+      MAX_HITS: 3,
+      /** Rarity makes creatures tougher: x(1 + rarity x this) to hp and damage. */
+      RARITY_BONUS: 0.5,
+      /** Archetype wheel: each beats the next two, loses to the previous two. */
+      TYPE_ADVANTAGE: 1.25,
+      TYPE_DISADVANTAGE: 0.8,
+      /** Specials from parts. */
+      HORN_FIRST_STRIKE: 0.5,
+      SPINE_REFLECT: 0.2,
+      SCALE_DAMAGE_TAKEN: 0.85,
+      WING_DODGE: 0.2,
+      TAIL_SWEEP_SPLASH: 0.35,
+      /** Temperament leanings. */
+      AGGRESSIVE_DAMAGE: 1.15,
+      SHY_DODGE: 0.15,
+      TERRITORIAL_HP: 1.1,
+      CURIOUS_SPEED: 1.1,
+      PLAYFUL_CRIT: 0.15,
+      CRIT_MULTIPLIER: 1.5,
+      /** Ladder opponents: each rung is stronger. Coins for the first win on a rung, and after. */
+      LADDER_RUNGS: 8,
+      FIRST_WIN_COINS: 40,
+      FIRST_WIN_COINS_PER_RUNG: 25,
+      REPEAT_WIN_COINS: 4,
+    },
+
+    /** Contract Board (GDD 7.3): buyers who pay a premium for creatures with specific traits. */
+    CONTRACTS: {
+      BOARD_SLOTS: 4,
+      /** Sim ticks a contract stays on the board before it is replaced. */
+      DURATION_TICKS: 7200,
+      /** Sim ticks before a fulfilled slot posts a new contract. */
+      REPLACE_DELAY_TICKS: 120,
+      /**
+       * Reward = value of an ideal matching adult x SCALE x (BASE + PER_REQUIREMENT x requirements).
+       * SCALE is large because a creature is worth far more as a producer than at market: a contract
+       * has to beat what the bot loses by giving one up (see docs/BALANCE.md).
+       */
+      REWARD_SCALE: 8,
+      REWARD_BASE: 1.15,
+      REWARD_PER_REQUIREMENT: 0.35,
+      /** How many requirements a contract has, by slot number (the last entry repeats). */
+      REQUIREMENTS_BY_SLOT: [1, 2, 2, 3],
+    },
+
+    /** Breeding (GDD 6): pairing rules, costs, timers and the odds preview. */
+    BREEDING: {
+      /** Sim ticks an egg takes to hatch. */
+      GESTATION_TICKS: 300,
+      /** Sim ticks a parent must rest after a litter before breeding again. */
+      COOLDOWN_TICKS: 900,
+      /** A parent must be at least this happy (0..100) and trusting, and not starving. */
+      MIN_HAPPINESS: 50,
+      MIN_TRUST: 40,
+      /** Parents may differ by at most this many size classes (tiny..huge). */
+      MAX_SIZE_GAP: 1,
+      /** Coins to start a breeding, multiplied by 1 + COST_PER_TIER x the parents' average rarity tier. */
+      BASE_COST: 40,
+      COST_PER_TIER: 0.5,
+      /** Chance a hatchling mutates a little, and how strongly (see `mutate`). */
+      /**
+       * Rarity ratchet: when both parents are at least `RARITY_LIFT_MIN_PARENT` rarity, the child's
+       * rarity gets `RARITY_LIFT` added to the parents' average, so a line of good parents climbs.
+       */
+      RARITY_LIFT: 0.03,
+      RARITY_LIFT_MIN_PARENT: 0.3,
+      /**
+       * Inbreeding (GDD 6.5). A creature's coefficient F is half the relatedness of its parents:
+       * 0.25 for full siblings or parent x child, 0.125 for half siblings, and so on. Its
+       * happiness can only reach (1 - F x HAPPINESS_PENALTY) of what its pen deserves, and the
+       * rest it needs between litters grows by F x COOLDOWN_PENALTY.
+       */
+      INBREEDING: { HAPPINESS_PENALTY: 1.2, COOLDOWN_PENALTY: 4 },
+      /** Of the mutations, the share that grow a part or colour neither parent had. */
+      NEW_TRAIT_CHANCE: 0.4,
+      MUTATION_CHANCE: 0.2,
+      MUTATION_RATE: 0.12,
+      /** How many example offspring the preview shows, and how many crossovers it samples for odds. */
+      PREVIEW_CHILDREN: 3,
+      PREVIEW_SAMPLES: 200,
+      /** Stats a newborn starts with (0..100). */
+      NEWBORN_STATS: { fullness: 70, happiness: 70, trust: 60 },
+    },
+
+    /** Codex: how species become known (GDD 9). */
+    CODEX: {
+      /** Photos of a wild species needed before its diet and habitat are revealed. */
+      STUDY_PHOTOS_REQUIRED: 2,
     },
 
     /** Capturing wild creatures: trust from feeding, lures and the transport crate (GDD 10.2). */
@@ -140,6 +333,13 @@ export const GAME_CONFIG = {
       /** Trust needed before a creature will enter a crate: base plus this per rarity tier. */
       TRUST_REQUIRED_BASE: 60,
       TRUST_REQUIRED_PER_TIER: 8,
+      /**
+       * Special conditions (GDD 10.2): founders at least this rare are elusive. They only come
+       * out at night, so by day they cannot be seen, fed, baited or crated.
+       */
+      NIGHT_ONLY_MIN_RARITY: 0.8,
+      /** On expeditions wild creatures are skittish: untended trust drains this much per second. */
+      SKITTISH_TRUST_LOSS_PER_SEC: 0.25,
       /** How close the player must be to crate a creature, in metres. */
       CAPTURE_RANGE_M: 10,
       /** Coins for one transport crate. */
@@ -163,7 +363,13 @@ export const GAME_CONFIG = {
         tallFence: 6,
         gate: 10,
         trough: 20,
+        hopper: 45,
         bin: 25,
+        collector: 80,
+        silo: 120,
+        valve: 150,
+        farm: 150,
+        den: 60,
         toy: 15,
         shelter: 20,
         plant: 10,
@@ -181,6 +387,15 @@ export const GAME_CONFIG = {
     PRODUCTION: {
       /** Units (all resource types combined) one collector bin holds. */
       BIN_CAPACITY_UNITS: 100,
+      /** Units of each resource the player can carry without a silo. */
+      INVENTORY_BASE_CAPACITY: 150,
+      /** Extra units of each resource every resource silo adds (silos work park-wide). */
+      SILO_CAPACITY: 500,
+      /**
+       * Auto-sell valve: while at least one valve stands, every production cycle sells a resource
+       * as long as its price stays at or above `floor` x its base price. The player sets the floor.
+       */
+      AUTO_SELL: { DEFAULT_FLOOR: 0.7, MIN_FLOOR: 0.3, MAX_FLOOR: 1, FLOOR_STEP: 0.05 },
     },
 
     /** Care loop: feeding, hunger and mood. All values per feeding cycle unless noted. */
@@ -193,6 +408,14 @@ export const GAME_CONFIG = {
       EAT_AT_OR_BELOW: 85,
       /** Servings one trough holds. */
       TROUGH_CAPACITY_SERVINGS: 20,
+      /** Servings one feeder hopper holds; it tops the pen's troughs up every cycle. */
+      HOPPER_CAPACITY_SERVINGS: 80,
+      /**
+       * Food farms: each farm grows `SERVINGS_PER_CYCLE` servings every feeding cycle of the
+       * cheap staple its pen's residents like best (only these foods can be farmed; meat, crystal
+       * and energy stay in the store). The servings go to the troughs, then the hoppers.
+       */
+      FARM: { FOODS: ['berry', 'fish'], SERVINGS_PER_CYCLE: 1.5, MIN_EFFICIENCY: 0.5 },
 
       /** Happiness moves this far toward its target each cycle. */
       HAPPINESS_DRIFT_PER_CYCLE: 10,

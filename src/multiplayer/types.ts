@@ -52,6 +52,8 @@ export const MessageType = {
   GAME_EVENT: 1,
   PING: 2,
   PONG: 3,
+  /** UTF-8 JSON text for trades, shared codex and park visits (chunked by the social layer). */
+  SOCIAL: 4,
 } as const
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType]

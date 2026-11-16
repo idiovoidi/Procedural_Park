@@ -40,14 +40,14 @@ For testing purposes, players start with:
 ## Controls
 
 - **B** - Toggle Food Inventory
-- **Q** - Feed nearest creature (must have food selected)
+- **F** - Feed nearest creature (must have food selected)
 
 ## How to Use
 
 1. Press **B** to open the food inventory
 2. Click on a food item to select it
 3. Get close to a creature (within 15 meters)
-4. Press **Q** to feed the creature
+4. Press **F** to feed the creature
 5. Watch the creature's reaction!
 
 ## Creature Reactions

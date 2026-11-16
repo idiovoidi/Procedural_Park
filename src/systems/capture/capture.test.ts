@@ -6,7 +6,7 @@ import { dietEfficiency } from '../economy'
 import { FOOD_ITEMS } from '../food'
 import { PenGrid } from '../park'
 import { Roster } from '../roster'
-import { CaptureSystem, type WildCreature } from './CaptureSystem'
+import { CaptureSystem, requiresNight, type WildCreature } from './CaptureSystem'
 import { findPenFor } from './housing'
 
 const C = GAME_CONFIG.ECONOMY.CAPTURE
@@ -310,5 +310,59 @@ describe('findPenFor', () => {
     // Fill the other pen to capacity (36 m2: three medium creatures use 30).
     for (let i = 0; i < 3; i++) roster.add(genome({ speciesId: 20 + i }), { penId: wetlandPen })
     expect(findPenFor(grid, roster, genome({ archetype: 'terrestrial' }))).toBeNull()
+  })
+})
+
+describe('special-condition capture', () => {
+  const T = GAME_CONFIG.ECONOMY.CAPTURE.NIGHT_ONLY_MIN_RARITY
+
+  it('makes only the rarest founders night-only', () => {
+    const at = (rarity: number): Genome => ({ ...generateGenome(1), rarity })
+    expect(requiresNight(at(0.1))).toBe(false)
+    expect(requiresNight(at(T - 0.01))).toBe(false)
+    expect(requiresNight(at(T))).toBe(true)
+    expect(requiresNight(at(1))).toBe(true)
+  })
+
+  it('leaves most founders always available, and some on every rich map elusive', () => {
+    const wild = Array.from({ length: GAME_CONFIG.CREATURE_COUNT }, (_, i) =>
+      generateGenome(1337 * 31 + i)
+    )
+    const elusive = wild.filter(requiresNight).length
+    expect(elusive).toBeGreaterThan(0)
+    expect(elusive).toBeLessThan(wild.length / 2)
+  })
+})
+
+describe('skittish trust', () => {
+  it('drains over time, never below zero, and forgets creatures at zero', () => {
+    const sys = new CaptureSystem<WildCreature>(() => ({ x: 0, z: 0 }))
+    const c: WildCreature = { genome: { ...generateGenome(1), temperament: 'curious' } }
+    const food = Object.keys(FOOD_ITEMS)[0]
+    sys.feed(c, food)
+    const start = sys.getTrust(c)
+    expect(start).toBeGreaterThan(0)
+
+    sys.decay(4, 0.5)
+    expect(sys.getTrust(c)).toBeCloseTo(start - 2, 10)
+    sys.decay(1000, 0.5)
+    expect(sys.getTrust(c)).toBe(0)
+  })
+
+  it('ignores nonsense and leaves a tended creature gaining on net', () => {
+    const sys = new CaptureSystem<WildCreature>(() => ({ x: 0, z: 0 }))
+    const c: WildCreature = { genome: { ...generateGenome(2), temperament: 'curious' } }
+    sys.feed(c, 'berry')
+    const t = sys.getTrust(c)
+    sys.decay(Number.NaN)
+    sys.decay(-5)
+    sys.decay(5, 0)
+    expect(sys.getTrust(c)).toBe(t)
+    // A feeding every 5 s (the real cooldown) more than covers the drain.
+    const per = GAME_CONFIG.ECONOMY.CAPTURE.SKITTISH_TRUST_LOSS_PER_SEC * 5
+    sys.decay(5)
+    const before = sys.getTrust(c)
+    sys.feed(c, 'berry')
+    expect(sys.getTrust(c) - before).toBeGreaterThan(per)
   })
 })

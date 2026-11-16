@@ -5,11 +5,28 @@ import { log } from '@core/utils'
  */
 
 import { GAME_CONFIG } from '@core/constants'
+import { GamepadInput } from '@systems/input'
 import type { IntegratedStateManager } from '@systems/state'
 import { showErrorScreen } from '@ui/utils/show-error-screen'
 import { GameLoop } from './GameLoop'
 import { InputHandler, type InputHandlerCallbacks } from './InputHandler'
-import { FoodSystemManager, MarketUIManager, PhotoManager, SaveLoadManager } from './managers'
+import {
+  ArenaUIManager,
+  BreedingUIManager,
+  ContractUIManager,
+  DisplaySettingsManager,
+  ExpeditionManager,
+  FoodSystemManager,
+  MapUIManager,
+  MarketUIManager,
+  PhotoManager,
+  RanchBookManager,
+  SaveLoadManager,
+  SocialManager,
+  StaffUIManager,
+  ToolBeltManager,
+  TouchManager,
+} from './managers'
 import { type GameSystems, SystemsCoordinator } from './SystemsCoordinator'
 
 export class Game {
@@ -18,6 +35,17 @@ export class Game {
   private photos!: PhotoManager
   private food!: FoodSystemManager
   private market!: MarketUIManager
+  private breedingUI!: BreedingUIManager
+  private ranchBook!: RanchBookManager
+  private toolBelt!: ToolBeltManager
+  private contractsUI!: ContractUIManager
+  private expeditions!: ExpeditionManager
+  private mapsUI!: MapUIManager
+  private social!: SocialManager
+  private arenaUI!: ArenaUIManager
+  private staffUI!: StaffUIManager
+  private touch!: TouchManager
+  private display!: DisplaySettingsManager
   private saveLoad!: SaveLoadManager
   private recordingIndicator: HTMLElement | null = null
   private container: HTMLElement
@@ -55,6 +83,32 @@ export class Game {
       this.photos = new PhotoManager(this.systems)
       this.food = new FoodSystemManager(this.systems)
       this.market = new MarketUIManager(this.systems)
+      this.breedingUI = new BreedingUIManager(this.systems)
+      this.ranchBook = new RanchBookManager(this.systems)
+      this.contractsUI = new ContractUIManager(this.systems)
+      this.expeditions = new ExpeditionManager(this.systems)
+      this.mapsUI = new MapUIManager(this.systems)
+      this.social = new SocialManager(this.systems)
+      this.arenaUI = new ArenaUIManager(this.systems, () => this.social)
+      this.staffUI = new StaffUIManager(this.systems)
+      this.toolBelt = new ToolBeltManager(this.systems, {
+        feed: () => this.food.feedNearestCreature(),
+        lure: () => this.systems.capture.placeLure(),
+        crate: () => this.systems.capture.tryCapture(),
+        collect: () => this.toolBelt.collect(),
+        stock: () => this.toolBelt.stock(),
+        shop: () => this.food.toggleStore(),
+        photo: () => this.photos.takePhoto(),
+        build: () => this.systems.build.toggle(),
+        breed: () => this.breedingUI.toggle(),
+        market: () => this.market.toggle(),
+        book: () => this.ranchBook.toggle(),
+        board: () => this.contractsUI.toggle(),
+        maps: () => this.mapsUI.toggle(),
+        trade: () => this.social.toggle(),
+        arena: () => this.arenaUI.toggle(),
+        staff: () => this.staffUI.toggle(),
+      })
       this.saveLoad = new SaveLoadManager(this.systems, this.photos, () => this.updateLabSign())
 
       // Setup input handler
@@ -87,6 +141,32 @@ export class Game {
       // Initialize food system
       this.food.initialize()
       this.market.initialize()
+      this.breedingUI.initialize()
+      this.ranchBook.initialize()
+      this.contractsUI.initialize()
+      this.expeditions.initialize()
+      this.mapsUI.initialize()
+      this.social.initialize()
+      this.arenaUI.initialize()
+      this.staffUI.initialize()
+      this.touch = new TouchManager(this.systems, false)
+      this.touch.initialize() // wires the buttons; the display settings decide whether they show
+      this.display = new DisplaySettingsManager(this.systems)
+      this.display.initialize()
+      this.gameLoop.addAlwaysUpdater(() => this.display.update())
+      this.photos.getVisitedInstances = () => this.social.visit.getInstances()
+      this.gameLoop.addUpdater((dt, now) => this.social.visit.update(dt, now))
+      const gamepad = new GamepadInput(this.systems.input)
+      gamepad.setOnConnectionChange((connected) =>
+        this.systems.ui.showToast(
+          connected ? '🎮 Controller connected' : '🎮 Controller disconnected'
+        )
+      )
+      this.gameLoop.addAlwaysUpdater(() => gamepad.update())
+      this.toolBelt.initialize()
+
+      // Bring back the ranch from the last session, if there was one
+      this.saveLoad.restoreOnStartup()
 
       // Hide loading screen and transition to playing state
       setTimeout(() => {
@@ -122,10 +202,29 @@ export class Game {
 
     ui.onDayNightToggle = (mode) => {
       scene.setDayNightMode(mode)
+      this.systems.creatures.setNight(mode === 'night')
+      const hidden = this.systems.creatures.countHidden()
+      if (mode === 'day' && hidden > 0) {
+        this.systems.ui.showToast(`☀️ ${hidden} elusive founders have gone to ground`)
+      } else if (mode === 'night') {
+        this.systems.ui.showToast('🌙 Night: elusive founders come out to roam')
+      }
     }
 
     ui.onToggleMultiplayer = () => {
       this.systems.multiplayer.getMultiplayer().toggleUI()
+    }
+
+    ui.onToggleBuild = () => {
+      this.systems.build.toggle()
+    }
+
+    ui.onToggleBreeding = () => {
+      this.breedingUI.toggle()
+    }
+
+    ui.onToggleRanchBook = () => {
+      this.ranchBook.toggle()
     }
   }
 
@@ -145,6 +244,7 @@ export class Game {
         // TODO: Implement toggle creature info
       },
       onToggleGallery: () => this.systems.ui.toggleGallery(),
+      onToggleMap: () => this.systems.ui.toggleWorldMap(),
       onToggleCollection: () => this.systems.ui.toggleCollection(),
       onToggleMultiplayer: () => this.systems.ui.toggleMultiplayer(),
       onToggleSettings: () => this.systems.ui.toggleSettings(),
@@ -158,8 +258,10 @@ export class Game {
       onToggleFoodStore: () => this.food.toggleStore(),
       onToggleMarket: () => this.market.toggle(),
       onToggleBuild: () => this.systems.build.toggle(),
+      onToggleBreeding: () => this.breedingUI.toggle(),
       onCrateCreature: () => this.systems.capture.tryCapture(),
       onPlaceLure: () => this.systems.capture.placeLure(),
+      onCollect: () => this.toolBelt.collect(),
     }
 
     new InputHandler(

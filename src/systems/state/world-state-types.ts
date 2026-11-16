@@ -130,6 +130,12 @@ export interface WorldState {
 
   // Settings
   settings: WorldSettings
+
+  /**
+   * The breeding ranch (roster, pens, economy, coins...). Versioned and validated by
+   * `restorePark`, so it is typed loosely here. Absent in saves made before the ranch existed.
+   */
+  park?: unknown
 }
 
 /**

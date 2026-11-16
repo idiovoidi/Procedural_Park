@@ -56,6 +56,11 @@ export type CaptureCheck =
       distance: number
     }
 
+/** Founders this rare are elusive: they only appear at night (special-condition capture). */
+export function requiresNight(genome: Genome): boolean {
+  return genome.rarity >= CAPTURE.NIGHT_ONLY_MIN_RARITY
+}
+
 const clampTrust = (n: number): number => Math.min(MAX_TRUST, Math.max(0, n))
 
 export class CaptureSystem<T extends WildCreature> {
@@ -103,6 +108,16 @@ export class CaptureSystem<T extends WildCreature> {
       required: this.getRequiredTrust(creature),
       gained,
       ready: this.isReady(creature),
+    }
+  }
+
+  /** Wary wild creatures slowly lose trust unless tended: every trust value drains over time. */
+  public decay(dt: number, perSecond: number = CAPTURE.SKITTISH_TRUST_LOSS_PER_SEC): void {
+    if (!Number.isFinite(dt) || dt <= 0 || perSecond <= 0) return
+    for (const [creature, trust] of this.trust) {
+      const next = trust - perSecond * dt
+      if (next <= 0) this.trust.delete(creature)
+      else this.trust.set(creature, next)
     }
   }
 

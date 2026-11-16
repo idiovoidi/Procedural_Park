@@ -11,6 +11,8 @@ import {
 } from '@systems/build'
 import type { CameraController } from '@systems/camera'
 import type { CurrencyManager } from '@systems/currency'
+import { buildZoneFootprint } from '@systems/layout/park-sites'
+import type { WorldLayout } from '@systems/layout/WorldLayout'
 import type { PenGrid } from '@systems/park'
 import type { UIManager } from '@ui/managers'
 import * as THREE from 'three'
@@ -18,10 +20,11 @@ import * as THREE from 'three'
 const { COSTS, MAX_REACH_M } = GAME_CONFIG.ECONOMY.BUILD
 const CELL = GAME_CONFIG.PARK.CELL_SIZE_M
 
+const BUILD_ZONE_ID = 'build-zone'
 const GHOST_COLORS = { place: 0x44ff88, invalid: 0xff4455, remove: 0xffaa33 }
 
-/** Digit key for each tool slot: 1..9, then 0. */
-const slotKey = (index: number): string => String((index + 1) % 10)
+/** Digit key for each tool slot: 1..9, then 0. Tools past the tenth have no key (click them). */
+const slotKey = (index: number): string => (index < 10 ? String((index + 1) % 10) : '')
 
 interface Dependencies {
   scene: THREE.Scene
@@ -30,6 +33,8 @@ interface Dependencies {
   currency: CurrencyManager
   ui: UIManager
   heightAt: (x: number, z: number) => number
+  /** Everything on the ground; build placements must stay clear of it. */
+  layout: WorldLayout
 }
 
 /**
@@ -43,13 +48,21 @@ export class BuildModeManager {
   private readonly deps: Dependencies
   private readonly controller: BuildController
   private readonly view: ParkView
+  private hubOpen = true
+  /** On touch screens nothing can capture the pointer; the Build button places instead. */
+  private touchMode = false
   private readonly ghost: THREE.Mesh
   private active = false
   private lastTarget: BuildTarget | null = null
 
   constructor(deps: Dependencies) {
     this.deps = deps
-    this.controller = new BuildController(deps.park, deps.currency)
+    this.controller = new BuildController(deps.park, deps.currency, {
+      // The build zone itself is where building is allowed; everything else is an obstacle.
+      blockReason: (shape) => deps.layout.blockReason(shape, 0, [BUILD_ZONE_ID]),
+    })
+    this.syncBuildZone()
+    deps.park.onEdit(() => this.syncBuildZone())
     this.view = new ParkView(deps.scene, deps.park, deps.heightAt)
 
     this.ghost = new THREE.Mesh(
@@ -70,10 +83,19 @@ export class BuildModeManager {
       }))
     )
     hud.setActive(this.controller.getTool())
+    hud.setOnSelect((id) => this.selectTool(id as BuildTool))
 
     window.addEventListener('keydown', this.onKeyDown)
     window.addEventListener('mousedown', this.onMouseDown)
     window.addEventListener('contextmenu', this.onContextMenu)
+    window.addEventListener('wheel', this.onWheel, { passive: true })
+  }
+
+  /** Keeps the map's build-zone outline in step with the grid as the zone grows. */
+  private syncBuildZone(): void {
+    const next = buildZoneFootprint(this.deps.park.getBounds())
+    const current = this.deps.layout.get(BUILD_ZONE_ID)?.shape
+    if (JSON.stringify(current) !== JSON.stringify(next.shape)) this.deps.layout.add(next)
   }
 
   public isActive(): boolean {
@@ -89,8 +111,20 @@ export class BuildModeManager {
     return this.controller
   }
 
+  /** False while on an expedition: the ranch is out of reach, so it is hidden and not editable. */
+  public setHubOpen(open: boolean): void {
+    this.hubOpen = open
+    this.view.group.visible = open
+    if (!open) this.disable()
+  }
+
+  public setTouchMode(on: boolean): void {
+    this.touchMode = on
+  }
+
   public toggle(): void {
     if (this.active) this.disable()
+    else if (!this.hubOpen) this.deps.ui.showToast('🔨 You can only build at the hub')
     else this.enable()
   }
 
@@ -148,6 +182,11 @@ export class BuildModeManager {
 
   private updateStatus(target: BuildTarget | null): void {
     const hud = this.deps.ui.getBuildHud()
+    // Clicks only build once the mouse is captured, so say so instead of silently doing nothing.
+    if (!document.pointerLockElement && !this.touchMode) {
+      hud.setStatus('Click the game view to capture the mouse, then click to build', 'neutral')
+      return
+    }
     if (!target) {
       hud.setStatus('Aim at the ground', 'neutral')
       return
@@ -205,7 +244,7 @@ export class BuildModeManager {
   private onKeyDown = (e: KeyboardEvent): void => {
     if (!this.active || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return
     if (e.key < '0' || e.key > '9' || e.key.length !== 1) return
-    const index = (Number(e.key) + 9) % 10 // '1' -> 0 ... '9' -> 8, '0' -> 9
+    const index = (Number(e.key) + 9) % 10 // '1' -> 0 ... '9' -> 8, '0' -> 9 (the tenth tool)
     const tool = BUILD_TOOLS[index]
     if (tool) this.selectTool(tool)
   }
@@ -226,6 +265,15 @@ export class BuildModeManager {
     }
   }
 
+  /** Mouse wheel steps through the tools while the mouse is captured. */
+  private onWheel = (e: WheelEvent): void => {
+    if (!this.active || !document.pointerLockElement || e.deltaY === 0) return
+    const current = BUILD_TOOLS.indexOf(this.controller.getTool())
+    const step = e.deltaY > 0 ? 1 : -1
+    const next = (current + step + BUILD_TOOLS.length) % BUILD_TOOLS.length
+    this.selectTool(BUILD_TOOLS[next])
+  }
+
   private onContextMenu = (e: MouseEvent): void => {
     if (this.active && e.target instanceof HTMLCanvasElement) e.preventDefault()
   }
@@ -234,6 +282,7 @@ export class BuildModeManager {
     window.removeEventListener('keydown', this.onKeyDown)
     window.removeEventListener('mousedown', this.onMouseDown)
     window.removeEventListener('contextmenu', this.onContextMenu)
+    window.removeEventListener('wheel', this.onWheel)
     this.view.dispose()
     this.ghost.removeFromParent()
     this.ghost.geometry.dispose()

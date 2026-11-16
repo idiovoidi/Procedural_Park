@@ -12,3 +12,12 @@ export type {
   Reaction,
 } from './CareSystem'
 export { CareSystem, reactionFor } from './CareSystem'
+export {
+  BUY_CYCLES_AHEAD,
+  type FoodBag,
+  STOCK_MIN_EFFICIENCY,
+  type StockResult,
+  type StoreShelf,
+  stockPen,
+  wantedFoods,
+} from './stocking'

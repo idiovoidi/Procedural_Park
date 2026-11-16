@@ -1,7 +1,7 @@
 /**
  * Output formula (GDD 7.5)
  *
- *   outputPerCycle = base(archetype) x sizeMult x rarityMult x happinessMult x ageMult
+ *   outputPerCycle = base(archetype) x sizeMult x rarityOutputMult x happinessMult x ageMult
  *
  * Pure and stateless so the production system, the pen/market UI and the balance simulation
  * all agree on what a creature is worth. The GDD's temperament bonus is left out of the
@@ -34,7 +34,7 @@ export function outputPerCycle({ genome, happiness, ageStage }: OutputInputs): n
   return (
     BASE_OUTPUT_PER_CYCLE[genome.archetype] *
     getSizeMultiplier(genome.size) *
-    getRarityTier(genome.rarity).multiplier *
+    getRarityTier(genome.rarity).outputMultiplier *
     happinessMultiplier(happiness) *
     AGE_MULTIPLIER[ageStage]
   )

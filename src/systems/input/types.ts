@@ -31,6 +31,7 @@ export type InputAction =
   | 'ui.toggleMultiplayer'
   | 'ui.togglePlayerStats'
   | 'ui.toggleDayNight'
+  | 'ui.toggleMap'
   // Shader actions
   | 'shader.toggle'
   | 'shader.adjustThresholdUp'
@@ -47,9 +48,12 @@ export type InputAction =
   | 'market.toggle'
   // Build actions
   | 'build.toggle'
+  | 'breeding.toggle'
   // Capture actions
   | 'capture.crate'
   | 'capture.lure'
+  // Production actions
+  | 'production.collect'
 
 export type InputContext = 'game' | 'ui' | 'menu'
 

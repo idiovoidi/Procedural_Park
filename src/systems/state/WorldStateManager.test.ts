@@ -26,6 +26,23 @@ describe('WorldStateManager', () => {
     expect(loaded?.version).toBeDefined()
   })
 
+  it('keeps the ranch data through a slot, an export and an import', () => {
+    const wsm = create()
+    const park = { version: 1, coins: 42, roster: { creatures: [{ id: 'c1' }] } }
+    wsm.createSave('slot_1', { park })
+    expect(wsm.loadSave('slot_1')?.park).toEqual(park)
+
+    const json = wsm.exportSave('slot_1') as string
+    expect(wsm.importSave('slot_2', json)).toBe(true)
+    expect(wsm.loadSave('slot_2')?.park).toEqual(park)
+  })
+
+  it('loads an older save that has no ranch data', () => {
+    const wsm = create()
+    wsm.createSave('slot_1', { worldSeed: 5 })
+    expect(wsm.loadSave('slot_1')?.park).toBeUndefined()
+  })
+
   it('returns null for an empty slot', () => {
     expect(create().loadSave('slot_3')).toBeNull()
   })

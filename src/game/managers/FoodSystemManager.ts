@@ -106,7 +106,7 @@ export class FoodSystemManager {
     }
 
     // Find nearest creature
-    const allCreatures = creatures.getAllCreatures()
+    const allCreatures = creatures.getAllCreatures().filter((c) => creatures.isPresent(c))
     let nearestCreature = null
     let nearestDistance = Infinity
 

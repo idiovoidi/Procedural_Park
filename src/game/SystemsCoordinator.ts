@@ -1,4 +1,5 @@
 import { log } from '@core/utils'
+import * as THREE from 'three'
 /**
  * SystemsCoordinator
  * Initializes and coordinates all game systems
@@ -10,26 +11,37 @@ import {
   CaptureManager,
   CreatureManager,
   MultiplayerManager,
+  ResidentManager,
   ShaderService,
 } from '@game/managers'
 import { VideoRecorder } from '@game/VideoRecorder'
 import { SceneManager } from '@rendering/scene'
 import type { ShaderConfig } from '@rendering/shaders'
+import { ArenaSystem } from '@systems/arena'
 import { AudioManager } from '@systems/audio'
+import { BreedingSystem } from '@systems/breeding'
 import { CameraController } from '@systems/camera'
 import { CareSystem } from '@systems/care'
+import { Codex } from '@systems/codex'
+import { ContractBoard } from '@systems/contracts'
 import { CurrencyManager } from '@systems/currency'
 import { SimClock } from '@systems/economy'
 import { FoodManager } from '@systems/food'
+import { getStoreItem } from '@systems/food/store-data'
 import { InputManager } from '@systems/input'
-import { MarketSystem } from '@systems/market'
+import { MapManager } from '@systems/maps'
+import { AutoSeller, MarketSystem } from '@systems/market'
 import { PenGrid } from '@systems/park'
 import { PhotoSystem } from '@systems/photo'
-import { ProductionSystem, ResourceInventory } from '@systems/production'
+import { inventoryCapacity, ProductionSystem, ResourceInventory } from '@systems/production'
 import { Roster } from '@systems/roster'
+import { StaffSystem } from '@systems/staff'
 import { createStateSyncHelpers, type GameStateType, IntegratedStateManager } from '@systems/state'
+import { MAP_SIZE, WATER_LEVEL } from '@systems/terrain/terrain-height'
 import { DebugPanel } from '@ui/debug'
 import { UIManager } from '@ui/managers'
+
+const mapDirection = new THREE.Vector3()
 
 export interface GameSystems {
   scene: SceneManager
@@ -55,15 +67,31 @@ export interface GameSystems {
   park: PenGrid
   /** Feeding, hunger and mood for owned creatures. */
   care: CareSystem
+  /** Every species met: photographed, captured or bred. */
+  codex: Codex
+  /** Pairing creatures in dens, eggs and hatching. */
+  breeding: BreedingSystem
   /** Resource output, collector bins and the player's carried resources. */
   production: ProductionSystem
   resources: ResourceInventory
   /** Selling resources and creatures for Safari Coins. */
   market: MarketSystem
+  /** Sells output by itself above a price floor, once an auto-sell valve is built. */
+  autoSell: AutoSeller
+  /** Keepers who do a pen's routine chores for a wage. */
+  staff: StaffSystem
+  /** The optional auto-battler ladder. */
+  arena: ArenaSystem
+  /** Which map the player is on and which expeditions are unlocked. */
+  maps: MapManager
+  /** Buyers who pay a premium for specific traits (GDD 7.3). */
+  contracts: ContractBoard
   /** First-person building of fences, troughs and bins on the hub grid. */
   build: BuildModeManager
   /** Winning wild creatures' trust and crating them into the roster. */
   capture: CaptureManager
+  /** The owned creatures drawn wandering inside their pens. */
+  residents: ResidentManager
 }
 
 export class SystemsCoordinator {
@@ -101,6 +129,29 @@ export class SystemsCoordinator {
 
     // Setup camera mouse controls
     cameraController.setupMouseControls(sceneManager.getCanvas())
+    cameraController.setGroundHeightSampler((x, z) =>
+      sceneManager.terrainSystem.getFloorHeightAt(x, z)
+    )
+    uiManager.setWorldMapSource({
+      mapSize: MAP_SIZE,
+      waterLevel: WATER_LEVEL,
+      heightAt: (x, z) => sceneManager.terrainSystem.getHeightAt(x, z),
+      biomeAt: (x, z) => sceneManager.terrainSystem.getBiomeAt(x, z),
+      layout: sceneManager.layout,
+      getPlayer: () => {
+        const pos = cameraController.camera.position
+        const dir = cameraController.camera.getWorldDirection(mapDirection)
+        return { x: pos.x, z: pos.z, heading: Math.atan2(dir.z, dir.x) }
+      },
+      getCreatures: () =>
+        creatureManager
+          .getCreatures()
+          .map((c) => ({ x: c.group.position.x, z: c.group.position.z })),
+    })
+    uiManager.onWorldMapToggle((open) => cameraController.setInputSuspended(open))
+    cameraController.setStations(sceneManager.stations, (station) =>
+      uiManager.showToast(`🚉 ${station.name} — press C to hop off`)
+    )
 
     // Connect shader service to scene manager
     shaderService.setShaderManager(sceneManager.getShaderManager())
@@ -161,6 +212,16 @@ export class SystemsCoordinator {
     const care = new CareSystem(roster, park)
     simClock.onTick((tick) => care.tick(tick))
 
+    // The codex learns every species the player owns, however it was obtained
+    const codex = new Codex()
+    roster.onChange((change) => {
+      if (change.reason === 'added') codex.recordOwned(change.creature)
+    })
+
+    // Breeding: eggs hatch on the economy clock, so they also hatch while the game is closed
+    const breeding = new BreedingSystem(roster, park, currencyManager, GAME_CONFIG.WORLD_SEED)
+    simClock.onTick((tick) => breeding.tick(tick))
+
     // Production runs after care in each tick, so a creature fed this cycle produces this cycle
     const resources = new ResourceInventory()
     const production = new ProductionSystem(roster, park, resources)
@@ -170,6 +231,28 @@ export class SystemsCoordinator {
     const market = new MarketSystem(roster, resources, currencyManager)
     simClock.onTick(() => market.tick())
 
+    // Silos raise how much of each resource can be held; valves sell it above a price floor
+    resources.setCapacity(inventoryCapacity(park))
+    const autoSell = new AutoSeller(market, resources, park)
+    simClock.onTick((tick) => autoSell.tick(tick))
+
+    // The Contract Board posts and expires requests on the same clock
+    const maps = new MapManager()
+    const arena = new ArenaSystem(roster, currencyManager)
+    // Keepers work after production in each feeding cycle, so food is in place for the next one
+    const staff = new StaffSystem({
+      roster,
+      grid: park,
+      care,
+      production,
+      wallet: currencyManager,
+      bag: foodManager,
+      prices: (id) => getStoreItem(id)?.price,
+    })
+    simClock.onTick((tick) => staff.tick(tick))
+    const contracts = new ContractBoard(roster, currencyManager, GAME_CONFIG.WORLD_SEED)
+    simClock.onTick((tick) => contracts.tick(tick))
+
     // Build mode draws the hub grid and lets the player edit it
     const build = new BuildModeManager({
       scene: sceneManager.scene,
@@ -178,6 +261,7 @@ export class SystemsCoordinator {
       currency: currencyManager,
       ui: uiManager,
       heightAt: (x, z) => sceneManager.terrainSystem.getFloorHeightAt(x, z),
+      layout: sceneManager.layout,
     })
 
     // Capture: trust from feeding and bait, then a crate into the roster and a pen
@@ -189,7 +273,17 @@ export class SystemsCoordinator {
       currency: currencyManager,
       roster,
       park,
+      maps,
       ui: uiManager,
+    })
+
+    // Residents: owned creatures shown inside their closed pens
+    const residents = new ResidentManager({
+      scene: sceneManager.scene,
+      roster,
+      grid: park,
+      camera: cameraController,
+      heightAt: (x, z) => sceneManager.terrainSystem.getFloorHeightAt(x, z),
     })
 
     // Store all systems
@@ -213,11 +307,19 @@ export class SystemsCoordinator {
       roster,
       park,
       care,
+      codex,
+      breeding,
       production,
       resources,
       market,
+      autoSell,
+      maps,
+      arena,
+      staff,
+      contracts,
       build,
       capture,
+      residents,
     }
 
     // Setup system callbacks

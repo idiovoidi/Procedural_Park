@@ -5,6 +5,7 @@ import { CaptureSystem, findPenFor } from '@systems/capture'
 import type { CreatureInstance } from '@systems/creatures'
 import type { CurrencyManager } from '@systems/currency'
 import type { FoodManager } from '@systems/food'
+import type { MapManager } from '@systems/maps'
 import type { PenGrid } from '@systems/park'
 import type { Roster } from '@systems/roster'
 import type { UIManager } from '@ui/managers'
@@ -21,6 +22,7 @@ interface Dependencies {
   currency: CurrencyManager
   roster: Roster
   park: PenGrid
+  maps: MapManager
   ui: UIManager
 }
 
@@ -34,6 +36,8 @@ export class CaptureManager {
   private readonly deps: Dependencies
   private readonly system: CaptureSystem<CreatureInstance>
   private marker: THREE.Mesh | null = null
+  /** Genome seeds of wild creatures that have been crated, so they never respawn. */
+  private captured = new Set<number>()
 
   constructor(deps: Dependencies) {
     this.deps = deps
@@ -45,6 +49,24 @@ export class CaptureManager {
 
   public getSystem(): CaptureSystem<CreatureInstance> {
     return this.system
+  }
+
+  public getCapturedSeeds(): number[] {
+    return [...this.captured]
+  }
+
+  /** Replace the crated list (from a save) and take those creatures out of the wild. */
+  public restoreCaptured(seeds: Iterable<number>): void {
+    this.captured = new Set(seeds)
+    this.applyCaptured()
+  }
+
+  /** Remove any wild creature that has already been crated (call after a respawn). */
+  public applyCaptured(): void {
+    const { creatures } = this.deps
+    for (const creature of [...creatures.getCreatures()]) {
+      if (this.captured.has(creature.genome.seed)) creatures.removeCreature(creature)
+    }
   }
 
   /** A wild creature was just fed: tell the player how its trust is coming along. */
@@ -90,12 +112,20 @@ export class CaptureManager {
 
   /** Try to crate the nearest creature. */
   public tryCapture(): void {
-    const { creatures, camera, currency, roster, park, ui } = this.deps
+    const { creatures, camera, currency, roster, park, ui, maps } = this.deps
+    if (!maps.canCrate()) {
+      ui.showToast('📦 Your crates are full: head home first (Maps)')
+      return
+    }
     const pos = camera.camera.position
     const from = { x: pos.x, z: pos.z }
 
     // Look slightly beyond capture range so "too far" can be reported helpfully.
-    const target = this.system.nearest(creatures.getCreatures(), from, CAPTURE_RANGE_M * 2)
+    const target = this.system.nearest(
+      creatures.getCreatures().filter((c) => creatures.isPresent(c)),
+      from,
+      CAPTURE_RANGE_M * 2
+    )
     if (!target) {
       ui.showToast('❌ No creature nearby')
       return
@@ -120,7 +150,17 @@ export class CaptureManager {
       stats: { trust: Math.round(check.trust) },
     })
     this.system.release(target)
+    this.captured.add(target.genome.seed)
     creatures.removeCreature(target)
+
+    // Away from home the crate travels with the player and is delivered on return
+    if (!maps.isAtHub()) {
+      maps.recordCrate()
+      ui.showToast(
+        `📦 Crated ${owned.name} (${maps.getTripCrates()}/${GAME_CONFIG.MAPS.CRATE_CARRY_CAPACITY}): it settles in when you get home`
+      )
+      return
+    }
 
     const penId = findPenFor(park, roster, owned.genome)
     if (penId) {
@@ -133,13 +173,18 @@ export class CaptureManager {
 
   /** Per-frame: run the lure and draw creatures toward it. */
   public update(dt: number): void {
+    // Wild creatures on expeditions are skittish: trust fades unless they are tended
+    if (!this.deps.maps.isAtHub()) this.system.decay(dt)
     const lure = this.system.getLure()
     if (!lure) {
       this.removeMarker()
       return
     }
     const { creatures } = this.deps
-    const attracted = this.system.update(dt, creatures.getCreatures())
+    const attracted = this.system.update(
+      dt,
+      creatures.getCreatures().filter((c) => creatures.isPresent(c))
+    )
 
     for (const creature of attracted) {
       const dx = lure.x - creature.anchor.x

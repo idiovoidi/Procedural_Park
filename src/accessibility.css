@@ -1,0 +1,75 @@
+/* biome-ignore-all lint/complexity/noImportantStyles: accessibility overrides must beat each component's own styles */
+/* Accessibility and display settings (M7). Driven by classes and variables set on <html>. */
+
+/* Interface size: scales the panels, belt and HUD (not the 3D view). */
+html[data-ui-scale] .market-modal,
+html[data-ui-scale] #tool-belt,
+html[data-ui-scale] #pen-inspector,
+html[data-ui-scale] #build-hud,
+html[data-ui-scale] #toast,
+html[data-ui-scale] #touch-controls .tc-buttons {
+  zoom: var(--ui-scale, 1);
+}
+
+/* Keyboard focus is always visible, never just a colour change. */
+:focus-visible {
+  outline: 3px solid #ffd700;
+  outline-offset: 2px;
+}
+
+/* Reduced motion: no animations or transitions, no screen-space flicker. */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* High contrast: solid dark panels, white text, strong borders. */
+html.high-contrast .market-modal,
+html.high-contrast #pen-inspector,
+html.high-contrast #build-hud .bh-status,
+html.high-contrast #tool-belt .tb-slot,
+html.high-contrast #touch-controls .tc-btn,
+html.high-contrast #toast {
+  background: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+  box-shadow: none !important;
+}
+html.high-contrast .market-modal *,
+html.high-contrast #pen-inspector * {
+  color: #fff !important;
+}
+html.high-contrast #tool-belt .tb-slot.active {
+  background: #ffd700 !important;
+  color: #000 !important;
+  border-color: #000 !important;
+}
+html.high-contrast #tool-belt .tb-slot.active * {
+  color: #000 !important;
+}
+html.high-contrast .market-btn {
+  background: #fff !important;
+  color: #000 !important;
+  border: 2px solid #000 !important;
+}
+html.high-contrast .market-btn:disabled {
+  background: #444 !important;
+  color: #ddd !important;
+}
+
+/* Visually hidden but available to screen readers. */
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

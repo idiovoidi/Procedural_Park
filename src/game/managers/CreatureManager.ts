@@ -8,8 +8,10 @@ import { disposeThreeObject } from '@core/utils'
 import type { ParkStructures } from '@rendering/scene'
 import type { AudioManager } from '@systems/audio'
 import type { CameraController } from '@systems/camera'
+import { requiresNight } from '@systems/capture'
 import {
   type CreatureInstance,
+  type Genome,
   generateGenome,
   generateSpeciesName,
   hashSeed,
@@ -17,12 +19,14 @@ import {
   spawnCreatureNearPath,
 } from '@systems/creatures'
 import type { IntegratedStateManager } from '@systems/state'
+import { WATER_LEVEL } from '@systems/terrain/terrain-height'
 import type { UIManager } from '@ui/managers'
-import type * as THREE from 'three'
+import * as THREE from 'three'
 
 export class CreatureManager {
   private creatures: CreatureInstance[] = []
   private experimentCreature: CreatureInstance | null = null
+  private night = false
   private scene: THREE.Scene
   private curve: THREE.CatmullRomCurve3
   private audioManager: AudioManager
@@ -64,8 +68,51 @@ export class CreatureManager {
       })
     })
 
+    this.applyNight()
+
     // Update creatures state
     this.syncCreaturesToState()
+  }
+
+  /**
+   * Fill the world with a map's wild founders instead of the hub's, scattered around `centre`.
+   * Founders keep the order of `genomes`, so the same map always looks the same.
+   */
+  public spawnFounders(genomes: Genome[], centre: { x: number; z: number }): void {
+    this.clearWild()
+    const height = this.groundHeightAt
+    this.creatures = genomes.map((genome) => {
+      // A spiral of spots, nudged off water, so founders spread out around the arrival point.
+      let x = centre.x
+      let z = centre.z
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const angle = (hashSeed(genome.seed, attempt, 1) % 6283) / 1000
+        const radius = 14 + ((hashSeed(genome.seed, attempt, 2) % 1000) / 1000) * 70
+        x = centre.x + Math.cos(angle) * radius
+        z = centre.z + Math.sin(angle) * radius
+        if (!height || height(x, z) > WATER_LEVEL + 0.3) break
+      }
+      return spawnCreatureAt(this.scene, new THREE.Vector3(x, height?.(x, z) ?? 0, z), genome, {
+        groundHeightAt: height,
+      })
+    })
+    this.applyNight()
+    this.syncCreaturesToState()
+  }
+
+  /** Put the hub's own wild creatures back (after an expedition). */
+  public restoreHubWild(): void {
+    this.clearWild()
+    this.spawnCreatures()
+  }
+
+  /** Remove the wild creatures only, leaving the lab's experiment creature alone. */
+  private clearWild(): void {
+    for (const creature of this.creatures) {
+      this.scene.remove(creature.group)
+      disposeThreeObject(creature.group)
+    }
+    this.creatures = []
   }
 
   /**
@@ -108,6 +155,29 @@ export class CreatureManager {
    */
   public getAllCreatures(): CreatureInstance[] {
     return this.experimentCreature ? [...this.creatures, this.experimentCreature] : this.creatures
+  }
+
+  /**
+   * Elusive founders (the rarest) only come out at night: hide them by day. Call whenever the
+   * time of day changes or the wild population is replaced.
+   */
+  public setNight(isNight: boolean): void {
+    this.night = isNight
+    this.applyNight()
+  }
+
+  /** How many elusive founders are waiting for night. */
+  public countHidden(): number {
+    return this.creatures.filter((c) => !c.group.visible).length
+  }
+
+  private applyNight(): void {
+    for (const c of this.creatures) c.group.visible = this.night || !requiresNight(c.genome)
+  }
+
+  /** Whether a creature can currently be seen, fed, baited and crated. */
+  public isPresent(creature: CreatureInstance): boolean {
+    return creature.group.visible
   }
 
   /**

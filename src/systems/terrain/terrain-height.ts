@@ -28,7 +28,11 @@ export function wildness(x: number, z: number): number {
  * rolls up into hills, ridges and (below the water line) ponds, and drops away at the
  * map edge so the world ends in water instead of a cliff.
  */
-export function createHeightSampler(seed: number): (x: number, z: number) => number {
+export function createHeightSampler(
+  seed: number,
+  /** The hub keeps a flat park at the centre; expedition maps are wild all the way in. */
+  flatPark = true
+): (x: number, z: number) => number {
   const ox = ((seed * 0.6180339) % 97) + 11.3
   const oz = ((seed * 0.7548776) % 89) + 5.7
   const half = MAP_SIZE / 2
@@ -50,7 +54,7 @@ export function createHeightSampler(seed: number): (x: number, z: number) => num
     const edge = Math.max(Math.abs(x), Math.abs(z)) / half
     h -= smoothstep(0.78, 1, edge) * 5
 
-    const w = wildness(x, z)
+    const w = flatPark ? wildness(x, z) : 1
     return PARK_FLOOR_Y + (h - PARK_FLOOR_Y) * w
   }
 }

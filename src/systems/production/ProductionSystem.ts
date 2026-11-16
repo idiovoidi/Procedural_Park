@@ -116,6 +116,11 @@ export class ProductionSystem {
       summary.stored[resource] = (summary.stored[resource] ?? 0) + accepted
     }
 
+    // Pens with an auto-collector empty their bins into the inventory by themselves
+    for (const pen of this.grid.getPens()) {
+      if (pen.props.collector > 0) this.collect(pen.id)
+    }
+
     this.lastSummary = summary
     return summary
   }

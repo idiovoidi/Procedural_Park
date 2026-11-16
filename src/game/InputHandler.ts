@@ -19,6 +19,7 @@ export interface InputHandlerCallbacks {
   onToggleShader: () => void
   onToggleCreatureInfo: () => void
   onToggleGallery: () => void
+  onToggleMap: () => void
   onToggleCollection: () => void
   onToggleMultiplayer: () => void
   onToggleSettings: () => void
@@ -31,8 +32,10 @@ export interface InputHandlerCallbacks {
   onToggleFoodStore: () => void
   onToggleMarket: () => void
   onToggleBuild: () => void
+  onToggleBreeding: () => void
   onCrateCreature: () => void
   onPlaceLure: () => void
+  onCollect: () => void
 }
 
 export class InputHandler {
@@ -75,6 +78,7 @@ export class InputHandler {
 
     // UI toggles
     this.inputManager.on('ui.toggleGallery', () => this.callbacks.onToggleGallery())
+    this.inputManager.on('ui.toggleMap', () => this.callbacks.onToggleMap())
     this.inputManager.on('ui.toggleCollection', () => this.callbacks.onToggleCollection())
     this.inputManager.on('ui.toggleMultiplayer', () => this.callbacks.onToggleMultiplayer())
     this.inputManager.on('ui.toggleSettings', () => this.callbacks.onToggleSettings())
@@ -91,10 +95,12 @@ export class InputHandler {
 
     // Build actions
     this.inputManager.on('build.toggle', () => this.callbacks.onToggleBuild())
+    this.inputManager.on('breeding.toggle', () => this.callbacks.onToggleBreeding())
 
     // Capture actions
     this.inputManager.on('capture.crate', () => this.callbacks.onCrateCreature())
     this.inputManager.on('capture.lure', () => this.callbacks.onPlaceLure())
+    this.inputManager.on('production.collect', () => this.callbacks.onCollect())
   }
 
   /**

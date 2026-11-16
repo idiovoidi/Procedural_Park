@@ -517,11 +517,11 @@ Ambient layered soundscapes per biome, soft mechanical hum for facilities, disti
 | Q4 | Fertility | **Timers and costs only.** No lifespan or fertility limit; creatures never die or retire. | Age stages (hatchling → adult) still change size and output; breeding is limited by cost and cooldown |
 | Q6 | Offline progress | **Capped catch-up** (~8 h): production and food use apply up to storage limits; in-progress breeding timers complete, but new breeding can't be queued offline. | §13.2; implemented in the save/load task |
 | Q7 | Market | **Base prices with demand saturation**; creatures priced from rarity, traits and age; contracts add bonuses. | No random price fluctuation in the slice |
+| Q5 | Species identity | **The Codex tracks named species by `speciesId`**, keeping the best (rarest) individual of each. A species enters by photograph, capture or breeding; owning one reveals its needs, while a photographed-only species needs 2 photos to be studied. | Implemented in `src/systems/codex`; the Ranch Book (K) shows roster and codex |
 | Q8 | Automation depth | **Range-based machines first** (feeder hoppers, collector bins, auto-sell valves). Conveyors become an optional advanced tier only if playtesting asks for them. | §8 tier 3 is range-based; conveyors move to a later optional tier |
 
 ### 17.2 Still open
 
-5. **Species identity:** since species are fully procedural, should the Codex track **named species by `speciesId`**, or individual notable creatures? *(Needed for the codex rework, T14.)*
 9. **Staff:** NPC keepers visible in the world, or abstract "workers" in a menu? *(M5.)*
 10. **Mobile scope:** is mobile a first-class target for the vertical slice, or a later port? *(M7; affects performance budgets early.)*
 11. **Naming and branding** for the game and for the in-world park-owner role.

@@ -1,8 +1,21 @@
 import { HALF_PI } from '@core/constants'
 import { getPooledVector3, memoizedCos, memoizedSin, releaseVector3 } from '@core/utils'
 import type { InputManager } from '@systems/input'
+import {
+  easeFactor,
+  forwardDistance,
+  nearestTrackT,
+  STATION_APPROACH,
+  STATION_DEPART,
+  STATION_DWELL_SECONDS,
+  STATION_STOP_EPS,
+  type StationDef,
+} from '@systems/track/track-path'
 import * as THREE from 'three'
 import type { CameraMode } from './types'
+
+/** Look speed at full right-stick tilt, in radians per second. */
+const STICK_LOOK_RATE = 2.4
 
 export class CameraController {
   public camera: THREE.PerspectiveCamera
@@ -24,6 +37,8 @@ export class CameraController {
   private moveLeft = false
   private moveRight = false
   private isSprinting = false
+  /** Analog movement from a stick (x right, y forward), added to the keys. */
+  private moveAxis = { x: 0, y: 0 }
   private moveSpeed = 5.0
   private sprintSpeed = 12.0
   private freeRoamPosition = new THREE.Vector3(0, 1.6, 5)
@@ -34,8 +49,18 @@ export class CameraController {
   private jumpSpeed = 8.0
   private gravity = 20.0
   private groundHeight = 1.6
+  private readonly eyeHeight = 1.6
+  private groundAt: ((x: number, z: number) => number) | null = null
+
+  // Station stops along the track
+  private stations: readonly StationDef[] = []
+  private dwellRemaining = 0
+  /** Station the tram is stopped at or has just left; it is not approached again. */
+  private currentStation = -1
+  private onStationArrive: ((station: StationDef) => void) | null = null
 
   private inputManager: InputManager | null = null
+  private inputSuspended = false
   private canvas: HTMLCanvasElement | null = null
 
   private handleResize = () => {
@@ -73,6 +98,22 @@ export class CameraController {
     }
 
     this.setupEventListeners()
+  }
+
+  /** Lets free roam follow the terrain instead of a flat plane. */
+  public setGroundHeightSampler(sampler: (x: number, z: number) => number) {
+    this.groundAt = sampler
+  }
+
+  /** Stops the tram halts at while riding; `onArrive` fires each time it pulls in. */
+  public setStations(stations: readonly StationDef[], onArrive?: (station: StationDef) => void) {
+    this.stations = stations
+    this.onStationArrive = onArrive ?? null
+  }
+
+  /** The station the tram is currently stopped at, or null while moving. */
+  public getDwellingStation(): StationDef | null {
+    return this.dwellRemaining > 0 ? (this.stations[this.currentStation] ?? null) : null
   }
 
   public setInputManager(inputManager: InputManager) {
@@ -113,15 +154,50 @@ export class CameraController {
     }
   }
 
+  /** While true (the map is open) movement and look input are ignored. */
+  public setInputSuspended(suspended: boolean) {
+    this.inputSuspended = suspended
+  }
+
   private updateFromInputManager() {
     if (!this.inputManager) return
+    if (this.inputSuspended) {
+      this.moveForward = false
+      this.moveBackward = false
+      this.moveLeft = false
+      this.moveRight = false
+      this.isSprinting = false
+      this.moveAxis = { x: 0, y: 0 }
+      return
+    }
 
     // Update movement keys
     this.moveForward = this.inputManager.isKeyDown('w')
     this.moveBackward = this.inputManager.isKeyDown('s')
     this.moveLeft = this.inputManager.isKeyDown('a')
     this.moveRight = this.inputManager.isKeyDown('d')
-    this.isSprinting = this.inputManager.isKeyDown('Shift')
+    this.isSprinting = this.inputManager.isKeyDown('Shift') || this.inputManager.isVirtualSprint()
+    this.moveAxis = this.inputManager.getVirtualMove()
+
+    // Gamepad sticks and touch drags look around without needing pointer lock
+    const rate = this.inputManager.getVirtualLookRate()
+    const drag = this.inputManager.getVirtualLookDelta()
+    if (rate.x !== 0 || rate.y !== 0 || drag.x !== 0 || drag.y !== 0) {
+      const dt = 1 / 60
+      if (this.mode === 'freeroam') {
+        this.yawTarget -= rate.x * STICK_LOOK_RATE * dt + drag.x * 0.004
+        this.pitchTarget = Math.max(
+          -HALF_PI + 0.1,
+          Math.min(HALF_PI - 0.1, this.pitchTarget + rate.y * STICK_LOOK_RATE * dt - drag.y * 0.004)
+        )
+      } else {
+        this.yawTarget += rate.x * 0.6 * dt + drag.x * 0.0025
+        this.pitchTarget = Math.max(
+          -0.6,
+          Math.min(0.6, this.pitchTarget + rate.y * 0.4 * dt - drag.y * 0.002)
+        )
+      }
+    }
 
     // Update look direction from mouse delta (in freeroam with pointer lock)
     if (this.mode === 'freeroam' && this.inputManager.isPointerLocked()) {
@@ -154,7 +230,7 @@ export class CameraController {
   private updateRideMode(dtSeconds: number) {
     // Only advance ride position if not paused
     if (!this.isPaused) {
-      this.rideT = (this.rideT + this.rideSpeed * dtSeconds) % 1
+      this.advanceRide(dtSeconds)
     }
 
     const pos = this.curve.getPointAt(this.rideT)
@@ -180,6 +256,47 @@ export class CameraController {
     releaseVector3(lookTarget)
   }
 
+  /** Moves the tram along the loop, easing to a halt at each station and pulling away again. */
+  private advanceRide(dtSeconds: number) {
+    if (this.dwellRemaining > 0) {
+      this.dwellRemaining = Math.max(0, this.dwellRemaining - dtSeconds)
+      return
+    }
+
+    // Forget the last station once we are clear of it
+    const last = this.stations[this.currentStation]
+    if (last && forwardDistance(last.t, this.rideT) >= STATION_DEPART) this.currentStation = -1
+
+    let factor = 1
+    let arrivingAt = -1
+    let arrivingDist = 1
+    this.stations.forEach((station, i) => {
+      const behind = forwardDistance(station.t, this.rideT)
+      if (behind < STATION_DEPART) factor = Math.min(factor, easeFactor(behind, STATION_DEPART))
+      if (i === this.currentStation) return
+      const ahead = forwardDistance(this.rideT, station.t)
+      if (ahead < STATION_APPROACH) {
+        factor = Math.min(factor, easeFactor(ahead, STATION_APPROACH))
+        if (ahead < arrivingDist) {
+          arrivingDist = ahead
+          arrivingAt = i
+        }
+      }
+    })
+
+    const step = this.rideSpeed * factor * dtSeconds
+    if (arrivingAt >= 0 && (arrivingDist < STATION_STOP_EPS || step >= arrivingDist)) {
+      const station = this.stations[arrivingAt] as StationDef
+      this.rideT = station.t
+      this.currentStation = arrivingAt
+      this.dwellRemaining = STATION_DWELL_SECONDS
+      this.onStationArrive?.(station)
+      return
+    }
+
+    this.rideT = (this.rideT + step) % 1
+  }
+
   private updateFreeRoamMode(dtSeconds: number) {
     // Direct camera control (no smoothing for first-person feel)
     this.yaw = this.yawTarget
@@ -196,12 +313,20 @@ export class CameraController {
     if (this.moveLeft) velocity.sub(right)
     if (this.moveRight) velocity.add(right)
 
-    // Normalize and apply speed (with sprint multiplier)
+    // Sticks add analog movement on top of the keys
+    velocity.addScaledVector(forward, this.moveAxis.y).addScaledVector(right, this.moveAxis.x)
+
+    // Cap at full speed (a single key is exactly 1, so keys behave as before) and apply speed
     if (velocity.length() > 0) {
+      if (velocity.length() > 1) velocity.normalize()
       const currentSpeed = this.isSprinting ? this.sprintSpeed : this.moveSpeed
-      velocity.normalize().multiplyScalar(currentSpeed * dtSeconds)
+      velocity.multiplyScalar(currentSpeed * dtSeconds)
       this.freeRoamPosition.add(velocity)
     }
+
+    // Stand on the terrain
+    this.groundHeight = this.sampleGround(this.freeRoamPosition.x, this.freeRoamPosition.z)
+    if (!this.isJumping) this.freeRoamPosition.y = this.groundHeight
 
     // Apply jump physics
     if (this.isJumping) {
@@ -234,6 +359,10 @@ export class CameraController {
     releaseVector3(lookTarget)
   }
 
+  private sampleGround(x: number, z: number): number {
+    return (this.groundAt ? this.groundAt(x, z) : 0) + this.eyeHeight
+  }
+
   public getRideProgress(): number {
     return this.rideT
   }
@@ -263,10 +392,25 @@ export class CameraController {
     const oldMode = this.mode
     this.mode = mode
 
-    // When switching to free roam, start at current ride position
-    if (mode === 'freeroam') {
+    // Hop off beside the track, on the platform side
+    if (mode === 'freeroam' && oldMode === 'ride') {
       const pos = this.curve.getPointAt(this.rideT)
+      const tangent = this.curve.getTangentAt(this.rideT)
+      const right = new THREE.Vector3()
+        .crossVectors(tangent, new THREE.Vector3(0, 1, 0))
+        .normalize()
+      pos.addScaledVector(right, 3)
+      pos.y = this.sampleGround(pos.x, pos.z)
       this.freeRoamPosition.copy(pos)
+      this.isJumping = false
+      this.jumpVelocity = 0
+    }
+
+    // Climb back aboard at the nearest point of the track
+    if (mode === 'ride' && oldMode === 'freeroam') {
+      this.rideT = nearestTrackT(this.curve, this.freeRoamPosition)
+      this.dwellRemaining = 0
+      this.currentStation = -1
     }
 
     // Release pointer lock when switching to ride mode
@@ -275,6 +419,14 @@ export class CameraController {
         document.exitPointerLock()
       }
     }
+  }
+
+  /** Free-roam at a spot on the ground (leaves ride mode). Used when travelling between maps. */
+  public teleport(x: number, z: number): void {
+    if (this.mode !== 'freeroam') this.setMode('freeroam')
+    this.freeRoamPosition.set(x, this.sampleGround(x, z), z)
+    this.isJumping = false
+    this.jumpVelocity = 0
   }
 
   public getMode(): CameraMode {
@@ -300,6 +452,8 @@ export class CameraController {
 
   public reset(): void {
     this.rideT = 0
+    this.dwellRemaining = 0
+    this.currentStation = -1
     this.yaw = 0
     this.pitch = 0
     this.yawTarget = 0

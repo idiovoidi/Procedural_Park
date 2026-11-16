@@ -4,19 +4,29 @@ import type { ShaderConfig } from '@rendering/shaders'
 import { type ShaderDebugCallbacks, ShaderDebugUI } from '@rendering/shaders'
 import type { FoodItem } from '@systems/food'
 import type * as THREE from 'three'
+import { ArenaPanel } from '../components/arena-panel'
+import { BreedingPanel } from '../components/breeding-panel'
 import { BuildHud } from '../components/build-hud'
+import { ContractBoardPanel } from '../components/contract-board'
 import { CreatureCollection } from '../components/creature-collection'
 import { CurrencyDisplay } from '../components/currency-display'
 import { FoodInventory } from '../components/food-inventory'
 import { FoodStore } from '../components/food-store'
 import { Gallery } from '../components/gallery'
+import { MapPanel } from '../components/map-panel'
 import { MarketPanel } from '../components/market-panel'
 import { MiniMap } from '../components/mini-map'
 import { type InventoryItem, PlayerStats } from '../components/player-stats'
+import { RanchBook } from '../components/ranch-book'
 import { SaveLoadMenu } from '../components/save-load-menu'
 import { Settings } from '../components/settings'
 import { Shortcuts } from '../components/shortcuts'
+import { StaffPanel } from '../components/staff-panel'
 import { Toast } from '../components/toast'
+import { ToolBelt } from '../components/tool-belt'
+import { TouchControls } from '../components/touch-controls'
+import { TradePanel } from '../components/trade-panel'
+import { WorldMap, type WorldMapSource } from '../components/world-map'
 
 export class UIManager {
   private gallery: Gallery
@@ -24,6 +34,7 @@ export class UIManager {
   private toast: Toast
   private shortcuts: Shortcuts
   private miniMap: MiniMap
+  private worldMap: WorldMap
   private saveLoadMenu: SaveLoadMenu
   private playerStats: PlayerStats
   private creatureCollection: CreatureCollection
@@ -32,7 +43,18 @@ export class UIManager {
   private foodStore: FoodStore
   private marketPanel: MarketPanel
   private buildHud: BuildHud
+  private breedingPanel: BreedingPanel
+  private ranchBook: RanchBook
+  private toolBelt: ToolBelt
+  private contractBoard: ContractBoardPanel
+  private mapPanel: MapPanel
+  private tradePanel: TradePanel
+  private arenaPanel: ArenaPanel
+  private staffPanel: StaffPanel
+  private touchControls: TouchControls
+  private toggleBreedingBtn: HTMLButtonElement
   private toggleMarketBtn: HTMLButtonElement
+  private toggleBuildBtn: HTMLButtonElement
   private toggleMultiplayerBtn: HTMLButtonElement
   private toggleFoodInventoryBtn: HTMLButtonElement
   private restartRideBtn: HTMLButtonElement
@@ -49,6 +71,7 @@ export class UIManager {
     this.toast = new Toast()
     this.shortcuts = new Shortcuts()
     this.miniMap = new MiniMap()
+    this.worldMap = new WorldMap()
     this.saveLoadMenu = new SaveLoadMenu()
     this.playerStats = new PlayerStats()
     this.creatureCollection = new CreatureCollection()
@@ -57,9 +80,20 @@ export class UIManager {
     this.foodStore = new FoodStore()
     this.marketPanel = new MarketPanel()
     this.buildHud = new BuildHud()
+    this.breedingPanel = new BreedingPanel()
+    this.ranchBook = new RanchBook()
+    this.toolBelt = new ToolBelt()
+    this.contractBoard = new ContractBoardPanel()
+    this.mapPanel = new MapPanel()
+    this.tradePanel = new TradePanel()
+    this.arenaPanel = new ArenaPanel()
+    this.staffPanel = new StaffPanel()
+    this.touchControls = new TouchControls()
 
     this.toggleMultiplayerBtn = document.getElementById('toggleMultiplayer') as HTMLButtonElement
     this.toggleMarketBtn = document.getElementById('toggleMarket') as HTMLButtonElement
+    this.toggleBuildBtn = document.getElementById('toggleBuild') as HTMLButtonElement
+    this.toggleBreedingBtn = document.getElementById('toggleBreeding') as HTMLButtonElement
     this.toggleFoodInventoryBtn = document.getElementById(
       'toggleFoodInventory'
     ) as HTMLButtonElement
@@ -89,9 +123,26 @@ export class UIManager {
     this.foodInventory.setAudioCallbacks(callbacks)
     this.foodStore.setAudioCallbacks(callbacks)
     this.marketPanel.setAudioCallbacks(callbacks)
+    this.breedingPanel.setAudioCallbacks(callbacks)
+    this.ranchBook.setAudioCallbacks(callbacks)
+    this.contractBoard.setAudioCallbacks(callbacks)
+    this.mapPanel.setAudioCallbacks(callbacks)
+    this.tradePanel.setAudioCallbacks(callbacks)
+    this.arenaPanel.setAudioCallbacks(callbacks)
+    this.staffPanel.setAudioCallbacks(callbacks)
   }
 
   private setupEventListeners() {
+    this.toggleBreedingBtn?.addEventListener('click', () => {
+      this.audioCallbacks.onClick?.()
+      this.onToggleBreeding?.()
+    })
+
+    this.toggleBuildBtn?.addEventListener('click', () => {
+      this.audioCallbacks.onClick?.()
+      this.onToggleBuild?.()
+    })
+
     this.toggleMarketBtn?.addEventListener('click', () => {
       this.audioCallbacks.onClick?.()
       this.marketPanel.toggle()
@@ -166,6 +217,9 @@ export class UIManager {
   public onShaderPresetLoad?: SettingsCallbacks['onShaderPresetLoad']
   public onAutoPerformanceToggle?: SettingsCallbacks['onAutoPerformanceToggle']
   public onToggleMultiplayer?: () => void
+  public onToggleBuild?: () => void
+  public onToggleBreeding?: () => void
+  public onToggleRanchBook?: () => void
   public onToggleSaveLoad?: () => void
 
   // Gallery methods
@@ -217,7 +271,9 @@ export class UIManager {
 
   // Creature Collection methods
   public toggleCollection() {
-    this.creatureCollection.toggle()
+    // The collection key now opens the Ranch Book (roster and codex).
+    if (this.onToggleRanchBook) this.onToggleRanchBook()
+    else this.creatureCollection.toggle()
   }
 
   public addCreatureToCollection(
@@ -302,6 +358,24 @@ export class UIManager {
 
   public hideSprintIndicator() {
     this.toast.hideSprintIndicator()
+  }
+
+  // World map methods
+  public setWorldMapSource(source: WorldMapSource) {
+    this.worldMap.setSource(source)
+  }
+
+  public toggleWorldMap() {
+    this.worldMap.toggle()
+  }
+
+  public isWorldMapOpen(): boolean {
+    return this.worldMap.isOpen()
+  }
+
+  /** Called with true when the map opens and false when it closes. */
+  public onWorldMapToggle(callback: (open: boolean) => void) {
+    this.worldMap.onToggle(callback)
   }
 
   // Mini-map methods
@@ -586,5 +660,57 @@ export class UIManager {
    */
   public getBuildHud(): BuildHud {
     return this.buildHud
+  }
+
+  /**
+   * Get the breeding den panel
+   */
+  public getBreedingPanel(): BreedingPanel {
+    return this.breedingPanel
+  }
+
+  /**
+   * Get the Ranch Book (roster and codex)
+   */
+  public getRanchBook(): RanchBook {
+    return this.ranchBook
+  }
+
+  /**
+   * Get the tool belt and pen inspector
+   */
+  public getTouchControls(): TouchControls {
+    return this.touchControls
+  }
+
+  public getStaffPanel(): StaffPanel {
+    return this.staffPanel
+  }
+
+  public getArenaPanel(): ArenaPanel {
+    return this.arenaPanel
+  }
+
+  public getTradePanel(): TradePanel {
+    return this.tradePanel
+  }
+
+  public getMapPanel(): MapPanel {
+    return this.mapPanel
+  }
+
+  public getContractBoard(): ContractBoardPanel {
+    return this.contractBoard
+  }
+
+  public getToolBelt(): ToolBelt {
+    return this.toolBelt
+  }
+
+  /**
+   * Open the older gallery of exported creature cards
+   */
+  public openSavedCards(): void {
+    this.creatureCollection.toggle()
   }
 }

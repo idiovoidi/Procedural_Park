@@ -1,16 +1,30 @@
-import { TAU } from '@core/constants'
 import { disposeThreeObject, log } from '@core/utils'
 import { type ShaderConfig, ShaderManager } from '@rendering/shaders'
+import { parkFootprints } from '@systems/layout/park-sites'
+import { WorldLayout } from '@systems/layout/WorldLayout'
 import { TerrainSystem } from '@systems/terrain'
+import { buildTrackPath, type StationDef, trackFootprints } from '@systems/track/track-path'
 import * as THREE from 'three'
 import { EnvironmentInteractions } from './environment-interactions'
 import { ParkStructures } from './park-structures'
+import { buildTrainTrack } from './structures/train-track'
 
 export class SceneManager {
   public scene: THREE.Scene
   public renderer: THREE.WebGLRenderer
+  /** Eye-level line the tram camera follows. */
   public curve: THREE.CatmullRomCurve3
+  /** Centre line of the rails themselves. */
+  public trackCurve: THREE.CatmullRomCurve3
+  /** Everything standing on the ground, seen from above: drives the map and placement. */
+  public layout: WorldLayout
+  /** Where the tram stops, after being fitted to the layout. */
+  public stations: StationDef[]
   public terrainSystem: TerrainSystem
+  /** Highest pixel ratio the renderer may use (lowered by the quality governor). */
+  private pixelRatioCap = 2
+  /** The railway meshes, hidden while away from the hub. */
+  private trackObject: THREE.Object3D | null = null
   public environmentInteractions: EnvironmentInteractions
   public parkStructures: ParkStructures
   private directionalLight: THREE.DirectionalLight
@@ -41,7 +55,7 @@ export class SceneManager {
       preserveDrawingBuffer: false,
       powerPreference: 'high-performance',
     })
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.pixelRatioCap))
     this.renderer.setSize(window.innerWidth, window.innerHeight)
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
     this.renderer.shadowMap.enabled = true
@@ -65,11 +79,29 @@ export class SceneManager {
     this.terrainSystem.generateTerrain(42)
     this.environmentInteractions.generateInteractionPoints(this.terrainSystem, 123)
 
-    // Create the ride path (now that terrain is available)
-    this.curve = this.createRidePath()
-
-    // Create track visualization
-    this.createTrack()
+    // Lay the railway over the terrain; the camera rides it at eye height
+    const heightAt = (x: number, z: number) => this.terrainSystem.getFloorHeightAt(x, z)
+    this.layout = new WorldLayout()
+    const sites = parkFootprints()
+    this.layout.add(...sites)
+    const path = buildTrackPath(
+      heightAt,
+      undefined,
+      sites.filter((f) => f.kind !== 'boundary')
+    )
+    this.stations = path.stations
+    this.layout.add(...trackFootprints(path.trackCurve, path.stations))
+    const clashes = this.layout.findOverlaps()
+    if (clashes.length > 0) {
+      console.warn(
+        'Layout overlaps:',
+        clashes.map(({ a, b }) => `${a.label} / ${b.label}`)
+      )
+    }
+    this.trackCurve = path.trackCurve
+    this.curve = path.rideCurve
+    this.trackObject = buildTrainTrack(this.trackCurve, heightAt, this.stations)
+    this.scene.add(this.trackObject)
 
     // Build park structures (gate, fence, plaza)
     this.parkStructures = new ParkStructures(this.scene)
@@ -86,6 +118,20 @@ export class SceneManager {
     // Handle window resize
     this.handleResizeBound = () => this.handleResize()
     window.addEventListener('resize', this.handleResizeBound)
+  }
+
+  /**
+   * Show or hide everything that belongs to the hub: the park buildings, the railway and the
+   * markers. The terrain itself is swapped with `loadTerrain`.
+   */
+  public setHubVisible(visible: boolean): void {
+    this.parkStructures.getStructures().visible = visible
+    if (this.trackObject) this.trackObject.visible = visible
+  }
+
+  /** Rebuild the ground: the hub (seed 42, flat park) or an expedition map (open wilds). */
+  public loadTerrain(seed: number, hub: boolean): void {
+    this.terrainSystem.generateTerrain(seed, hub)
   }
 
   private setupLighting() {
@@ -137,55 +183,6 @@ export class SceneManager {
   }
 
   // Removed createGround() - now handled by TerrainSystem
-
-  private createRidePath(): THREE.CatmullRomCurve3 {
-    const pathPoints: THREE.Vector3[] = []
-    const seed = Math.random() * 1000
-    const numPoints = 50 + Math.floor(Math.random() * 30) // 50-80 points (much longer)
-
-    // Create a more varied, randomized path
-    for (let i = 0; i < numPoints; i++) {
-      const t = i / numPoints
-      const angle = t * TAU
-
-      // Base circular path with random variations - larger radius for longer ride
-      const baseRadius = 40 + Math.sin(seed + angle * 3) * 15
-      const radiusVariation = Math.sin(seed * 2 + angle * 5) * 10
-      const r = baseRadius + radiusVariation
-
-      // Add some figure-8 and spiral elements - smoother curves
-      const spiralFactor = Math.sin(seed + angle * 2) * 0.2
-      const figure8Factor = Math.sin(angle * 2) * 0.3
-
-      const x = Math.sin(angle + spiralFactor) * r + Math.sin(angle * 2) * figure8Factor * 20
-      const z = Math.cos(angle + spiralFactor) * r + Math.cos(angle * 2) * figure8Factor * 20
-
-      // Much less height variation for smoother ride
-      const baseHeight = 1.6
-      const heightVariation =
-        Math.sin(seed + angle * 4) * 0.5 + Math.cos(seed * 1.5 + angle * 6) * 0.3
-      const terrainHeight = this.terrainSystem.getHeightAt(x, z)
-      const y = Math.max(baseHeight, terrainHeight + 1.0) + heightVariation
-
-      pathPoints.push(new THREE.Vector3(x, y, z))
-    }
-
-    return new THREE.CatmullRomCurve3(pathPoints, true, 'centripetal', 0.2)
-  }
-
-  private createTrack() {
-    const track = new THREE.Mesh(
-      new THREE.TubeGeometry(this.curve, 600, 0.25, 8, true),
-      new THREE.MeshStandardMaterial({
-        color: 0x2a384a,
-        metalness: 0.35,
-        roughness: 0.6,
-      })
-    )
-    track.castShadow = false
-    track.receiveShadow = true
-    this.scene.add(track)
-  }
 
   // Removed createEnvironment() - now handled by TerrainSystem
 
@@ -263,11 +260,28 @@ export class SceneManager {
     return this.shaderManager.getCurrentQualityLevel()
   }
 
+  /** Apply a graphics quality: pixel density cap and shadows. Costs a resize, so call it rarely. */
+  public setQuality(preset: { pixelRatio: number; shadows: boolean }): void {
+    this.pixelRatioCap = preset.pixelRatio
+    this.renderer.shadowMap.enabled = preset.shadows
+    this.directionalLight.castShadow = preset.shadows
+    // Shadow-casting changes need every material to be rebuilt once.
+    this.scene.traverse((o) => {
+      const m = (o as THREE.Mesh).material
+      for (const mat of Array.isArray(m) ? m : m ? [m] : []) mat.needsUpdate = true
+    })
+    this.handleResize()
+  }
+
+  public getPixelRatio(): number {
+    return this.renderer.getPixelRatio()
+  }
+
   // Handle window resize with proper aspect ratio and pixel density management
   private handleResize(): void {
     const width = window.innerWidth
     const height = window.innerHeight
-    const pixelRatio = Math.min(window.devicePixelRatio, 2)
+    const pixelRatio = Math.min(window.devicePixelRatio, this.pixelRatioCap)
 
     // Update renderer size and pixel ratio
     this.renderer.setPixelRatio(pixelRatio)
@@ -283,7 +297,7 @@ export class SceneManager {
   public resize(width?: number, height?: number): void {
     if (width && height) {
       // Custom size
-      const pixelRatio = Math.min(window.devicePixelRatio, 2)
+      const pixelRatio = Math.min(window.devicePixelRatio, this.pixelRatioCap)
       this.renderer.setPixelRatio(pixelRatio)
       this.renderer.setSize(width, height)
       this.shaderManager.setSize(width, height)
