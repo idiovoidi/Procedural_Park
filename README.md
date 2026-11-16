@@ -9,7 +9,7 @@
 
 Procedural Park is a first-person creature-ranching and zoo-management game that runs in the browser. Think *Zoo Tycoon* seen from the ground, with the hands-on feed-collect-automate loop of *Slime Rancher*. Every creature is procedurally generated from a genome, so the roster is never the same twice and the breeding game never runs out of new shapes.
 
-> Early on this project was a wildlife-photography game (working name "AI Snap"). The design has since moved to park management and breeding. Photography stays as a supporting tool. See the [Game Design Document](docs/GDD.md) for the full direction.
+> ⚠️ **Very early and bare bones.** This is a work in progress: only the first pieces of the management loop exist, visuals are placeholder, and things will change or break. See the [Game Design Document](docs/GDD.md) for where it is heading.
 
 ## 📸 Screenshots
 
@@ -19,9 +19,8 @@ Procedural Park is a first-person creature-ranching and zoo-management game that
 
 | | |
 |---|---|
-| ![Ride mode](docs/media/02-ride-creatures.png)<br>Ride through the park | ![Free roam](docs/media/03-free-roam.png)<br>Free roam |
-| ![Build mode](docs/media/07-build-mode.png)<br>Build mode: fences, gates, troughs, bins | ![Market](docs/media/06-market.png)<br>Market: sell resources and creatures |
-| ![Food store](docs/media/05-food-store.png)<br>Food store | ![Collection](docs/media/09-collection.png)<br>Creature collection |
+| ![Free roam](docs/media/03-free-roam.png)<br>Free roam | ![Build mode](docs/media/07-build-mode.png)<br>Build mode: fences, gates, troughs, bins |
+| ![Market](docs/media/06-market.png)<br>Market: sell resources and creatures | ![Food store](docs/media/05-food-store.png)<br>Food store |
 
 ## ✨ The Idea
 
