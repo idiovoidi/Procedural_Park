@@ -1,46 +1,15 @@
-# 🦁 AI Snap - Wildlife Photography Game
+# 🦕 Procedural Park
 
-A 3D wildlife photography game where you explore a procedurally generated safari park, discover unique creatures, and capture stunning photos. Built with Three.js, TypeScript, and modern web technologies.
+**Run a park of impossible animals.** Find a few wild founders, breed them into stranger and rarer descendants, and build the pens, feeders and machinery that turn their appetites into income, all from first person, walking your own paddocks.
 
-![AI Snap](https://img.shields.io/badge/Status-In%20Development-yellow)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue)
-![Three.js](https://img.shields.io/badge/Three.js-0.179.1-green)
+![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
+![Three.js](https://img.shields.io/badge/Three.js-0.179-green)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
-## ✨ Features
+Procedural Park is a first-person creature-ranching and zoo-management game that runs in the browser. Think *Zoo Tycoon* seen from the ground, with the hands-on feed-collect-automate loop of *Slime Rancher*. Every creature is procedurally generated from a genome, so the roster is never the same twice and the breeding game never runs out of new shapes.
 
-### 🎮 Core Gameplay
-- **Procedural Wildlife**: 60+ unique creatures with varied anatomies, behaviors, and rarities
-- **Photography System**: Score-based creature photography with distance, framing, and rarity calculations
-- **Dual Camera Modes**: Ride mode (automated path) and free roam mode (WASD controls)
-- **Creature Collection**: Build your collection by photographing different species
-
-### 🍖 Interaction Systems
-- **Feeding Mechanics**: Use different food types to interact with creatures
-- **Currency Economy**: Earn Safari Coins from photos and feeding
-- **Food Store**: Purchase food items to stock your inventory
-- **Creature Reactions**: Creatures respond differently to various foods
-
-### 🌍 World & Environment
-- **Biome System**: Forest, meadow, rocky, wetland, crystal cave, and floating islands
-- **Procedural Terrain**: Noise-based generation with smooth biome transitions
-- **Park Structures**: Main gate, ranger station, experiment lab, food store
-- **Dynamic Lighting**: Day/night toggle with atmospheric effects
-
-### 🎨 Visual Effects
-- **Post-Processing Pipeline**: CRT simulation, film grain, chromatic aberration
-- **Retro Aesthetics**: Pixel-art style options with customizable shaders
-- **Performance Monitoring**: Auto-adjustment for optimal frame rates
-
-### 👥 Multiplayer
-- **WebRTC P2P**: Serverless peer-to-peer connections
-- **Shared Exploration**: See other players in real-time
-- **Photo Events**: Share photography moments with peers
-
-### 💾 Progression
-- **Save/Load System**: Multiple save slots with export/import
-- **Player Stats**: Track photos, discoveries, and achievements
-- **Transaction History**: View currency earnings and spending
+> Early on this project was a wildlife-photography game (working name "AI Snap"). The design has since moved to park management and breeding. Photography stays as a supporting tool. See the [Game Design Document](docs/GDD.md) for the full direction.
 
 ## 📸 Screenshots
 
@@ -54,6 +23,32 @@ A 3D wildlife photography game where you explore a procedurally generated safari
 | ![Build mode](docs/media/07-build-mode.png)<br>Build mode: fences, gates, troughs, bins | ![Market](docs/media/06-market.png)<br>Market: sell resources and creatures |
 | ![Food store](docs/media/05-food-store.png)<br>Food store | ![Collection](docs/media/09-collection.png)<br>Creature collection |
 
+## ✨ The Idea
+
+- **Breeding is the engine.** The big decision is which two creatures to pair and what they produce.
+- **Every creature is a small business.** Archetype, size, temperament and rarity change what it eats, where it can live, what it produces and what it sells for.
+- **Walk it, don't menu it.** Feeding, building, collecting and capturing happen in the world, in first person.
+- **Automate the chores, keep the choices.** Progression buys machinery that removes repetition, not decisions.
+- **Calm and never punishing.** Soft pressure only. Nothing kills you or is lost permanently.
+
+## 🧩 What Works Today
+
+The vertical slice is being built task by task (see [docs/TASKS.md](docs/TASKS.md)).
+
+| Area | Status |
+|---|---|
+| Procedural creatures from a genome, with crossover for breeding | ✅ |
+| Care loop: troughs, hunger, mood, hand feeding | ✅ |
+| Build mode: fences, gates, troughs, collector bins, shelters, plants, roofs | ✅ |
+| Pen detection and quality scoring | ✅ |
+| Production: per-archetype resources, collector bins, storage | ✅ |
+| Market: sell resources and creatures | ✅ |
+| Capture loop: trust from feeding, lures, transport crates | ✅ |
+| Biomes, day/night, retro post-processing shaders | ✅ |
+| Save/load, P2P multiplayer over WebRTC | ✅ (being reworked for the new loop) |
+| Hub park with residents roaming pens, Breeding Den, codex | 🔨 next |
+| Automation, expeditions, trading, arena | 🗺️ later |
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -64,8 +59,8 @@ A 3D wildlife photography game where you explore a procedurally generated safari
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ai-snap.git
-cd ai-snap
+git clone https://github.com/idiovoidi/Procedural_Park.git
+cd Procedural_Park
 
 # Install dependencies
 npm install
@@ -74,7 +69,7 @@ npm install
 npm run dev
 ```
 
-The game will open at `http://localhost:3000`
+The game will open at `http://localhost:3000/Procedural_Park/`
 
 ### Building for Production
 
@@ -128,7 +123,7 @@ npm run preview
 ## 📁 Project Structure
 
 ```
-ai-snap/
+Procedural_Park/
 ├── src/
 │   ├── core/                 # Core utilities and constants
 │   │   ├── constants/        # Game configuration
@@ -143,6 +138,14 @@ ai-snap/
 │   │   ├── camera/           # Camera controller
 │   │   ├── creatures/        # Creature generation & AI
 │   │   ├── photo/            # Photography scoring
+│   │   ├── care/             # Hunger, mood, feeding
+│   │   ├── park/             # Pen detection and quality
+│   │   ├── build/            # First-person build mode
+│   │   ├── production/       # Creature output and resources
+│   │   ├── market/           # Selling resources and creatures
+│   │   ├── capture/          # Trust, lures, transport crates
+│   │   ├── roster/           # Owned creatures and state
+│   │   ├── economy/          # Sim clock and creature stats
 │   │   ├── audio/            # Audio management
 │   │   ├── terrain/          # Terrain generation
 │   │   ├── food/             # Feeding mechanics
@@ -162,8 +165,10 @@ ai-snap/
 │   │   └── peer-avatar/      # Peer rendering
 │   └── main.ts               # Entry point
 ├── docs/                     # Documentation
-│   ├── CODEBASE_GOALS.md     # Project vision & goals
-│   ├── ARCHITECTURE.md       # Technical architecture
+│   ├── GDD.md                # Game design document
+│   ├── TASKS.md              # Milestone task list
+│   ├── CODEBASE_GOALS.md     # Code goals
+│   ├── architecture.md       # Technical architecture
 │   └── My_Docs/              # Development notes
 ├── public/                   # Static assets
 ├── vite.config.ts            # Vite configuration
@@ -187,7 +192,7 @@ ai-snap/
 - **Creature Manager**: Procedural generation and behavior AI
 - **Currency Manager**: Economy with transactions and rewards
 
-See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed documentation.
+See [architecture.md](docs/architecture.md) for detailed documentation.
 
 ## 🎨 Customization
 
@@ -277,28 +282,14 @@ See [CODEBASE_GOALS.md](docs/CODEBASE_GOALS.md) for detailed contribution guidel
 
 ## 📝 Roadmap
 
-### Current Version (v0.1.0)
-- ✅ Core photography gameplay
-- ✅ Procedural creature generation
-- ✅ Feeding mechanics
-- ✅ Currency economy
-- ✅ Food store
-- ✅ Multiplayer support
-- ✅ Save/load system
+Milestones from the [GDD](docs/GDD.md):
 
-### Upcoming Features
-- 🎯 Achievement system
-- 🎯 Daily challenges
-- 🎯 Weather system
-- 🎯 Time of day cycle
-- 🎯 Creature breeding
-- 🎯 Park customization
-
-### Future Considerations
-- 💭 VR support
-- 💭 Mobile version
-- 💭 Mod support
-- 💭 Social features
+- **M1 Vertical slice (in progress):** capture a founder, pen it, earn from it, breed a child, hatch it and sell it in about 30 minutes.
+- **M2 Automation:** feeders, conveyors, silos, auto-sell, contract board.
+- **M3 Expeditions:** multiple maps, study and special-condition captures, night spawns.
+- **M4 Social:** card trading, friend park visits, shared codex.
+- **M5-M6 Depth and arena:** pedigree, mutations, staff, deterministic auto-battler.
+- **M7 Platform polish:** gamepad, mobile touch, performance scaling, accessibility.
 
 ## 🐛 Known Issues
 
@@ -308,7 +299,7 @@ See [CODEBASE_GOALS.md](docs/CODEBASE_GOALS.md) for detailed contribution guidel
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT.
 
 ## 🙏 Acknowledgments
 
@@ -319,8 +310,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/ai-snap/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/ai-snap/discussions)
+- **Issues**: [GitHub Issues](https://github.com/idiovoidi/Procedural_Park/issues)
 
 ---
 
